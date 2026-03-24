@@ -24,7 +24,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               email: user.email,
               name: user.name || null,
               image: user.image || null,
-              isAdmin: false,
             });
           }
         }
@@ -42,7 +41,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
           if (dbUser) {
             session.user.id = dbUser.id.toString();
-            session.user.isAdmin = dbUser.isAdmin;
           }
         }
       } catch (error) {

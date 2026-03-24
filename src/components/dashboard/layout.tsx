@@ -8,7 +8,7 @@ import {
   Film, Tv, Gamepad2, BookOpen, 
   LayoutDashboard, Search, 
   LogOut, ChevronLeft, ChevronRight,
-  Sparkles, Crown, Zap
+  Sparkles, Zap
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,6 @@ interface DashboardLayoutProps {
     name?: string | null;
     email?: string | null;
     image?: string | null;
-    isAdmin?: boolean;
   };
 }
 
@@ -51,7 +50,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       <aside
         className={cn(
           'fixed left-0 top-0 z-40 h-screen transition-all duration-500 ease-in-out',
-          collapsed ? 'w-16' : 'w-64'
+          collapsed ? 'w-24' : 'w-64'
         )}
       >
         {/* Background with gradient and blur */}
@@ -104,38 +103,31 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
           )}
 
           {/* Navigation */}
-          <nav className={cn("flex-1 py-4 space-y-2", collapsed ? "px-2" : "px-3")}>
+          <nav className={cn("flex-1 py-6 space-y-3", collapsed ? "px-3" : "px-3")}>
             {navigation.map((item, index) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
 
               if (collapsed) {
                 return (
-                  <div key={item.name} className="w-full">
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            'flex items-center justify-center h-11 w-full rounded-xl transition-all duration-300 group relative overflow-hidden',
-                            isActive
-                              ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25'
-                              : 'text-muted-foreground hover:bg-primary/10 hover:text-foreground'
-                          )}
-                        >
-                          <Icon className={cn(
-                            "h-5 w-5 transition-all duration-300",
-                            isActive ? "text-primary-foreground" : "group-hover:scale-110"
-                          )} />
-                          {isActive && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent" />
-                          )}
-                        </Link>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="ml-2 bg-popover text-popover-foreground border border-border shadow-lg">
-                        <p className="font-medium">{item.name}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                  <div key={item.name} className="w-full flex justify-center">
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        'flex items-center justify-center h-12 w-12 rounded-xl transition-all duration-300 group relative overflow-hidden',
+                        isActive
+                          ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      <Icon className={cn(
+                        "h-6 w-6 transition-all duration-300",
+                        isActive ? "text-primary-foreground" : "group-hover:scale-110"
+                      )} />
+                      {isActive && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent" />
+                      )}
+                    </Link>
                   </div>
                 );
               }
@@ -183,11 +175,11 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
 
 
           {/* Bottom section */}
-          <div className={cn("pb-4", collapsed ? "px-2" : "px-3")}>
+          <div className={cn("pb-6", collapsed ? "px-3" : "px-3")}>
             {/* User profile */}
             <div className={cn(
-              'group relative overflow-hidden rounded-xl transition-all duration-300',
-              collapsed ? 'p-2' : 'p-3'
+              'group relative overflow-hidden rounded-xl transition-all duration-300 mb-3',
+              collapsed ? 'flex justify-center' : ''
             )}>
               <div className="absolute inset-0 bg-gradient-to-br from-muted/50 to-muted/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               
@@ -198,7 +190,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                 <div className="relative">
                   <Avatar className={cn(
                     "flex-shrink-0 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300",
-                    collapsed ? "h-9 w-9" : "h-10 w-10"
+                    collapsed ? "h-10 w-10" : "h-10 w-10"
                   )}>
                     <AvatarImage src={user.image || ''} alt={user.name || ''} />
                     <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
@@ -218,23 +210,16 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
             </div>
 
             {/* Sign out button */}
-            <div className="mt-2">
+            <div className="flex justify-center">
               {collapsed ? (
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-full h-10 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all duration-300"
-                      onClick={() => signOut()}
-                    >
-                      <LogOut className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>Sign Out</p>
-                  </TooltipContent>
-                </Tooltip>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-12 w-12 rounded-xl hover:text-destructive transition-all duration-300"
+                  onClick={() => signOut()}
+                >
+                  <LogOut className="h-6 w-6" />
+                </Button>
               ) : (
                 <Button
                   variant="ghost"
@@ -254,7 +239,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       <main
         className={cn(
           'flex-1 transition-all duration-500 ease-in-out',
-          collapsed ? 'ml-16' : 'ml-64'
+          collapsed ? 'ml-24' : 'ml-64'
         )}
       >
         {children}
