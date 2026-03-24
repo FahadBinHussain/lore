@@ -129,3 +129,8 @@
     @apply font-sans;
   }
 }
+
+/* Avatar background images using data attributes to avoid hydration mismatch */
+[data-avatar] {
+  background-image: attr(data-avatar url);
+}

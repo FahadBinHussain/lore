@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { 
   Film, Tv, Gamepad2, BookOpen, Sparkles,
   ArrowRight, Play, Star, Zap, Globe,
@@ -81,6 +82,7 @@ const testimonials = [
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     setMounted(true);
@@ -126,17 +128,30 @@ export default function HomePage() {
 
             {/* CTA Buttons */}
             <div className="hidden md:flex items-center gap-3">
-              <Link href="/auth/signin">
-                <Button variant="ghost" className="text-sm">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/auth/signin">
-                <Button className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                  Get Started
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
+              {status === 'loading' ? (
+                <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              ) : session?.user ? (
+                <Link href="/dashboard">
+                  <Button className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
+                    Go to Dashboard
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/auth/signin">
+                    <Button variant="ghost" className="text-sm">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/auth/signin">
+                    <Button className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
+                      Get Started
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -164,17 +179,32 @@ export default function HomePage() {
                   </a>
                 ))}
                 <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-                  <Link href="/auth/signin">
-                    <Button variant="ghost" className="w-full">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link href="/auth/signin">
-                    <Button className="w-full bg-gradient-to-r from-primary to-primary/90">
-                      Get Started
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
+                  {status === 'loading' ? (
+                    <div className="flex justify-center py-4">
+                      <div className="w-6 h-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    </div>
+                  ) : session?.user ? (
+                    <Link href="/dashboard">
+                      <Button className="w-full bg-gradient-to-r from-primary to-primary/90">
+                        Go to Dashboard
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href="/auth/signin">
+                        <Button variant="ghost" className="w-full">
+                          Sign In
+                        </Button>
+                      </Link>
+                      <Link href="/auth/signin">
+                        <Button className="w-full bg-gradient-to-r from-primary to-primary/90">
+                          Get Started
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -227,13 +257,25 @@ export default function HomePage() {
               "flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-1000 delay-300",
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             )}>
-              <Link href="/auth/signin">
-                <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
-                  <Rocket className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                  Start Tracking Free
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+              {status === 'loading' ? (
+                <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              ) : session?.user ? (
+                <Link href="/dashboard">
+                  <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
+                    <Rocket className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                    Go to Dashboard
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/auth/signin">
+                  <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
+                    <Rocket className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                    Start Tracking Free
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              )}
               <Button variant="outline" size="lg" className="group border-2 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300">
                 <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
                 Watch Demo
@@ -245,7 +287,7 @@ export default function HomePage() {
               "flex flex-col items-center gap-6 pt-8 transition-all duration-1000 delay-500",
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             )}>
-              <div className="flex -space-x-2">
+                <div className="flex -space-x-2">
                 {[
                   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50',
                   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
@@ -256,7 +298,7 @@ export default function HomePage() {
                   <div
                     key={i}
                     className="w-10 h-10 rounded-full border-2 border-background bg-cover bg-center shadow-lg"
-                    style={{ backgroundImage: `url(${avatar})` }}
+                    style={{ backgroundImage: "url('" + avatar + "')" }}
                   />
                 ))}
               </div>
@@ -371,10 +413,10 @@ export default function HomePage() {
                   </div>
                   <p className="text-muted-foreground mb-6 italic">"{testimonial.quote}"</p>
                   <div className="flex items-center gap-3">
-                    <div 
-                      className="w-12 h-12 rounded-full bg-cover bg-center"
-                      style={{ backgroundImage: `url(${testimonial.avatar})` }}
-                    />
+                  <div 
+                    className="w-12 h-12 rounded-full bg-cover bg-center"
+                    style={{ backgroundImage: `url(${testimonial.avatar})` }}
+                  />
                     <div>
                       <p className="font-semibold">{testimonial.author}</p>
                       <p className="text-sm text-muted-foreground">{testimonial.role}</p>
@@ -410,13 +452,25 @@ export default function HomePage() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/auth/signin">
-                <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                  <Zap className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                  Get Started Free
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+              {status === 'loading' ? (
+                <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              ) : session?.user ? (
+                <Link href="/dashboard">
+                  <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
+                    <Zap className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                    Go to Dashboard
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/auth/signin">
+                  <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
+                    <Zap className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                    Get Started Free
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              )}
               <Button variant="outline" size="lg" className="border-2">
                 <Globe className="w-5 h-5 mr-2" />
                 View on GitHub

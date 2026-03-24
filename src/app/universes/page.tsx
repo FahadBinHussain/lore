@@ -12,7 +12,7 @@ export default async function UniversesPage() {
 
   return (
     <DashboardLayout user={session.user}>
-      <UniversesContent isAdmin={session.user.isAdmin} />
+      <UniversesContent />
     </DashboardLayout>
   );
 }

@@ -6,7 +6,7 @@ import {
   Film, Tv, Gamepad2, BookOpen, Sparkles,
   TrendingUp, Clock, CheckCircle, Target,
   ArrowRight, Play, Star, Zap, Globe,
-  ChevronRight, Flame, Crown, Rocket
+  ChevronRight, Flame, Rocket
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -214,10 +214,10 @@ export function DashboardContent() {
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-3 text-xl">
-                    <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20">
-                      <Crown className="w-5 h-5 text-amber-500" />
+                    <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20">
+                      <Sparkles className="w-5 h-5 text-purple-500" />
                     </div>
-                    Featured Universes
+                    Universes
                   </CardTitle>
                   <Link href="/universes">
                     <Button variant="ghost" size="sm" className="text-primary hover:text-primary">
