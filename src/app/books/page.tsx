@@ -1,9 +1,9 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard/layout';
-import { DashboardContent } from '@/components/dashboard/content';
+import { MediaContent } from '@/components/media/content';
 
-export default async function Home() {
+export default async function BooksPage() {
   const session = await auth();
   
   if (!session?.user) {
@@ -12,7 +12,7 @@ export default async function Home() {
 
   return (
     <DashboardLayout user={session.user}>
-      <DashboardContent />
+      <MediaContent type="book" title="Books" icon="BookOpen" />
     </DashboardLayout>
   );
 }

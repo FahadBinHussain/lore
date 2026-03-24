@@ -1,9 +1,9 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard/layout';
-import { DashboardContent } from '@/components/dashboard/content';
+import { SearchContent } from '@/components/search/content';
 
-export default async function Home() {
+export default async function SearchPage() {
   const session = await auth();
   
   if (!session?.user) {
@@ -12,7 +12,7 @@ export default async function Home() {
 
   return (
     <DashboardLayout user={session.user}>
-      <DashboardContent />
+      <SearchContent />
     </DashboardLayout>
   );
 }
