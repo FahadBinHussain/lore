@@ -27,7 +27,7 @@ interface DashboardLayoutProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard, color: 'from-violet-500 to-purple-600' },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, color: 'from-violet-500 to-purple-600' },
   { name: 'Movies', href: '/movies', icon: Film, color: 'from-rose-500 to-pink-600' },
   { name: 'TV Shows', href: '/tv', icon: Tv, color: 'from-cyan-500 to-blue-600' },
   { name: 'Games', href: '/games', icon: Gamepad2, color: 'from-amber-500 to-orange-600' },
@@ -181,18 +181,6 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
             })}
           </nav>
 
-          {/* Premium badge */}
-          {!collapsed && (
-            <div className="px-3 mb-4">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <Crown className="w-4 h-4 text-amber-500" />
-                  <span className="text-xs font-semibold text-primary">Premium</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground">Unlimited tracking & features</p>
-              </div>
-            </div>
-          )}
 
           {/* Bottom section */}
           <div className={cn("pb-4", collapsed ? "px-2" : "px-3")}>
