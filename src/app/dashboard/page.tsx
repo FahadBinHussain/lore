@@ -1,5 +1,3 @@
-'use client';
-
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard/layout';

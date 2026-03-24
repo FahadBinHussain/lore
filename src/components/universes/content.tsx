@@ -1,18 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Plus, Clock, CheckCircle, MoreVertical } from 'lucide-react';
+import { Sparkles, Clock, CheckCircle, MoreVertical } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,13 +40,11 @@ interface UniverseItem {
 }
 
 interface UniversesContentProps {
-  isAdmin: boolean;
 }
 
-export function UniversesContent({ isAdmin }: UniversesContentProps) {
+export function UniversesContent({ }: UniversesContentProps) {
   const [universes, setUniverses] = useState<Universe[]>([]);
   const [loading, setLoading] = useState(true);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchUniverses();
@@ -93,25 +84,6 @@ export function UniversesContent({ isAdmin }: UniversesContentProps) {
             Explore and track your progress through interconnected media collections
           </p>
         </div>
-        
-        {isAdmin && (
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogTrigger>
-              <Button className="bg-gradient-to-r from-purple-500 to-blue-600">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Universe
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create New Universe</DialogTitle>
-              </DialogHeader>
-              <div className="text-muted-foreground">
-                Universe creation form coming soon...
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
 
       {loading ? (
@@ -156,12 +128,6 @@ export function UniversesContent({ isAdmin }: UniversesContentProps) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>View Details</DropdownMenuItem>
-                    {isAdmin && (
-                      <>
-                        <DropdownMenuItem>Edit Universe</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                      </>
-                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -210,20 +176,8 @@ export function UniversesContent({ isAdmin }: UniversesContentProps) {
           <Sparkles className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-medium mb-2">No Universes Yet</h3>
           <p className="text-muted-foreground mb-4">
-            {isAdmin 
-              ? "Create your first universe to start tracking interconnected media!"
-              : "No public universes available yet. Check back soon!"
-            }
+            No public universes available yet. Check back soon!
           </p>
-          {isAdmin && (
-            <Button 
-              className="bg-gradient-to-r from-purple-500 to-blue-600"
-              onClick={() => setCreateDialogOpen(true)}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Universe
-            </Button>
-          )}
         </Card>
       )}
     </div>
