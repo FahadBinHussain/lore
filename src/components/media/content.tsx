@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, Music, Podcast, MapPin, Plus, Check, Clock } from 'lucide-react';
+import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, Music, Podcast, MapPin, Plus, Check, Clock, Search } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Link from 'next/link';
 
 const iconMap = {
   Film,
@@ -29,11 +30,13 @@ interface MediaItem {
   id: number;
   mediaItem: {
     id: number;
+    externalId: string;
     title: string;
     posterPath: string | null;
     releaseDate: string | null;
     rating: string | null;
     description: string | null;
+    mediaType: string;
   };
   status: string;
   progress: number;
@@ -58,6 +61,21 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
       console.error('Failed to fetch items:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getDetailUrl = (mediaType: string, externalId: string) => {
+    switch (mediaType) {
+      case 'movie': return `/movies/${externalId}`;
+      case 'tv': return `/tv/${externalId}`;
+      case 'game': return `/games/${externalId}`;
+      case 'book': return `/books/${externalId}`;
+      case 'comic': return `/comics/${externalId}`;
+      case 'boardgame': return `/boardgames/${externalId}`;
+      case 'soundtrack': return `/soundtracks/${externalId}`;
+      case 'podcast': return `/podcasts/${externalId}`;
+      case 'themepark': return `/themeparks/${externalId}`;
+      default: return `/${mediaType}s/${externalId}`;
     }
   };
 
@@ -89,97 +107,109 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
   };
 
   return (
-    <div className="p-6 w-full">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Icon className="w-8 h-8" />
-            {title}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {stats.total} tracked • {stats.completed} completed • {stats.inProgress} in progress
-          </p>
+    <div className="p-6 w-full max-w-7xl mx-auto">
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <Icon className="w-8 h-8 text-primary" />
+          <h1 className="text-3xl font-bold">{title}</h1>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Add {title}
-        </Button>
+        <p className="text-muted-foreground">
+          {stats.total} tracked • {stats.completed} completed • {stats.inProgress} in progress
+        </p>
       </div>
 
-      <Tabs value={filter} onValueChange={setFilter} className="mb-6">
-        <TabsList>
-          <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
-          <TabsTrigger value="in_progress">In Progress ({stats.inProgress})</TabsTrigger>
-          <TabsTrigger value="completed">Completed ({stats.completed})</TabsTrigger>
+      <Tabs value={filter} onValueChange={setFilter} className="mb-8">
+        <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsTrigger value="all" className="flex items-center gap-2">
+            All ({stats.total})
+          </TabsTrigger>
+          <TabsTrigger value="in_progress" className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            In Progress ({stats.inProgress})
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="flex items-center gap-2">
+            <Check className="w-4 h-4" />
+            Completed ({stats.completed})
+          </TabsTrigger>
         </TabsList>
       </Tabs>
 
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <div className="aspect-[2/3] bg-muted" />
-              <CardContent className="p-4">
-                <div className="h-4 bg-muted rounded w-3/4 mb-2" />
+          {Array.from({ length: 10 }).map((_, i) => (
+            <Card key={i} className="overflow-hidden animate-pulse">
+              <div className="aspect-[2/3] bg-muted rounded-t-lg" />
+              <CardContent className="p-4 space-y-3">
+                <div className="h-4 bg-muted rounded w-3/4" />
                 <div className="h-3 bg-muted rounded w-1/2" />
+                <div className="h-2 bg-muted rounded w-full" />
               </CardContent>
             </Card>
           ))}
         </div>
       ) : filteredItems.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {filteredItems.map((item) => (
-            <Card key={item.id} className="overflow-hidden group hover:shadow-lg transition-shadow cursor-pointer">
-              <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                {item.mediaItem.posterPath ? (
-                  <img 
-                    src={item.mediaItem.posterPath} 
-                    alt={item.mediaItem.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Icon className="w-12 h-12 text-muted-foreground" />
-                  </div>
-                )}
-                {item.status !== 'not_started' && (
-                  <Badge 
-                    className={`absolute top-2 right-2 ${getStatusColor(item.status)}`}
-                  >
-                    {getStatusIcon(item.status)}
-                  </Badge>
-                )}
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-sm truncate">{item.mediaItem.title}</h3>
-                {item.mediaItem.releaseDate && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(item.mediaItem.releaseDate).getFullYear()}
-                  </p>
-                )}
-                {item.progress > 0 && (
-                  <div className="mt-2">
-                    <div className="h-1 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary transition-all"
-                        style={{ width: `${item.progress}%` }}
-                      />
+            <Link key={item.id} href={getDetailUrl(item.mediaItem.mediaType, item.mediaItem.externalId)}>
+              <Card className="overflow-hidden group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer border-0 shadow-md">
+                <div className="aspect-[2/3] relative overflow-hidden bg-muted rounded-t-lg">
+                  {item.mediaItem.posterPath ? (
+                    <img 
+                      src={item.mediaItem.posterPath} 
+                      alt={item.mediaItem.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                      <Icon className="w-12 h-12 text-muted-foreground/50" />
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                  {item.status !== 'not_started' && (
+                    <Badge 
+                      className={`absolute top-3 right-3 ${getStatusColor(item.status)} shadow-lg`}
+                    >
+                      {getStatusIcon(item.status)}
+                    </Badge>
+                  )}
+                </div>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+                    {item.mediaItem.title}
+                  </h3>
+                  {item.mediaItem.releaseDate && (
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(item.mediaItem.releaseDate).getFullYear()}
+                    </p>
+                  )}
+                  {item.progress > 0 && (
+                    <div className="mt-3">
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary transition-all duration-300 rounded-full"
+                          style={{ width: `${item.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       ) : (
-        <Card className="p-12 text-center">
-          <Icon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-medium mb-2">No {title} Yet</h3>
-          <p className="text-muted-foreground mb-4">
-            Start tracking your {title.toLowerCase()} by searching and adding them to your collection.
+        <div className="text-center py-16">
+          <Icon className="w-16 h-16 mx-auto mb-6 text-muted-foreground/50" />
+          <h3 className="text-2xl font-semibold mb-3">No {title} Tracked Yet</h3>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+            Start building your {title.toLowerCase()} collection. Search for your favorites and mark them as watched to see them here.
           </p>
-          <Button>Discover {title}</Button>
-        </Card>
+          <Link href="/search">
+            <Button size="lg" className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25">
+              <Search className="w-5 h-5 mr-2" />
+              Discover {title}
+            </Button>
+          </Link>
+        </div>
       )}
     </div>
   );
