@@ -92,5 +92,6 @@ export async function getGameDetails(id: number, accessToken: string): Promise<I
 
 export function getIGDBCoverUrl(url: string | undefined, size: string = 'cover_big'): string | null {
   if (!url) return null;
-  return url.replace('thumb', size);
+  const fullUrl = url.startsWith('//') ? `https:${url}` : url;
+  return fullUrl.replace('thumb', size);
 }
