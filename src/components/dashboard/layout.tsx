@@ -8,7 +8,8 @@ import {
   Film, Tv, Gamepad2, BookOpen, 
   LayoutDashboard, Search, 
   LogOut, ChevronLeft, ChevronRight,
-  Sparkles, Zap
+  Sparkles, Zap, BookCopy, Dice6,
+  Music, Podcast, MapPin
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,11 @@ const navigation = [
   { name: 'TV Shows', href: '/dashboard/tv', icon: Tv, color: 'from-cyan-500 to-blue-600' },
   { name: 'Games', href: '/dashboard/games', icon: Gamepad2, color: 'from-amber-500 to-orange-600' },
   { name: 'Books', href: '/dashboard/books', icon: BookOpen, color: 'from-emerald-500 to-green-600' },
+  { name: 'Comics', href: '/dashboard/comics', icon: BookCopy, color: 'from-purple-500 to-pink-600' },
+  { name: 'Board Games', href: '/dashboard/boardgames', icon: Dice6, color: 'from-orange-500 to-red-600' },
+  { name: 'Soundtracks', href: '/dashboard/soundtracks', icon: Music, color: 'from-indigo-500 to-blue-600' },
+  { name: 'Podcasts', href: '/dashboard/podcasts', icon: Podcast, color: 'from-teal-500 to-cyan-600' },
+  { name: 'Theme Parks', href: '/dashboard/themeparks', icon: MapPin, color: 'from-rose-500 to-pink-600' },
   { name: 'Universes', href: '/universes', icon: Sparkles, color: 'from-purple-500 to-indigo-600' },
   { name: 'Search', href: '/search', icon: Search, color: 'from-slate-500 to-gray-600' },
 ];
