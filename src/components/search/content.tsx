@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SearchResult {
   id: string;
@@ -22,6 +23,7 @@ export function SearchContent() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
   const router = useRouter();
 
   // Debounced search effect
@@ -35,6 +37,7 @@ export function SearchContent() {
     } else {
       // Clear results when query is empty
       setResults([]);
+      setActiveTab('all');
     }
   }, [query]);
 
@@ -85,6 +88,7 @@ export function SearchContent() {
       
       const data = await response.json();
       setResults(data.results || []);
+      setActiveTab('all'); // Reset to "all" tab when new results come in
     } catch (error) {
       console.error('Search failed:', error);
       setResults([]);
@@ -123,8 +127,34 @@ export function SearchContent() {
     }
   };
 
+  const getCategoryName = (type: string) => {
+    switch (type) {
+      case 'movie': return 'Movies';
+      case 'tv': return 'TV Shows';
+      case 'game': return 'Games';
+      case 'book': return 'Books';
+      case 'boardgame': return 'Board Games';
+      case 'comic': return 'Comics';
+      case 'podcast': return 'Podcasts';
+      case 'soundtrack': return 'Soundtracks';
+      case 'themepark': return 'Theme Parks';
+      default: return type;
+    }
+  };
+
+  // Group results by type
+  const groupedResults = results.reduce((acc, result) => {
+    if (!acc[result.type]) {
+      acc[result.type] = [];
+    }
+    acc[result.type].push(result);
+    return acc;
+  }, {} as Record<string, SearchResult[]>);
+
+  const categoryOrder = ['movie', 'tv', 'game', 'book', 'boardgame', 'comic', 'podcast', 'soundtrack', 'themepark'];
+
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Search Media</h1>
         <p className="text-muted-foreground">Discover movies, TV shows, games, books, comics, podcasts, and more</p>
@@ -149,48 +179,148 @@ export function SearchContent() {
       </div>
 
       {results.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {results.map((result) => (
-            <Card 
-              key={result.id} 
-              className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => handleResultClick(result)}
-            >
-              <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                {result.image ? (
-                  <img 
-                    src={result.image} 
-                    alt={result.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    {getTypeIcon(result.type)}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 mb-6">
+            <TabsTrigger value="all" className="text-xs">
+              All ({results.length})
+            </TabsTrigger>
+            {categoryOrder.map((categoryType) => {
+              const categoryResults = groupedResults[categoryType];
+              if (!categoryResults || categoryResults.length === 0) return null;
+              return (
+                <TabsTrigger key={categoryType} value={categoryType} className="text-xs">
+                  {getCategoryName(categoryType)} ({categoryResults.length})
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-8">
+            {categoryOrder.map((categoryType) => {
+              const categoryResults = groupedResults[categoryType];
+              if (!categoryResults || categoryResults.length === 0) return null;
+
+              return (
+                <div key={categoryType} className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${getTypeColor(categoryType)}`}>
+                      {getTypeIcon(categoryType)}
+                    </div>
+                    <h2 className="text-2xl font-bold">{getCategoryName(categoryType)}</h2>
+                    <Badge variant="secondary" className="ml-2">
+                      {categoryResults.length} result{categoryResults.length !== 1 ? 's' : ''}
+                    </Badge>
                   </div>
-                )}
-                <Badge 
-                  variant="secondary" 
-                  className={`absolute top-2 right-2 ${getTypeColor(result.type)}`}
-                >
-                  {getTypeIcon(result.type)}
-                  <span className="ml-1 capitalize">{result.type}</span>
-                </Badge>
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold truncate">{result.title}</h3>
-                {result.year && (
-                  <p className="text-sm text-muted-foreground">{result.year}</p>
-                )}
-                {result.rating && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <span className="text-yellow-500">★</span>
-                    <span className="text-sm">{result.rating.toFixed(1)}</span>
+
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
+                    {categoryResults.map((result) => (
+                      <Card
+                        key={result.id}
+                        className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => handleResultClick(result)}
+                      >
+                        <div className="aspect-[3/4] relative overflow-hidden bg-muted">
+                          {result.image ? (
+                            <img
+                              src={result.image}
+                              alt={result.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              {getTypeIcon(result.type)}
+                            </div>
+                          )}
+                          <Badge
+                            variant="secondary"
+                            className={`absolute top-1 right-1 text-xs ${getTypeColor(result.type)}`}
+                          >
+                            {getTypeIcon(result.type)}
+                          </Badge>
+                        </div>
+                        <CardContent className="p-2">
+                          <h3 className="font-medium text-sm truncate leading-tight">{result.title}</h3>
+                          {result.year && (
+                            <p className="text-xs text-muted-foreground">{result.year}</p>
+                          )}
+                          {result.rating && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className="text-yellow-500 text-xs">★</span>
+                              <span className="text-xs">{result.rating.toFixed(1)}</span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </div>
+              );
+            })}
+          </TabsContent>
+
+          {categoryOrder.map((categoryType) => {
+            const categoryResults = groupedResults[categoryType];
+            if (!categoryResults || categoryResults.length === 0) return null;
+
+            return (
+              <TabsContent key={categoryType} value={categoryType}>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${getTypeColor(categoryType)}`}>
+                      {getTypeIcon(categoryType)}
+                    </div>
+                    <h2 className="text-2xl font-bold">{getCategoryName(categoryType)}</h2>
+                    <Badge variant="secondary" className="ml-2">
+                      {categoryResults.length} result{categoryResults.length !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
+                    {categoryResults.map((result) => (
+                      <Card
+                        key={result.id}
+                        className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => handleResultClick(result)}
+                      >
+                        <div className="aspect-[3/4] relative overflow-hidden bg-muted">
+                          {result.image ? (
+                            <img
+                              src={result.image}
+                              alt={result.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              {getTypeIcon(result.type)}
+                            </div>
+                          )}
+                          <Badge
+                            variant="secondary"
+                            className={`absolute top-1 right-1 text-xs ${getTypeColor(result.type)}`}
+                          >
+                            {getTypeIcon(result.type)}
+                          </Badge>
+                        </div>
+                        <CardContent className="p-2">
+                          <h3 className="font-medium text-sm truncate leading-tight">{result.title}</h3>
+                          {result.year && (
+                            <p className="text-xs text-muted-foreground">{result.year}</p>
+                          )}
+                          {result.rating && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className="text-yellow-500 text-xs">★</span>
+                              <span className="text-xs">{result.rating.toFixed(1)}</span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            );
+          })}
+        </Tabs>
       )}
 
       {query && !loading && results.length === 0 && (
