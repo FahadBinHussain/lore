@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, Music, Podcast, MapPin, Plus, Check, Clock, Search } from 'lucide-react';
+import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, Music, Podcast, MapPin, Plus, Check, Clock, Search, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import Link from 'next/link';
 const iconMap = {
   Film,
   Tv,
+  Zap,
   Gamepad2,
   BookOpen,
   BookCopy,
@@ -21,7 +22,7 @@ const iconMap = {
 };
 
 interface MediaContentProps {
-  type: 'movie' | 'tv' | 'game' | 'book' | 'comic' | 'boardgame' | 'soundtrack' | 'podcast' | 'themepark';
+  type: 'movie' | 'tv' | 'anime' | 'game' | 'book' | 'comic' | 'boardgame' | 'soundtrack' | 'podcast' | 'themepark';
   title: string;
   icon: keyof typeof iconMap;
 }
@@ -68,6 +69,7 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
     switch (mediaType) {
       case 'movie': return `/movies/${externalId}`;
       case 'tv': return `/tv/${externalId}`;
+      case 'anime': return `/anime/${externalId}`;
       case 'game': return `/games/${externalId}`;
       case 'book': return `/books/${externalId}`;
       case 'comic': return `/comics/${externalId}`;

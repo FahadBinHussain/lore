@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Film, Tv, Gamepad2, BookOpen, Loader2, Puzzle, ScrollText, Mic, Music, MapPin } from 'lucide-react';
+import { Search, Film, Tv, Gamepad2, BookOpen, Loader2, Puzzle, ScrollText, Mic, Music, MapPin, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 interface SearchResult {
   id: string;
   title: string;
-  type: 'movie' | 'tv' | 'game' | 'book' | 'boardgame' | 'comic' | 'podcast' | 'soundtrack' | 'themepark';
+  type: 'movie' | 'tv' | 'anime' | 'game' | 'book' | 'boardgame' | 'comic' | 'podcast' | 'soundtrack' | 'themepark';
   image?: string;
   year?: string;
   rating?: number;
@@ -48,6 +48,9 @@ export function SearchContent() {
         break;
       case 'tv':
         router.push(`/tv/${result.id}`);
+        break;
+      case 'anime':
+        router.push(`/anime/${result.id}`);
         break;
       case 'game':
         router.push('/games');
@@ -101,6 +104,7 @@ export function SearchContent() {
     switch (type) {
       case 'movie': return <Film className="w-4 h-4" />;
       case 'tv': return <Tv className="w-4 h-4" />;
+      case 'anime': return <Zap className="w-4 h-4" />;
       case 'game': return <Gamepad2 className="w-4 h-4" />;
       case 'book': return <BookOpen className="w-4 h-4" />;
       case 'boardgame': return <Puzzle className="w-4 h-4" />;
@@ -116,12 +120,13 @@ export function SearchContent() {
     switch (type) {
       case 'movie': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
       case 'tv': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+      case 'anime': return 'bg-pink-500/10 text-pink-500 border-pink-500/20';
       case 'game': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
       case 'book': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
       case 'boardgame': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
       case 'comic': return 'bg-red-500/10 text-red-500 border-red-500/20';
       case 'podcast': return 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20';
-      case 'soundtrack': return 'bg-pink-500/10 text-pink-500 border-pink-500/20';
+      case 'soundtrack': return 'bg-violet-500/10 text-violet-500 border-violet-500/20';
       case 'themepark': return 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20';
       default: return '';
     }
@@ -131,6 +136,7 @@ export function SearchContent() {
     switch (type) {
       case 'movie': return 'Movies';
       case 'tv': return 'TV Shows';
+      case 'anime': return 'Anime';
       case 'game': return 'Games';
       case 'book': return 'Books';
       case 'boardgame': return 'Board Games';
@@ -151,7 +157,7 @@ export function SearchContent() {
     return acc;
   }, {} as Record<string, SearchResult[]>);
 
-  const categoryOrder = ['movie', 'tv', 'game', 'book', 'boardgame', 'comic', 'podcast', 'soundtrack', 'themepark'];
+  const categoryOrder = ['movie', 'tv', 'anime', 'game', 'book', 'boardgame', 'comic', 'podcast', 'soundtrack', 'themepark'];
 
   return (
     <div className="p-6 w-full">
