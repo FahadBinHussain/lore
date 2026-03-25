@@ -7,6 +7,7 @@ import { searchComics } from '@/lib/api/comicvine';
 import { searchPodcasts } from '@/lib/api/listennotes';
 import { searchRecordings } from '@/lib/api/musicbrainz';
 import { searchAttractions } from '@/lib/api/themeparks';
+import { searchAnime, normalizeAnimeForApp } from '@/lib/api/anilist';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -53,6 +54,27 @@ export async function GET(request: NextRequest) {
         })));
       } catch (error) {
         console.error('TMDB TV search error:', error);
+      }
+    }
+
+    // Search anime using AniList (if type is not specified or includes anime)
+    if (!type || type === 'anime') {
+      try {
+        const animeResults = await searchAnime(query);
+        results.push(...animeResults.map((a: any) => {
+          const normalized = normalizeAnimeForApp(a);
+          return {
+            id: normalized.id.toString(),
+            title: normalized.title,
+            type: 'anime',
+            image: normalized.image,
+            year: normalized.year,
+            rating: normalized.rating,
+            description: normalized.description,
+          };
+        }));
+      } catch (error) {
+        console.error('AniList search error:', error);
       }
     }
 
