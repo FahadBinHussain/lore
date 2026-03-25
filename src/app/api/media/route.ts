@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { userProgress, mediaItems } from '@/db/schema';
+import { userMediaProgress, mediaItems } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
@@ -19,12 +19,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const items = await db.query.userProgress.findMany({
+    const items = await db.query.userMediaProgress.findMany({
       where: and(
-        eq(userProgress.userId, parseInt(session.user.id)),
+        eq(userMediaProgress.userId, parseInt(session.user.id)),
         eq(mediaItems.mediaType, type as 'movie' | 'tv' | 'game' | 'book')
       ),
-      orderBy: desc(userProgress.updatedAt),
+      orderBy: desc(userMediaProgress.updatedAt),
       with: {
         mediaItem: true,
       },
@@ -48,32 +48,34 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { mediaItemId, status, progress, rating } = body;
 
-    const existingProgress = await db.query.userProgress.findFirst({
+    const existingProgress = await db.query.userMediaProgress.findFirst({
       where: and(
-        eq(userProgress.userId, parseInt(session.user.id)),
-        eq(userProgress.mediaItemId, mediaItemId)
+        eq(userMediaProgress.userId, parseInt(session.user.id)),
+        eq(userMediaProgress.mediaItemId, mediaItemId)
       ),
     });
 
     if (existingProgress) {
-      const [updated] = await db.update(userProgress)
+      const [updated] = await db.update(userMediaProgress)
         .set({
           status,
           progress,
           rating,
           updatedAt: new Date(),
           completedAt: status === 'completed' ? new Date() : existingProgress.completedAt,
+          lastActivityAt: new Date(),
         })
-        .where(eq(userProgress.id, existingProgress.id))
+        .where(eq(userMediaProgress.id, existingProgress.id))
         .returning();
       return NextResponse.json({ item: updated });
     } else {
-      const [newItem] = await db.insert(userProgress).values({
+      const [newItem] = await db.insert(userMediaProgress).values({
         userId: parseInt(session.user.id),
         mediaItemId,
         status: status || 'not_started',
         progress: progress || 0,
         rating,
+        lastActivityAt: new Date(),
       }).returning();
       return NextResponse.json({ item: newItem });
     }
