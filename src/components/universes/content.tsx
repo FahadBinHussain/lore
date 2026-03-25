@@ -117,7 +117,7 @@ export function UniversesContent({ }: UniversesContentProps) {
                 </div>
                 
                 <DropdownMenu>
-                  <DropdownMenuTrigger>
+                  <DropdownMenuTrigger render={<div />}>
                     <Button 
                       variant="ghost" 
                       size="icon" 

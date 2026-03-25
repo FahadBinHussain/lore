@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { universes, universeItems, users, mediaItems } from '@/db/schema';
+import { collections, collectionItems, users, mediaItems } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
@@ -12,15 +12,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const allUniverses = await db.query.universes.findMany({
-      where: eq(universes.isPublic, true),
-      orderBy: desc(universes.createdAt),
+    const allCollections = await db.query.collections.findMany({
+      where: eq(collections.visibility, 'public'),
+      orderBy: desc(collections.createdAt),
       with: {
         items: {
           with: {
             mediaItem: true,
           },
-          orderBy: universeItems.orderIndex,
+          orderBy: collectionItems.orderIndex,
         },
         creator: {
           columns: {
@@ -31,10 +31,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ universes: allUniverses });
+    return NextResponse.json({ collections: allCollections });
   } catch (error) {
-    console.error('Failed to fetch universes:', error);
-    return NextResponse.json({ error: 'Failed to fetch universes' }, { status: 500 });
+    console.error('Failed to fetch collections:', error);
+    return NextResponse.json({ error: 'Failed to fetch collections' }, { status: 500 });
   }
 }
 
@@ -49,7 +49,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, description, coverImage, items } = body;
 
-    // Get the current user from database to get their ID
     const currentUser = await db.query.users.findFirst({
       where: eq(users.email, session.user.email!),
     });
@@ -58,20 +57,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Create the universe
-    const [newUniverse] = await db.insert(universes).values({
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    const [newCollection] = await db.insert(collections).values({
       name,
+      slug: `${slug}-${Date.now()}`,
       description,
       coverImage,
       createdBy: currentUser.id,
-      isPublic: true,
+      visibility: 'public',
     }).returning();
 
-    // Insert universe items if provided
     if (items && items.length > 0) {
-      await db.insert(universeItems).values(
-        items.map((item: any, index: number) => ({
-          universeId: newUniverse.id,
+      await db.insert(collectionItems).values(
+        items.map((item: { mediaItemId: number; isRequired?: boolean; notes?: string }, index: number) => ({
+          collectionId: newCollection.id,
           mediaItemId: item.mediaItemId,
           orderIndex: index,
           isRequired: item.isRequired ?? true,
@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ universe: newUniverse });
+    return NextResponse.json({ collection: newCollection });
   } catch (error) {
-    console.error('Failed to create universe:', error);
-    return NextResponse.json({ error: 'Failed to create universe' }, { status: 500 });
+    console.error('Failed to create collection:', error);
+    return NextResponse.json({ error: 'Failed to create collection' }, { status: 500 });
   }
 }

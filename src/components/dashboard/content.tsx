@@ -238,6 +238,7 @@ export function DashboardContent() {
                       <div 
                         className="relative w-20 h-28 rounded-xl bg-cover bg-center flex-shrink-0 overflow-hidden shadow-lg"
                         style={{ backgroundImage: `url(${universe.cover})` }}
+                        suppressHydrationWarning
                       >
                         <div className={cn("absolute inset-0 bg-gradient-to-t opacity-60", universe.gradient)} />
                         <div className="absolute bottom-2 left-2 right-2">
@@ -292,6 +293,7 @@ export function DashboardContent() {
                       <div 
                         className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
                         style={{ backgroundImage: `url(${item.image})` }}
+                        suppressHydrationWarning
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1">
