@@ -182,15 +182,15 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <section className="relative h-screen -mt-16 overflow-hidden z-0">
         {/* Animated Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-2xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl opacity-50" />
         
-        <div className="relative w-full px-4 sm:px-6 lg:px-8 pt-16 pb-24 lg:pt-24 lg:pb-32">
-          <div className="text-center space-y-8">
+        <div className="relative w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 pb-24 lg:pb-32" style={{ paddingTop: '10rem' }}>
+          <div className="text-center space-y-8 w-full max-w-4xl">
             {/* Badge */}
             <div className={cn(
               "inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 transition-all duration-1000",

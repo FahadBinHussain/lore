@@ -17,26 +17,32 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-interface Author {
-  key: string;
-  name: string;
-  bio: string | null;
-  birth_date: string | null;
-  death_date: string | null;
-  photo: string | null;
+// Raw OpenLibrary response interface
+interface OpenLibraryDateTime {
+  type: string;
+  value: string;
 }
 
-interface EditionInfo {
-  physical_format: string | null;
-  pagination: string | null;
-  number_of_pages: number | null;
-  weight: string | null;
-  publish_date: string | null;
-  publishers: string[];
-  isbn_10: string[];
-  isbn_13: string[];
-  lccn: string[];
-  oclc: string[];
+interface AuthorRef {
+  author: {
+    key: string;
+  };
+  type: {
+    key: string;
+  };
+}
+
+interface AuthorWithName {
+  key: string;
+  name: string;
+  bio?: string | { type?: string; value?: string } | null;
+  birth_date?: string | null;
+  death_date?: string | null;
+  photos?: number[];
+}
+
+interface TypeRef {
+  key: string;
 }
 
 interface Ratings {
@@ -45,37 +51,21 @@ interface Ratings {
     count: number;
     sortable: number;
   };
-  counts: {
-    1: number;
-    2: number;
-    3: number;
-    4: number;
-    5: number;
+  counts?: {
+    1?: number;
+    2?: number;
+    3?: number;
+    4?: number;
+    5?: number;
   };
 }
 
 interface ReadingLog {
-  counts: {
-    want_to_read: number;
-    currently_reading: number;
-    already_read: number;
+  counts?: {
+    want_to_read?: number;
+    currently_reading?: number;
+    already_read?: number;
   };
-}
-
-interface Link {
-  title: string;
-  url: string;
-}
-
-interface Excerpt {
-  text: string;
-  comment?: string;
-}
-
-interface TableOfContentItem {
-  title: string;
-  level: number;
-  page?: number;
 }
 
 interface SimilarBook {
@@ -83,43 +73,34 @@ interface SimilarBook {
   title: string;
   cover_id: number | null;
   authors: string;
-  first_publish_year: number;
-}
-
-interface WorkDetails {
-  description: string | null;
-  subjects: string[];
-  subject_places: string[];
-  subject_people: string[];
-  subject_times: string[];
-  first_sentence: string | null;
+  first_publish_year: number | null;
 }
 
 interface BookDetails {
-  key: string;
   title: string;
-  subtitle: string | null;
-  description: string | null;
-  first_sentence: string | null;
-  cover_url: string | null;
-  authors: Author[];
-  subjects: string[];
+  key: string;
+  authors: AuthorRef[];
+  author_names: AuthorWithName[];
+  type: TypeRef;
+  description: string | { type: string; value: string };
+  covers: number[];
   subject_places: string[];
+  subjects: string[];
   subject_people: string[];
   subject_times: string[];
-  first_publish_date: string | null;
-  edition_info: EditionInfo;
-  editions_count: number;
-  ratings: Ratings | null;
-  reading_log: ReadingLog | null;
-  links: Link[];
-  excerpts: Excerpt[];
-  table_of_contents: TableOfContentItem[];
-  languages: string[];
-  similar_books: SimilarBook[];
-  work_details: WorkDetails | null;
-  created: string;
-  last_modified: string;
+  location: string;
+  latest_revision: number;
+  revision: number;
+  created: OpenLibraryDateTime;
+  last_modified: OpenLibraryDateTime;
+  // Additional fetched fields
+  ratings?: Ratings | null;
+  reading_log?: ReadingLog | null;
+  editions_count?: number;
+  first_sentence?: string | null;
+  similar_books?: SimilarBook[];
+  links?: Array<{ title?: string; url?: string; type?: string }>;
+  excerpts?: Array<{ text?: string; comment?: string; pages?: string[] }>;
 }
 
 export default function BookDetailPage() {
@@ -187,8 +168,8 @@ export default function BookDetailPage() {
           mediaType: 'book',
           isWatched: !isRead,
           title: book.title,
-          posterPath: book.cover_url,
-          releaseDate: book.first_publish_date,
+          posterPath: coverUrl,
+          releaseDate: book.last_modified?.value?.split('T')[0],
         }),
       });
       
@@ -212,9 +193,27 @@ export default function BookDetailPage() {
     }
   }, [book]);
 
+  // Compute derived values from raw response
+  const coverUrl = book?.covers && book.covers.length > 0
+    ? `https://covers.openlibrary.org/b/id/${book.covers[0]}-L.jpg`
+    : null;
+  
+  const getDescription = () => {
+    if (!book?.description) return null;
+    if (typeof book.description === 'string') return book.description;
+    return book.description.value;
+  };
+
   const getDisplaySubjects = () => {
     const subjects = book?.subjects || [];
     return showAllSubjects ? subjects : subjects.slice(0, 8);
+  };
+
+  const getPublishYear = () => {
+    if (!book?.last_modified?.value) return null;
+    const dateStr = book.last_modified.value;
+    const match = dateStr.match(/^(\d{4})/);
+    return match ? match[1] : null;
   };
 
   if (loading) {
@@ -247,7 +246,7 @@ export default function BookDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Hero Section */}
-      <div className="relative min-h-[70vh] overflow-hidden">
+      <div className="relative h-screen -mt-16">
         {/* Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-amber-600/30 via-orange-600/20 to-yellow-600/30" />
         
@@ -262,7 +261,7 @@ export default function BookDetailPage() {
         </div>
 
         {/* Back Button */}
-        <div className="absolute top-6 left-6 z-20">
+        <div className="fixed top-20 left-6 z-50">
           <Link href="/">
             <Button variant="ghost" className="bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white transition-all duration-300">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -278,9 +277,9 @@ export default function BookDetailPage() {
             <div className="flex-shrink-0 relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
-                {book.cover_url ? (
+                {coverUrl ? (
                   <img 
-                    src={book.cover_url}
+                    src={coverUrl}
                     alt={book.title}
                     className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
                   />
@@ -299,17 +298,15 @@ export default function BookDetailPage() {
                 <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 tracking-tight">
                   {book.title}
                 </h1>
-                {book.subtitle && (
-                  <p className="text-xl text-white/70 italic">
-                    {book.subtitle}
-                  </p>
-                )}
+                <p className="text-xl text-white/50 text-sm">
+                  ID: {book.key.split('/').pop()}
+                </p>
               </div>
 
               {/* Authors */}
-              {book.authors && book.authors.length > 0 && (
+              {book.author_names && book.author_names.length > 0 && (
                 <div className="flex flex-wrap items-center gap-4 mb-6">
-                  {book.authors.slice(0, 3).map((author, idx) => (
+                  {book.author_names.slice(0, 3).map((author, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-white/70">
                       <Users className="w-4 h-4 text-amber-400" />
                       <span className="text-sm font-medium">{author.name}</span>
@@ -320,16 +317,16 @@ export default function BookDetailPage() {
 
               {/* Meta Info Row */}
               <div className="flex flex-wrap items-center gap-3 mb-6">
-                {book.first_publish_date && (
+                {getPublishYear() && (
                   <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
                     <Calendar className="w-4 h-4 text-cyan-400" />
                     <span className="text-white font-medium">
-                      {book.first_publish_date}
+                      {getPublishYear()}
                     </span>
                   </div>
                 )}
-                
-                {book.ratings && book.ratings.summary.average && (
+
+                {book.ratings && book.ratings.summary && (
                   <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-amber-500/30">
                     <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
                     <span className="font-bold text-amber-400">{book.ratings.summary.average.toFixed(1)}</span>
@@ -337,17 +334,24 @@ export default function BookDetailPage() {
                   </div>
                 )}
 
-                {book.edition_info.number_of_pages && (
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
-                    <FileText className="w-4 h-4 text-violet-400" />
-                    <span className="text-white font-medium">{book.edition_info.number_of_pages} pages</span>
-                  </div>
-                )}
-
-                {book.editions_count > 0 && (
+                {book.editions_count && book.editions_count > 0 && (
                   <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
                     <BookOpen className="w-4 h-4 text-emerald-400" />
                     <span className="text-white font-medium">{book.editions_count} editions</span>
+                  </div>
+                )}
+
+                {book.covers && book.covers.length > 0 && (
+                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                    <ImageIcon className="w-4 h-4 text-violet-400" />
+                    <span className="text-white font-medium">{book.covers.length} covers</span>
+                  </div>
+                )}
+
+                {book.latest_revision && (
+                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                    <Clock className="w-4 h-4 text-emerald-400" />
+                    <span className="text-white font-medium">Rev. {book.latest_revision}</span>
                   </div>
                 )}
               </div>
@@ -376,20 +380,52 @@ export default function BookDetailPage() {
                 </div>
               )}
 
+              {/* Subject Places */}
+              {book.subject_places && book.subject_places.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mb-6">
+                  <MapPin className="w-4 h-4 text-pink-400" />
+                  {book.subject_places.slice(0, 5).map((place, idx) => (
+                    <span key={idx} className="text-white/60 text-sm">
+                      {place}{idx < book.subject_places.length - 1 && idx < 4 && ', '}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Subject People */}
+              {book.subject_people && book.subject_people.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mb-6">
+                  <Users className="w-4 h-4 text-blue-400" />
+                  <span className="text-white/60 text-sm">
+                    Characters: {book.subject_people.slice(0, 5).join(', ')}
+                  </span>
+                </div>
+              )}
+
+              {/* Subject Times */}
+              {book.subject_times && book.subject_times.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mb-6">
+                  <Clock className="w-4 h-4 text-cyan-400" />
+                  <span className="text-white/60 text-sm">
+                    {book.subject_times.slice(0, 3).join(', ')}
+                  </span>
+                </div>
+              )}
+
               {/* Reading Log Stats */}
-              {book.reading_log && (
+              {book.reading_log && book.reading_log.counts && (
                 <div className="flex flex-wrap items-center gap-4 mb-6">
                   <div className="flex items-center gap-2 text-white/60">
                     <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    <span className="text-sm">{book.reading_log.counts.already_read} read</span>
+                    <span className="text-sm">{book.reading_log.counts.already_read || 0} read</span>
                   </div>
                   <div className="flex items-center gap-2 text-white/60">
                     <BookOpen className="w-4 h-4 text-blue-400" />
-                    <span className="text-sm">{book.reading_log.counts.currently_reading} reading</span>
+                    <span className="text-sm">{book.reading_log.counts.currently_reading || 0} reading</span>
                   </div>
                   <div className="flex items-center gap-2 text-white/60">
                     <Heart className="w-4 h-4 text-pink-400" />
-                    <span className="text-sm">{book.reading_log.counts.want_to_read} want to read</span>
+                    <span className="text-sm">{book.reading_log.counts.want_to_read || 0} want to read</span>
                   </div>
                 </div>
               )}
@@ -467,7 +503,7 @@ export default function BookDetailPage() {
                       About
                     </h2>
                     <p className="text-white/80 leading-relaxed text-lg">
-                      {book.description || book.work_details?.description || book.first_sentence || 'No description available.'}
+                      {getDescription() || 'No description available.'}
                     </p>
                   </div>
                 </section>
@@ -497,14 +533,16 @@ export default function BookDetailPage() {
                       Excerpts
                     </h2>
                     <div className="space-y-4">
-                      {book.excerpts.map((excerpt, idx) => (
+                      {book.excerpts.slice(0, 3).map((excerpt, idx) => (
                         <Card key={idx} className="bg-white/5 backdrop-blur-xl border border-white/10">
                           <CardContent className="p-6">
-                            <p className="text-white/90 italic leading-relaxed">
-                              "{excerpt.text}"
+                            <p className="text-white/80 leading-relaxed">
+                              {excerpt.text}
                             </p>
                             {excerpt.comment && (
-                              <p className="text-white/50 text-sm mt-3">— {excerpt.comment}</p>
+                              <p className="text-white/50 text-sm mt-2">
+                                - {excerpt.comment}
+                              </p>
                             )}
                           </CardContent>
                         </Card>
@@ -513,35 +551,152 @@ export default function BookDetailPage() {
                   </section>
                 )}
 
+                {/* Subject Places */}
+                {book.subject_places && book.subject_places.length > 0 && (
+                  <section>
+                    <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                      <MapPin className="w-6 h-6 text-pink-400" />
+                      Subject Places
+                    </h2>
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardContent className="p-6">
+                        <div className="flex flex-wrap gap-2">
+                          {book.subject_places.map((place, idx) => (
+                            <Badge key={idx} variant="outline" className="bg-pink-500/10 text-pink-300 border-pink-500/30">
+                              {place}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </section>
+                )}
+
+                {/* Subject People */}
+                {book.subject_people && book.subject_people.length > 0 && (
+                  <section>
+                    <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                      <Users className="w-6 h-6 text-blue-400" />
+                      Characters
+                    </h2>
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardContent className="p-6">
+                        <div className="flex flex-wrap gap-2">
+                          {book.subject_people.map((person, idx) => (
+                            <Badge key={idx} variant="outline" className="bg-blue-500/10 text-blue-300 border-blue-500/30">
+                              {person}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </section>
+                )}
+
+                {/* Subject Times */}
+                {book.subject_times && book.subject_times.length > 0 && (
+                  <section>
+                    <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                      <Clock className="w-6 h-6 text-cyan-400" />
+                      Time Period
+                    </h2>
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardContent className="p-6">
+                        <div className="flex flex-wrap gap-2">
+                          {book.subject_times.map((time, idx) => (
+                            <Badge key={idx} variant="outline" className="bg-cyan-500/10 text-cyan-300 border-cyan-500/30">
+                              {time}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </section>
+                )}
+
+                {/* Metadata */}
+                <section>
+                  <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                    <FileText className="w-6 h-6 text-gray-400" />
+                    Metadata
+                  </h2>
+                  <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                    <CardContent className="p-6 space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-white/50">Work ID</span>
+                        <span className="text-white">{book.key.split('/').pop() || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/50">Type</span>
+                        <span className="text-white">{book.type?.key?.replace('/type/', '') || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/50">Location</span>
+                        <span className="text-white">{book.location?.split('/').pop() || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/50">Revision</span>
+                        <span className="text-white">{book.revision || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/50">Latest Revision</span>
+                        <span className="text-white">{book.latest_revision || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/50">Created</span>
+                        <span className="text-white">{book.created?.value || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/50">Last Modified</span>
+                        <span className="text-white">{book.last_modified?.value || 'N/A'}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </section>
+              </>
+            )}
+
+            {activeTab === 'contents' && (
+              <>
                 {/* Similar Books */}
                 {book.similar_books && book.similar_books.length > 0 && (
                   <section>
                     <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                      <ThumbsUp className="w-6 h-6 text-amber-400" />
+                      <BookOpen className="w-6 h-6 text-amber-400" />
                       Similar Books
                     </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4">
-                      {book.similar_books.map((similar) => (
-                        <Link key={similar.key} href={`/books/${similar.key.replace('/works/', '')}`}>
-                          <Card className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-amber-500/50 transition-all duration-300 hover:transform hover:scale-105">
-                            <div className="aspect-[2/3] relative overflow-hidden bg-slate-800">
-                              {similar.cover_id ? (
-                                <img 
-                                  src={`https://covers.openlibrary.org/b/id/${similar.cover_id}-M.jpg`}
-                                  alt={similar.title}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-500/20 to-orange-500/20">
-                                  <BookOpen className="w-10 h-10 text-white/30" />
-                                </div>
-                              )}
-                            </div>
-                            <CardContent className="p-3">
-                              <p className="font-semibold text-sm text-white truncate">{similar.title}</p>
-                              <p className="text-xs text-white/50 truncate">{similar.authors}</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {book.similar_books.slice(0, 6).map((similar, idx) => (
+                        <Link
+                          key={idx}
+                          href={`/books/${similar.key.replace('/works/', '')}`}
+                        >
+                          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 transition-colors">
+                            <CardContent className="p-4">
+                              <div className="aspect-[2/3] relative mb-3 rounded-lg overflow-hidden bg-muted">
+                                {similar.cover_id ? (
+                                  <img
+                                    src={`https://covers.openlibrary.org/b/id/${similar.cover_id}-M.jpg`}
+                                    alt={similar.title}
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-900/50 to-orange-900/50">
+                                    <BookOpen className="w-8 h-8 text-amber-500" />
+                                  </div>
+                                )}
+                              </div>
+                              <h3 className="text-white font-medium text-sm line-clamp-2">
+                                {similar.title}
+                              </h3>
+                              <p className="text-white/50 text-xs mt-1">
+                                {similar.authors || 'Unknown Author'}
+                              </p>
                               {similar.first_publish_year && (
-                                <p className="text-xs text-white/40 mt-1">{similar.first_publish_year}</p>
+                                <p className="text-white/30 text-xs">
+                                  {similar.first_publish_year}
+                                </p>
                               )}
                             </CardContent>
                           </Card>
@@ -550,32 +705,21 @@ export default function BookDetailPage() {
                     </div>
                   </section>
                 )}
-              </>
-            )}
 
-            {activeTab === 'contents' && (
-              <>
-                {/* Table of Contents */}
-                {book.table_of_contents && book.table_of_contents.length > 0 && (
+                {/* Subjects - Full List */}
+                {book.subjects && book.subjects.length > 0 && (
                   <section>
                     <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                      <FileText className="w-6 h-6 text-amber-400" />
-                      Table of Contents
+                      <BookOpen className="w-6 h-6 text-amber-400" />
+                      Subjects ({book.subjects.length})
                     </h2>
                     <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
                       <CardContent className="p-6">
-                        <div className="space-y-3">
-                          {book.table_of_contents.map((item, idx) => (
-                            <div 
-                              key={idx}
-                              className="flex items-center justify-between py-2 border-b border-white/10 last:border-b-0"
-                              style={{ paddingLeft: `${(item.level - 1) * 16}px` }}
-                            >
-                              <span className="text-white/80">{item.title}</span>
-                              {item.page && (
-                                <span className="text-white/50 text-sm">p. {item.page}</span>
-                              )}
-                            </div>
+                        <div className="flex flex-wrap gap-2">
+                          {book.subjects.map((subject, idx) => (
+                            <Badge key={idx} variant="outline" className="bg-amber-500/10 text-amber-300 border-amber-500/30">
+                              {subject}
+                            </Badge>
                           ))}
                         </div>
                       </CardContent>
@@ -583,54 +727,39 @@ export default function BookDetailPage() {
                   </section>
                 )}
 
-                {/* Subject Places */}
-                {book.subject_places && book.subject_places.length > 0 && (
+                {/* Covers Gallery */}
+                {book.covers && book.covers.length > 0 && (
                   <section>
                     <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                      <MapPin className="w-6 h-6 text-cyan-400" />
-                      Places
+                      <ImageIcon className="w-6 h-6 text-violet-400" />
+                      Covers ({book.covers.length})
                     </h2>
-                    <div className="flex flex-wrap gap-2">
-                      {book.subject_places.map((place, idx) => (
-                        <Badge key={idx} variant="outline" className="border-white/20 text-white/80">
-                          {place}
-                        </Badge>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {book.covers.slice(0, 12).map((coverId, idx) => (
+                        <a 
+                          key={idx}
+                          href={`https://covers.openlibrary.org/b/id/${coverId}-L.jpg`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="relative aspect-[2/3] rounded-lg overflow-hidden group"
+                        >
+                          <img
+                            src={`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`}
+                            alt={`Cover ${idx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <ExternalLink className="w-6 h-6 text-white" />
+                          </div>
+                        </a>
                       ))}
                     </div>
-                  </section>
-                )}
-
-                {/* Subject People */}
-                {book.subject_people && book.subject_people.length > 0 && (
-                  <section>
-                    <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                      <Users className="w-6 h-6 text-violet-400" />
-                      People
-                    </h2>
-                    <div className="flex flex-wrap gap-2">
-                      {book.subject_people.map((person, idx) => (
-                        <Badge key={idx} variant="outline" className="border-white/20 text-white/80">
-                          {person}
-                        </Badge>
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {/* Subject Times */}
-                {book.subject_times && book.subject_times.length > 0 && (
-                  <section>
-                    <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                      <Clock className="w-6 h-6 text-emerald-400" />
-                      Time Periods
-                    </h2>
-                    <div className="flex flex-wrap gap-2">
-                      {book.subject_times.map((time, idx) => (
-                        <Badge key={idx} variant="outline" className="border-white/20 text-white/80">
-                          {time}
-                        </Badge>
-                      ))}
-                    </div>
+                    {book.covers.length > 12 && (
+                      <p className="text-white/50 text-sm mt-4 text-center">
+                        And {book.covers.length - 12} more covers...
+                      </p>
+                    )}
                   </section>
                 )}
               </>
@@ -638,82 +767,93 @@ export default function BookDetailPage() {
 
             {activeTab === 'editions' && (
               <>
-                {/* Edition Details */}
-                <section className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-orange-500/5 rounded-3xl blur-xl" />
-                  <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
-                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                      <BookOpen className="w-6 h-6 text-amber-400" />
-                      Edition Details
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      {book.edition_info.physical_format && (
-                        <div>
-                          <span className="text-white/60 text-sm block mb-1">Format</span>
-                          <span className="text-white font-medium capitalize">{book.edition_info.physical_format}</span>
-                        </div>
-                      )}
-                      {book.edition_info.number_of_pages && (
-                        <div>
-                          <span className="text-white/60 text-sm block mb-1">Pages</span>
-                          <span className="text-white font-medium">{book.edition_info.number_of_pages}</span>
-                        </div>
-                      )}
-                      {book.edition_info.publish_date && (
-                        <div>
-                          <span className="text-white/60 text-sm block mb-1">Published</span>
-                          <span className="text-white font-medium">{book.edition_info.publish_date}</span>
-                        </div>
-                      )}
-                      {book.edition_info.publishers && book.edition_info.publishers.length > 0 && (
-                        <div>
-                          <span className="text-white/60 text-sm block mb-1">Publishers</span>
-                          <span className="text-white font-medium">{book.edition_info.publishers.join(', ')}</span>
-                        </div>
-                      )}
-                      {book.edition_info.weight && (
-                        <div>
-                          <span className="text-white/60 text-sm block mb-1">Weight</span>
-                          <span className="text-white font-medium">{book.edition_info.weight}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </section>
-
-                {/* ISBNs */}
-                {(book.edition_info.isbn_10?.length > 0 || book.edition_info.isbn_13?.length > 0) && (
+                {/* Authors */}
+                {book.author_names && book.author_names.length > 0 && (
                   <section>
                     <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                      <FileText className="w-6 h-6 text-blue-400" />
-                      ISBNs
+                      <Users className="w-6 h-6 text-amber-400" />
+                      Authors ({book.author_names.length})
                     </h2>
                     <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
                       <CardContent className="p-6 space-y-4">
-                        {book.edition_info.isbn_10?.length > 0 && (
-                          <div>
-                            <span className="text-white/60 text-sm block mb-2">ISBN-10</span>
-                            <div className="flex flex-wrap gap-2">
-                              {book.edition_info.isbn_10.map((isbn, idx) => (
-                                <Badge key={idx} variant="outline" className="border-white/20 text-white/80 font-mono">
-                                  {isbn}
-                                </Badge>
-                              ))}
+                        {book.author_names.map((author, idx) => (
+                          <div key={idx} className="flex items-start gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+                              {idx + 1}
+                            </div>
+                            <div className="flex-1">
+                              <a
+                                href={`https://openlibrary.org${author.key}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-white hover:text-amber-400 transition-colors font-medium"
+                              >
+                                {author.name}
+                              </a>
+                              {(author.birth_date || author.death_date) && (
+                                <p className="text-white/50 text-sm">
+                                  {author.birth_date || ''}{author.death_date ? ` - ${author.death_date}` : ''}
+                                </p>
+                              )}
+                              {author.bio && (
+                                <p className="text-white/70 text-sm mt-2 line-clamp-3">
+                                  {typeof author.bio === 'string' ? author.bio : (author.bio as any).value || ''}
+                                </p>
+                              )}
+                              <p className="text-white/30 text-xs mt-1">{author.key}</p>
                             </div>
                           </div>
-                        )}
-                        {book.edition_info.isbn_13?.length > 0 && (
-                          <div>
-                            <span className="text-white/60 text-sm block mb-2">ISBN-13</span>
-                            <div className="flex flex-wrap gap-2">
-                              {book.edition_info.isbn_13.map((isbn, idx) => (
-                                <Badge key={idx} variant="outline" className="border-white/20 text-white/80 font-mono">
-                                  {isbn}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </section>
+                )}
+
+                {/* Links */}
+                {book.links && book.links.length > 0 && (
+                  <section>
+                    <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                      <ExternalLink className="w-6 h-6 text-emerald-400" />
+                      Links
+                    </h2>
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardContent className="p-6 space-y-3">
+                        {book.links.slice(0, 10).map((link, idx) => (
+                          <a
+                            key={idx}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 text-white hover:text-amber-400 transition-colors"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            <span>{link.title || link.url}</span>
+                          </a>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </section>
+                )}
+
+                {/* Work Link */}
+                {book.location && (
+                  <section>
+                    <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                      <ExternalLink className="w-6 h-6 text-emerald-400" />
+                      Open Library
+                    </h2>
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardContent className="p-6">
+                        <a
+                          href={`https://openlibrary.org${book.key}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 text-white hover:text-amber-400 transition-colors"
+                        >
+                          <BookOpen className="w-5 h-5" />
+                          <span>View on Open Library</span>
+                          <ExternalLink className="w-4 h-4 ml-auto" />
+                        </a>
                       </CardContent>
                     </Card>
                   </section>
@@ -724,116 +864,95 @@ export default function BookDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-8">
-            {/* Author Details */}
-            {book.authors && book.authors.length > 0 && (
-              <section>
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-amber-400" />
-                  Authors
-                </h3>
-                <div className="space-y-4">
-                  {book.authors.slice(0, 3).map((author, idx) => (
-                    <Card key={idx} className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-amber-500/30 transition-all duration-300">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
-                          {author.photo ? (
-                            <img 
-                              src={author.photo}
-                              alt={author.name}
-                              className="w-16 h-16 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                              <Users className="w-8 h-8 text-white" />
-                            </div>
-                          )}
-                          <div className="flex-1">
-                            <p className="text-white font-semibold">{author.name}</p>
-                            {author.birth_date && (
-                              <p className="text-white/50 text-sm">
-                                {author.birth_date}
-                                {author.death_date && ` - ${author.death_date}`}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        {author.bio && (
-                          <p className="text-white/70 text-sm mt-3 line-clamp-3">{author.bio}</p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Links */}
-            {book.links && book.links.length > 0 && (
-              <section>
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <ExternalLink className="w-5 h-5 text-blue-400" />
-                  Links
-                </h3>
+            {/* Quick Stats */}
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Statistics</h3>
                 <div className="space-y-3">
-                  {book.links.map((link, idx) => (
-                    <a 
-                      key={idx}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-blue-500/50 transition-all duration-300 group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-                        <ExternalLink className="w-5 h-5 text-white" />
-                      </div>
-                      <span className="text-white group-hover:text-blue-400 transition-colors font-medium text-sm">{link.title}</span>
-                      <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-blue-400" />
-                    </a>
-                  ))}
+                  <div className="flex justify-between">
+                    <span className="text-white/50">Covers</span>
+                    <span className="text-white">{book.covers?.length || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/50">Subjects</span>
+                    <span className="text-white">{book.subjects?.length || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/50">Subject Places</span>
+                    <span className="text-white">{book.subject_places?.length || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/50">Subject People</span>
+                    <span className="text-white">{book.subject_people?.length || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/50">Subject Times</span>
+                    <span className="text-white">{book.subject_times?.length || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/50">Authors</span>
+                    <span className="text-white">{book.author_names?.length || 0}</span>
+                  </div>
                 </div>
-              </section>
-            )}
+              </CardContent>
+            </Card>
 
-            {/* Languages */}
-            {book.languages && book.languages.length > 0 && (
-              <section className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-cyan-400" />
-                  Languages
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {book.languages.map((lang, idx) => (
-                    <Badge key={idx} variant="outline" className="border-white/20 text-white/80 capitalize">
-                      {lang}
-                    </Badge>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Identifiers */}
-            {(book.edition_info.lccn?.length > 0 || book.edition_info.oclc?.length > 0) && (
-              <section className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-violet-400" />
-                  Identifiers
-                </h3>
+            {/* Key Info */}
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Details</h3>
                 <div className="space-y-3">
-                  {book.edition_info.lccn?.length > 0 && (
+                  <div>
+                    <span className="text-white/50 text-sm">Work ID</span>
+                    <p className="text-white">{book.key.split('/').pop() || 'Unknown'}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/50 text-sm">Type</span>
+                    <p className="text-white">{book.type?.key?.replace('/type/', '') || 'Unknown'}</p>
+                  </div>
+                  {book.location && (
                     <div>
-                      <span className="text-white/60 text-xs block mb-1">LCCN</span>
-                      <span className="text-white/80 text-sm font-mono">{book.edition_info.lccn[0]}</span>
+                      <span className="text-white/50 text-sm">Location</span>
+                      <p className="text-white">{book.location.split('/').pop()}</p>
                     </div>
                   )}
-                  {book.edition_info.oclc?.length > 0 && (
-                    <div>
-                      <span className="text-white/60 text-xs block mb-1">OCLC</span>
-                      <span className="text-white/80 text-sm font-mono">{book.edition_info.oclc[0]}</span>
-                    </div>
-                  )}
+                  <div>
+                    <span className="text-white/50 text-sm">Revision</span>
+                    <p className="text-white">{book.latest_revision || 'N/A'}</p>
+                  </div>
                 </div>
-              </section>
-            )}
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+              <CardContent className="p-6 space-y-3">
+                <a
+                  href={`https://openlibrary.org${book.key}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full"
+                >
+                  <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    View on Open Library
+                  </Button>
+                </a>
+                {book.covers && book.covers.length > 0 && (
+                  <a
+                    href={`https://openlibrary.org/browse/works${book.key}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full"
+                  >
+                    <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                      Browse Covers
+                    </Button>
+                  </a>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
