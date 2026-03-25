@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { mediaItemId, status, progress, rating } = body;
+    const { mediaItemId, status, currentProgress, rating } = body;
 
     const existingProgress = await db.query.userMediaProgress.findFirst({
       where: and(
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       const [updated] = await db.update(userMediaProgress)
         .set({
           status,
-          progress,
+          currentProgress,
           rating,
           updatedAt: new Date(),
           completedAt: status === 'completed' ? new Date() : existingProgress.completedAt,
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         userId: parseInt(session.user.id),
         mediaItemId,
         status: status || 'not_started',
-        progress: progress || 0,
+        currentProgress: currentProgress || 0,
         rating,
         lastActivityAt: new Date(),
       }).returning();

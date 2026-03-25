@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   ArrowLeft, Star, Clock, Calendar, Globe, 
   Users, Loader2, Play, Plus, 
-  Heart, Share2, Bookmark, Tv, Monitor
+  Heart, Share2, Check, Tv, Monitor
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -80,12 +80,9 @@ export default function TVShowDetailPage() {
   const [show, setShow] = useState<TVShowDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isWatched, setIsWatched] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-
-  useEffect(() => {
-    fetchTVShowDetails();
-  }, [params.id]);
+  const [updatingWatched, setUpdatingWatched] = useState(false);
 
   const fetchTVShowDetails = async () => {
     try {
@@ -114,6 +111,68 @@ export default function TVShowDetailPage() {
       setLoading(false);
     }
   };
+
+  const fetchWatchedStatus = async () => {
+    try {
+      const idParam = params.id as string;
+      const numericIdMatch = idParam.match(/(\d+)$/);
+      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
+      
+      const response = await fetch(`/api/media/status?mediaId=${numericId}&mediaType=tv`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsWatched(data.isWatched);
+      }
+    } catch (err) {
+      console.error('Failed to fetch watched status:', err);
+    }
+  };
+
+  const handleMarkAsWatched = async () => {
+    if (!show) return;
+    
+    setUpdatingWatched(true);
+    try {
+      const idParam = params.id as string;
+      const numericIdMatch = idParam.match(/(\d+)$/);
+      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
+      
+      const response = await fetch('/api/media/status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mediaId: numericId,
+          mediaType: 'tv',
+          isWatched: !isWatched,
+          title: show.name,
+          posterPath: show.poster_path,
+          releaseDate: show.first_air_date,
+        }),
+      });
+      
+      if (response.ok) {
+        setIsWatched(!isWatched);
+      } else {
+        console.error('Failed to update watched status');
+      }
+    } catch (err) {
+      console.error('Failed to update watched status:', err);
+    } finally {
+      setUpdatingWatched(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTVShowDetails();
+  }, [params.id]);
+
+  useEffect(() => {
+    if (show) {
+      fetchWatchedStatus();
+    }
+  }, [show]);
 
   const getCreator = () => {
     return show?.credits?.crew.find(person => person.job === 'Creator');
@@ -260,11 +319,16 @@ export default function TVShowDetailPage() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => setIsInWatchlist(!isInWatchlist)}
-                  className={cn(isInWatchlist && "bg-primary/10 border-primary")}
+                  onClick={handleMarkAsWatched}
+                  disabled={updatingWatched}
+                  className={cn(isWatched && "bg-primary/10 border-primary")}
                 >
-                  <Bookmark className={cn("w-4 h-4 mr-2", isInWatchlist && "fill-primary")} />
-                  {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+                  {updatingWatched ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Check className={cn("w-4 h-4 mr-2", isWatched && "fill-primary")} />
+                  )}
+                  {isWatched ? 'Watched' : 'Mark as Watched'}
                 </Button>
                 <Button 
                   variant="outline" 
