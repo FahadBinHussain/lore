@@ -3,10 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  Film, Tv, Gamepad2, BookOpen, Sparkles,
-  Search, Music, Podcast, MapPin
+  Search, Sparkles, TrendingUp, Clock
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export function DashboardContent() {
@@ -23,115 +22,94 @@ export function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="p-8 lg:p-12">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <div className="space-y-4">
-            <h2 className="text-3xl font-bold">Welcome to Your Media Dashboard</h2>
-            <p className="text-xl text-muted-foreground">
-              Start tracking your favorite movies, TV shows, games, books, and more.
+      <div className="p-6 lg:p-8">
+        <div className="max-w-6xl mx-auto space-y-8">
+          {/* Welcome Section */}
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold">{greeting}!</h1>
+            <p className="text-muted-foreground">
+              Welcome to your media tracking dashboard. Use the sidebar to navigate between categories.
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-            <Link href="/dashboard/movies">
-              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <Film className="w-12 h-12 mx-auto mb-4 text-violet-500" />
-                  <h3 className="font-semibold text-lg mb-2">Movies</h3>
-                  <p className="text-sm text-muted-foreground">Track your favorite films</p>
-                </CardContent>
-              </Card>
-            </Link>
-            
-            <Link href="/dashboard/tv">
-              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <Tv className="w-12 h-12 mx-auto mb-4 text-cyan-500" />
-                  <h3 className="font-semibold text-lg mb-2">TV Shows</h3>
-                  <p className="text-sm text-muted-foreground">Follow your series</p>
-                </CardContent>
-              </Card>
-            </Link>
-            
-            <Link href="/dashboard/games">
-              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <Gamepad2 className="w-12 h-12 mx-auto mb-4 text-amber-500" />
-                  <h3 className="font-semibold text-lg mb-2">Games</h3>
-                  <p className="text-sm text-muted-foreground">Manage your gaming library</p>
-                </CardContent>
-              </Card>
-            </Link>
-            
-            <Link href="/dashboard/books">
-              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <BookOpen className="w-12 h-12 mx-auto mb-4 text-emerald-500" />
-                  <h3 className="font-semibold text-lg mb-2">Books</h3>
-                  <p className="text-sm text-muted-foreground">Keep track of your reading</p>
-                </CardContent>
-              </Card>
-            </Link>
-            
-            <Link href="/dashboard/comics">
-              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <BookOpen className="w-12 h-12 mx-auto mb-4 text-purple-500" />
-                  <h3 className="font-semibold text-lg mb-2">Comics</h3>
-                  <p className="text-sm text-muted-foreground">Explore comic universes</p>
-                </CardContent>
-              </Card>
-            </Link>
-            
-            <Link href="/dashboard/boardgames">
-              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <Gamepad2 className="w-12 h-12 mx-auto mb-4 text-orange-500" />
-                  <h3 className="font-semibold text-lg mb-2">Board Games</h3>
-                  <p className="text-sm text-muted-foreground">Discover tabletop games</p>
-                </CardContent>
-              </Card>
-            </Link>
 
-            <Link href="/dashboard/soundtracks">
-              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <Music className="w-12 h-12 mx-auto mb-4 text-teal-500" />
-                  <h3 className="font-semibold text-lg mb-2">Soundtracks</h3>
-                  <p className="text-sm text-muted-foreground">Discover music from media</p>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href="/dashboard/podcasts">
-              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <Podcast className="w-12 h-12 mx-auto mb-4 text-red-500" />
-                  <h3 className="font-semibold text-lg mb-2">Podcasts</h3>
-                  <p className="text-sm text-muted-foreground">Follow your favorite shows</p>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href="/dashboard/themeparks">
-              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <MapPin className="w-12 h-12 mx-auto mb-4 text-lime-500" />
-                  <h3 className="font-semibold text-lg mb-2">Theme Parks</h3>
-                  <p className="text-sm text-muted-foreground">Plan your park adventures</p>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
-          
-          <div className="mt-12">
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link href="/search">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25">
-                <Search className="w-5 h-5 mr-2" />
-                Start Exploring
-              </Button>
+              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer border-dashed">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Search className="w-5 h-5 text-primary" />
+                    Search Media
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Discover new movies, shows, games, and more across all categories.
+                  </p>
+                </CardContent>
+              </Card>
             </Link>
+
+            <Link href="/universes">
+              <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Sparkles className="w-5 h-5 text-purple-500" />
+                    Universes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Explore and create connected universes across your media.
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Card className="bg-muted/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                  Getting Started
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Select a category from the sidebar to start tracking your favorite media.
+                </p>
+              </CardContent>
+            </Card>
           </div>
+
+          {/* Recent Activity Placeholder */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Quick Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full bg-primary mt-2" />
+                <p className="text-sm text-muted-foreground">
+                  Use the <strong>Sidebar</strong> to quickly navigate between Movies, TV Shows, Games, Books, and more.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full bg-primary mt-2" />
+                <p className="text-sm text-muted-foreground">
+                  Visit <strong>Search</strong> to find and add new media to your collection.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full bg-primary mt-2" />
+                <p className="text-sm text-muted-foreground">
+                  Create <strong>Universes</strong> to connect related media across different categories.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
