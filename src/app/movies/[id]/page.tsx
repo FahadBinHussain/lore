@@ -70,7 +70,20 @@ export default function MovieDetailPage() {
 
   const fetchMovieDetails = async () => {
     try {
-      const response = await fetch(`/api/movies/${params.id}`);
+      // Extract numeric ID from prefixed format (e.g., "movie-764079" or "tv-764079" -> "764079")
+      const idParam = params.id as string;
+      
+      // Redirect to correct route if wrong media type
+      if (idParam.startsWith('tv-')) {
+        router.push(`/tv/${idParam}`);
+        return;
+      }
+      
+      // Use regex to extract the numeric ID from the end of the string
+      const numericIdMatch = idParam.match(/(\d+)$/);
+      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
+      
+      const response = await fetch(`/api/movies/${numericId}`);
       if (!response.ok) {
         throw new Error('Movie not found');
       }

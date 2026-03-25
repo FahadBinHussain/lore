@@ -1,17 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Film, Tv, Gamepad2, BookOpen, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Search, Film, Tv, Gamepad2, BookOpen, Loader2, Puzzle, ScrollText, Mic, Music, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 
 interface SearchResult {
   id: string;
   title: string;
-  type: 'movie' | 'tv' | 'game' | 'book';
+  type: 'movie' | 'tv' | 'game' | 'book' | 'boardgame' | 'comic' | 'podcast' | 'soundtrack' | 'themepark';
   image?: string;
   year?: string;
   rating?: number;
@@ -22,26 +22,76 @@ export function SearchContent() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
+  const router = useRouter();
+
+  // Debounced search effect
+  useEffect(() => {
+    if (query.trim()) {
+      const timeoutId = setTimeout(() => {
+        handleSearch();
+      }, 500); // 500ms debounce
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      // Clear results when query is empty
+      setResults([]);
+    }
+  }, [query]);
+
+  const handleResultClick = (result: SearchResult) => {
+    switch (result.type) {
+      case 'movie':
+        router.push(`/movies/${result.id}`);
+        break;
+      case 'tv':
+        router.push(`/tv/${result.id}`);
+        break;
+      case 'game':
+        router.push('/games');
+        break;
+      case 'book':
+        router.push('/books');
+        break;
+      case 'boardgame':
+        router.push('/boardgames');
+        break;
+      case 'comic':
+        router.push('/comics');
+        break;
+      case 'podcast':
+        router.push('/podcasts');
+        break;
+      case 'soundtrack':
+        router.push('/soundtracks');
+        break;
+      case 'themepark':
+        router.push('/themeparks');
+        break;
+      default:
+        break;
+    }
+  };
 
   const handleSearch = async () => {
     if (!query.trim()) return;
     
     setLoading(true);
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=${activeTab}`);
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       setResults(data.results || []);
     } catch (error) {
       console.error('Search failed:', error);
+      setResults([]);
     } finally {
       setLoading(false);
     }
   };
-
-  const filteredResults = activeTab === 'all' 
-    ? results 
-    : results.filter(r => r.type === activeTab);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -49,6 +99,11 @@ export function SearchContent() {
       case 'tv': return <Tv className="w-4 h-4" />;
       case 'game': return <Gamepad2 className="w-4 h-4" />;
       case 'book': return <BookOpen className="w-4 h-4" />;
+      case 'boardgame': return <Puzzle className="w-4 h-4" />;
+      case 'comic': return <ScrollText className="w-4 h-4" />;
+      case 'podcast': return <Mic className="w-4 h-4" />;
+      case 'soundtrack': return <Music className="w-4 h-4" />;
+      case 'themepark': return <MapPin className="w-4 h-4" />;
       default: return null;
     }
   };
@@ -59,6 +114,11 @@ export function SearchContent() {
       case 'tv': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
       case 'game': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
       case 'book': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+      case 'boardgame': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+      case 'comic': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'podcast': return 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20';
+      case 'soundtrack': return 'bg-pink-500/10 text-pink-500 border-pink-500/20';
+      case 'themepark': return 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20';
       default: return '';
     }
   };
@@ -67,7 +127,7 @@ export function SearchContent() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Search Media</h1>
-        <p className="text-muted-foreground">Discover movies, TV shows, games, and books</p>
+        <p className="text-muted-foreground">Discover movies, TV shows, games, books, comics, podcasts, and more</p>
       </div>
 
       <div className="flex gap-2 mb-6">
@@ -88,20 +148,14 @@ export function SearchContent() {
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="movie">Movies</TabsTrigger>
-          <TabsTrigger value="tv">TV Shows</TabsTrigger>
-          <TabsTrigger value="game">Games</TabsTrigger>
-          <TabsTrigger value="book">Books</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
       {results.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredResults.map((result) => (
-            <Card key={result.id} className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow">
+          {results.map((result) => (
+            <Card 
+              key={result.id} 
+              className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleResultClick(result)}
+            >
               <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                 {result.image ? (
                   <img 

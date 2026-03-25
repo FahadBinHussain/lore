@@ -196,6 +196,91 @@ export async function getPopularMovies(page: number = 1): Promise<TMDBSearchResp
   return response.json();
 }
 
+export async function getTopRatedMovies(page: number = 1): Promise<TMDBSearchResponse<TMDBMovie>> {
+  const response = await fetch(
+    `${TMDB_BASE_URL}/movie/top_rated?api_key=${process.env.TMDB_API_KEY}&page=${page}`,
+    { next: { revalidate: 3600 } }
+  );
+  
+  if (!response.ok) {
+    throw new Error('Failed to get top rated movies');
+  }
+  
+  return response.json();
+}
+
+export async function getNowPlayingMovies(page: number = 1): Promise<TMDBSearchResponse<TMDBMovie>> {
+  const response = await fetch(
+    `${TMDB_BASE_URL}/movie/now_playing?api_key=${process.env.TMDB_API_KEY}&page=${page}`,
+    { next: { revalidate: 3600 } }
+  );
+  
+  if (!response.ok) {
+    throw new Error('Failed to get now playing movies');
+  }
+  
+  return response.json();
+}
+
+export async function getUpcomingMovies(page: number = 1): Promise<TMDBSearchResponse<TMDBMovie>> {
+  const response = await fetch(
+    `${TMDB_BASE_URL}/movie/upcoming?api_key=${process.env.TMDB_API_KEY}&page=${page}`,
+    { next: { revalidate: 3600 } }
+  );
+  
+  if (!response.ok) {
+    throw new Error('Failed to get upcoming movies');
+  }
+  
+  return response.json();
+}
+
+export async function discoverMovies(params: {
+  page?: number;
+  genre?: string;
+  year?: string;
+  sortBy?: string;
+  minRating?: number;
+  maxRating?: number;
+  releaseDateFrom?: string;
+  releaseDateTo?: string;
+}): Promise<TMDBSearchResponse<TMDBMovie>> {
+  const { 
+    page = 1, 
+    genre, 
+    year, 
+    sortBy = 'popularity.desc',
+    minRating,
+    maxRating,
+    releaseDateFrom,
+    releaseDateTo
+  } = params;
+
+  const queryParams = new URLSearchParams({
+    api_key: process.env.TMDB_API_KEY!,
+    page: page.toString(),
+    sort_by: sortBy,
+  });
+
+  if (genre) queryParams.append('with_genres', genre);
+  if (year) queryParams.append('year', year);
+  if (minRating !== undefined) queryParams.append('vote_average.gte', minRating.toString());
+  if (maxRating !== undefined) queryParams.append('vote_average.lte', maxRating.toString());
+  if (releaseDateFrom) queryParams.append('release_date.gte', releaseDateFrom);
+  if (releaseDateTo) queryParams.append('release_date.lte', releaseDateTo);
+
+  const response = await fetch(
+    `${TMDB_BASE_URL}/discover/movie?${queryParams.toString()}`,
+    { next: { revalidate: 3600 } }
+  );
+  
+  if (!response.ok) {
+    throw new Error('Failed to discover movies');
+  }
+  
+  return response.json();
+}
+
 export async function getPopularTVShows(page: number = 1): Promise<TMDBSearchResponse<TMDBTVShow>> {
   const response = await fetch(
     `${TMDB_BASE_URL}/tv/popular?api_key=${process.env.TMDB_API_KEY}&page=${page}`,
@@ -204,6 +289,91 @@ export async function getPopularTVShows(page: number = 1): Promise<TMDBSearchRes
   
   if (!response.ok) {
     throw new Error('Failed to get popular TV shows');
+  }
+  
+  return response.json();
+}
+
+export async function getTopRatedTVShows(page: number = 1): Promise<TMDBSearchResponse<TMDBTVShow>> {
+  const response = await fetch(
+    `${TMDB_BASE_URL}/tv/top_rated?api_key=${process.env.TMDB_API_KEY}&page=${page}`,
+    { next: { revalidate: 3600 } }
+  );
+  
+  if (!response.ok) {
+    throw new Error('Failed to get top rated TV shows');
+  }
+  
+  return response.json();
+}
+
+export async function getOnTheAirTVShows(page: number = 1): Promise<TMDBSearchResponse<TMDBTVShow>> {
+  const response = await fetch(
+    `${TMDB_BASE_URL}/tv/on_the_air?api_key=${process.env.TMDB_API_KEY}&page=${page}`,
+    { next: { revalidate: 3600 } }
+  );
+  
+  if (!response.ok) {
+    throw new Error('Failed to get on the air TV shows');
+  }
+  
+  return response.json();
+}
+
+export async function getAiringTodayTVShows(page: number = 1): Promise<TMDBSearchResponse<TMDBTVShow>> {
+  const response = await fetch(
+    `${TMDB_BASE_URL}/tv/airing_today?api_key=${process.env.TMDB_API_KEY}&page=${page}`,
+    { next: { revalidate: 3600 } }
+  );
+  
+  if (!response.ok) {
+    throw new Error('Failed to get airing today TV shows');
+  }
+  
+  return response.json();
+}
+
+export async function discoverTVShows(params: {
+  page?: number;
+  genre?: string;
+  year?: string;
+  sortBy?: string;
+  minRating?: number;
+  maxRating?: number;
+  firstAirDateFrom?: string;
+  firstAirDateTo?: string;
+}): Promise<TMDBSearchResponse<TMDBTVShow>> {
+  const { 
+    page = 1, 
+    genre, 
+    year, 
+    sortBy = 'popularity.desc',
+    minRating,
+    maxRating,
+    firstAirDateFrom,
+    firstAirDateTo
+  } = params;
+
+  const queryParams = new URLSearchParams({
+    api_key: process.env.TMDB_API_KEY!,
+    page: page.toString(),
+    sort_by: sortBy,
+  });
+
+  if (genre) queryParams.append('with_genres', genre);
+  if (year) queryParams.append('first_air_date_year', year);
+  if (minRating !== undefined) queryParams.append('vote_average.gte', minRating.toString());
+  if (maxRating !== undefined) queryParams.append('vote_average.lte', maxRating.toString());
+  if (firstAirDateFrom) queryParams.append('first_air_date.gte', firstAirDateFrom);
+  if (firstAirDateTo) queryParams.append('first_air_date.lte', firstAirDateTo);
+
+  const response = await fetch(
+    `${TMDB_BASE_URL}/discover/tv?${queryParams.toString()}`,
+    { next: { revalidate: 3600 } }
+  );
+  
+  if (!response.ok) {
+    throw new Error('Failed to discover TV shows');
   }
   
   return response.json();
