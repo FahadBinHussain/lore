@@ -108,6 +108,11 @@ interface MovieDetails {
   spoken_languages: SpokenLanguage[];
   production_countries: ProductionCountry[];
   production_companies: ProductionCompany[];
+  belongs_to_collection: any | null;
+  origin_country: string[];
+  release_dates: any | null;
+  video: boolean;
+  images: any | null;
   content_rating: string | null;
   external_ids: ExternalIds;
   videos: {

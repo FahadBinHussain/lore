@@ -86,6 +86,11 @@ export async function GET(
       spoken_languages: movie.spoken_languages || [],
       production_countries: movie.production_countries || [],
       production_companies: movie.production_companies || [],
+      belongs_to_collection: movie.belongs_to_collection || null,
+      origin_country: movie.origin_country || [],
+      release_dates: movie.release_dates || null,
+      video: movie.video || false,
+      images: movie.images || null,
       content_rating: contentRating,
       external_ids: {
         imdb_id: movie.external_ids?.imdb_id || movie.imdb_id || null,
