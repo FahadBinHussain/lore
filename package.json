@@ -19,6 +19,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.1",
+    "fast-xml-parser": "^5.5.9",
     "lucide-react": "^1.0.1",
     "next": "16.2.1",
     "next-auth": "5.0.0-beta.30",

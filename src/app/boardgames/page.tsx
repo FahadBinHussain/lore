@@ -31,6 +31,7 @@ export default function BoardGamesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<BoardGameItem[]>([]);
   const [searching, setSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGames();
@@ -38,12 +39,15 @@ export default function BoardGamesPage() {
 
   const fetchGames = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch('/api/boardgames');
       const data = await response.json();
+
       setGames(data.results || []);
     } catch (error) {
       console.error('Failed to fetch board games:', error);
+      setError('Failed to load board games');
     } finally {
       setLoading(false);
     }
@@ -54,14 +58,17 @@ export default function BoardGamesPage() {
     if (!searchQuery.trim()) return;
 
     setSearching(true);
+    setError(null);
     try {
       const response = await fetch(
         `/api/boardgames?q=${encodeURIComponent(searchQuery)}`
       );
       const data = await response.json();
+
       setSearchResults(data.results || []);
     } catch (error) {
       console.error('Search failed:', error);
+      setError('Search failed');
     } finally {
       setSearching(false);
     }
@@ -136,6 +143,15 @@ export default function BoardGamesPage() {
               <span className="ml-2 text-muted-foreground">
                 {searching ? 'Searching...' : 'Loading board games...'}
               </span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <Gamepad2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-medium mb-2">Unable to load board games</h3>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={fetchGames} variant="outline">
+                Try Again
+              </Button>
             </div>
           ) : displayGames.length === 0 ? (
             <div className="text-center py-16">
