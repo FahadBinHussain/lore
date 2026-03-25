@@ -1,0 +1,296 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
+import {
+  Sparkles, ArrowRight, LayoutDashboard, Search, Plus,
+  User, Settings, Bell, LogOut, Menu, X
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+} from '@/components/ui/dropdown-menu';
+
+export function Navbar() {
+  const { data: session, status } = useSession();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  return (
+    <header className="relative z-50 border-b border-border/50">
+      <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/90 to-background/80 backdrop-blur-xl" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:scale-105">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full animate-pulse" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-xl bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
+                Lore
+              </span>
+              <span className="text-[10px] text-muted-foreground font-medium -mt-1">Media Tracker</span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-8">
+            <Link
+              href="/movies"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            >
+              Movies
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+            </Link>
+            <Link
+              href="/tv"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            >
+              TV Shows
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+            </Link>
+            <Link
+              href="/games"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            >
+              Games
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+            </Link>
+            <Link
+              href="/books"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            >
+              Books
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+            </Link>
+            <Link
+              href="/search"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            >
+              Search
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+            </Link>
+          </nav>
+
+          {/* CTA Buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            {status === 'loading' ? (
+              <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            ) : session?.user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <div className="relative h-10 w-10 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all duration-200 cursor-pointer">
+                    <Avatar className="h-10 w-10 ring-2 ring-background/50">
+                      <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
+                      <AvatarFallback className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground font-semibold text-sm">
+                        {session.user.name?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-72 p-0 shadow-2xl border-border/50 bg-background/95 backdrop-blur-xl" align="end">
+                  {/* User Profile Section */}
+                  <div className="px-4 py-4 bg-gradient-to-r from-primary/5 via-primary/3 to-secondary/5 border-b border-border/50">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12 ring-2 ring-primary/20">
+                        <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
+                          {session.user.name?.[0]?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground truncate">
+                          {session.user.name || 'User'}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {session.user.email || 'user@example.com'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Navigation Section */}
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Navigation
+                    </DropdownMenuLabel>
+
+                    <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                      <Link href="/dashboard" className="flex items-center w-full">
+                        <LayoutDashboard className="mr-3 h-4 w-4 text-primary" />
+                        <span className="font-medium">Dashboard</span>
+                        <ArrowRight className="ml-auto h-3 w-3 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                      <Link href="/search" className="flex items-center w-full">
+                        <Search className="mr-3 h-4 w-4 text-primary" />
+                        <span className="font-medium">Search Media</span>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                      <Link href="/universes" className="flex items-center w-full">
+                        <Plus className="mr-3 h-4 w-4 text-primary" />
+                        <span className="font-medium">Create Universe</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+
+                  <DropdownMenuSeparator className="my-1" />
+
+                  {/* Account Section */}
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Account
+                    </DropdownMenuLabel>
+
+                    <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                      <div className="flex items-center w-full">
+                        <User className="mr-3 h-4 w-4 text-primary" />
+                        <span className="font-medium">Profile</span>
+                      </div>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                      <div className="flex items-center w-full">
+                        <Settings className="mr-3 h-4 w-4 text-primary" />
+                        <span className="font-medium">Settings</span>
+                      </div>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                      <div className="flex items-center w-full">
+                        <Bell className="mr-3 h-4 w-4 text-primary" />
+                        <span className="font-medium">Notifications</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+
+                  <DropdownMenuSeparator className="my-1" />
+
+                  {/* Sign Out */}
+                  <div className="p-2">
+                    <DropdownMenuItem
+                      className="px-3 py-2.5 cursor-pointer hover:bg-destructive/5 focus:bg-destructive/5 transition-colors duration-150 text-destructive focus:text-destructive"
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                    >
+                      <div className="flex items-center w-full">
+                        <LogOut className="mr-3 h-4 w-4" />
+                        <span className="font-medium">Sign Out</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link href="/auth/signin">
+                  <Button variant="ghost" className="text-sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/auth/signin">
+                  <Button className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
+                    Get Started
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 border-t border-border/50">
+            <div className="flex flex-col space-y-4">
+              <Link
+                href="/movies"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Movies
+              </Link>
+              <Link
+                href="/tv"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                TV Shows
+              </Link>
+              <Link
+                href="/games"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Games
+              </Link>
+              <Link
+                href="/books"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Books
+              </Link>
+              <Link
+                href="/search"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Search
+              </Link>
+              <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
+                {status === 'loading' ? (
+                  <div className="flex justify-center py-4">
+                    <div className="w-6 h-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  </div>
+                ) : session?.user ? (
+                  <Link href="/dashboard">
+                    <Button className="w-full bg-gradient-to-r from-primary to-primary/90">
+                      Go to Dashboard
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/auth/signin">
+                      <Button variant="ghost" className="w-full">
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link href="/auth/signin">
+                      <Button className="w-full bg-gradient-to-r from-primary to-primary/90">
+                        Get Started
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}

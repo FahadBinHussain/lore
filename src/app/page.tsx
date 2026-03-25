@@ -2,34 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSession, signOut } from 'next-auth/react';
-import { 
+import {
   Film, Tv, Gamepad2, BookOpen, Sparkles,
   ArrowRight, Play, Star, Zap, Globe,
   ChevronRight, Flame, Crown, Rocket,
   TrendingUp, Users, Award, Shield,
   CheckCircle, BarChart3, Layers, Target,
   Monitor, Smartphone, Cloud, Lock,
-  Menu, X, MessageCircle, Heart, Eye,
+  MessageCircle, Heart, Eye,
   Clock, Calendar, MapPin, Mail,
   Phone, ExternalLink, Download, Share2,
-  LayoutDashboard, User, Settings, LogOut,
-  Search, Plus, Bell, Moon, Sun, Loader2
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-  DropdownMenuGroup,
-} from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
@@ -105,8 +93,6 @@ const testimonials = [
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { data: session, status } = useSession();
   
   const [movies, setMovies] = useState<MediaItem[]>([]);
   const [tvShows, setTVShows] = useState<MediaItem[]>([]);
@@ -146,249 +132,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
-      <header className="relative z-50 border-b border-border/50">
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/90 to-background/80 backdrop-blur-xl" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:scale-105">
-                  <Sparkles className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full animate-pulse" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-xl bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
-                  Lore
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium -mt-1">Media Tracker</span>
-              </div>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              <a
-                href="#features"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-              >
-                Features
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-              </a>
-              <Link
-                href="/about"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-              >
-                About
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-              </Link>
-              <Link
-                href="/contact"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-              >
-                Contact
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-              </Link>
-            </nav>
-
-            {/* CTA Buttons */}
-            <div className="hidden md:flex items-center gap-3">
-              {status === 'loading' ? (
-                <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              ) : session?.user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger render={<div />}>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all duration-200">
-                      <Avatar className="h-10 w-10 ring-2 ring-background/50">
-                        <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
-                        <AvatarFallback className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground font-semibold text-sm">
-                          {session.user.name?.[0]?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-72 p-0 shadow-2xl border-border/50 bg-background/95 backdrop-blur-xl" align="end">
-                    {/* User Profile Section */}
-                    <div className="px-4 py-4 bg-gradient-to-r from-primary/5 via-primary/3 to-secondary/5 border-b border-border/50">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-                          <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
-                          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
-                            {session.user.name?.[0]?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-foreground truncate">
-                            {session.user.name || 'User'}
-                          </p>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {session.user.email || 'user@example.com'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Navigation Section */}
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Navigation
-                      </DropdownMenuLabel>
-                      
-                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                        <Link href="/dashboard" className="flex items-center w-full">
-                          <LayoutDashboard className="mr-3 h-4 w-4 text-primary" />
-                          <span className="font-medium">Dashboard</span>
-                          <ArrowRight className="ml-auto h-3 w-3 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
-                        </Link>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                        <Link href="/search" className="flex items-center w-full">
-                          <Search className="mr-3 h-4 w-4 text-primary" />
-                          <span className="font-medium">Search Media</span>
-                        </Link>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                        <Link href="/universes" className="flex items-center w-full">
-                          <Plus className="mr-3 h-4 w-4 text-primary" />
-                          <span className="font-medium">Create Universe</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-
-                    <DropdownMenuSeparator className="my-1" />
-
-                    {/* Account Section */}
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Account
-                      </DropdownMenuLabel>
-
-                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                        <div className="flex items-center w-full">
-                          <User className="mr-3 h-4 w-4 text-primary" />
-                          <span className="font-medium">Profile</span>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                        <div className="flex items-center w-full">
-                          <Settings className="mr-3 h-4 w-4 text-primary" />
-                          <span className="font-medium">Settings</span>
-                        </div>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                        <div className="flex items-center w-full">
-                          <Bell className="mr-3 h-4 w-4 text-primary" />
-                          <span className="font-medium">Notifications</span>
-                        </div>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-
-                    <DropdownMenuSeparator className="my-1" />
-
-                    {/* Sign Out */}
-                    <div className="p-2">
-                      <DropdownMenuItem 
-                        className="px-3 py-2.5 cursor-pointer hover:bg-destructive/5 focus:bg-destructive/5 transition-colors duration-150 text-destructive focus:text-destructive"
-                        onClick={() => signOut({ callbackUrl: '/' })}
-                      >
-                        <div className="flex items-center w-full">
-                          <LogOut className="mr-3 h-4 w-4" />
-                          <span className="font-medium">Sign Out</span>
-                        </div>
-                      </DropdownMenuItem>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <>
-                  <Link href="/auth/signin">
-                    <Button variant="ghost" className="text-sm">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link href="/auth/signin">
-                    <Button className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                      Get Started
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
-
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
-          </div>
-
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-border/50">
-              <div className="flex flex-col space-y-4">
-                <a
-                  href="#features"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Features
-                </a>
-                <Link
-                  href="/about"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  About
-                </Link>
-                <Link
-                  href="/contact"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Contact
-                </Link>
-                <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-                  {status === 'loading' ? (
-                    <div className="flex justify-center py-4">
-                      <div className="w-6 h-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    </div>
-                  ) : session?.user ? (
-                    <Link href="/dashboard">
-                      <Button className="w-full bg-gradient-to-r from-primary to-primary/90">
-                        Go to Dashboard
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </Link>
-                  ) : (
-                    <>
-                      <Link href="/auth/signin">
-                        <Button variant="ghost" className="w-full">
-                          Sign In
-                        </Button>
-                      </Link>
-                      <Link href="/auth/signin">
-                        <Button className="w-full bg-gradient-to-r from-primary to-primary/90">
-                          Get Started
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
@@ -435,25 +178,13 @@ export default function HomePage() {
               "flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-1000 delay-300",
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             )}>
-              {status === 'loading' ? (
-                <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              ) : session?.user ? (
-                <Link href="/dashboard">
-                  <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
-                    <Rocket className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                    Go to Dashboard
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/auth/signin">
-                  <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
-                    <Rocket className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                    Start Tracking Free
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              )}
+              <Link href="/auth/signin">
+                <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
+                  <Rocket className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                  Start Tracking Free
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
               <Button variant="outline" size="lg" className="group border-2 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300">
                 <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
                 Watch Demo
@@ -476,7 +207,8 @@ export default function HomePage() {
                   <div
                     key={i}
                     className="w-10 h-10 rounded-full border-2 border-background bg-cover bg-center shadow-lg"
-                    style={{ backgroundImage: "url('" + avatar + "')" }}
+                    style={{ backgroundImage: `url("${avatar}")` }}
+                    suppressHydrationWarning
                   />
                 ))}
               </div>
@@ -748,7 +480,8 @@ export default function HomePage() {
                   <div className="flex items-center gap-3">
                   <div 
                     className="w-12 h-12 rounded-full bg-cover bg-center"
-                    style={{ backgroundImage: `url(${testimonial.avatar})` }}
+                    style={{ backgroundImage: `url("${testimonial.avatar}")` }}
+                    suppressHydrationWarning
                   />
                     <div>
                       <p className="font-semibold">{testimonial.author}</p>
@@ -785,25 +518,13 @@ export default function HomePage() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              {status === 'loading' ? (
-                <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              ) : session?.user ? (
-                <Link href="/dashboard">
-                  <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                    <Zap className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                    Go to Dashboard
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/auth/signin">
-                  <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                    <Zap className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                    Get Started Free
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              )}
+              <Link href="/auth/signin">
+                <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
+                  <Zap className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                  Get Started Free
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
               <Button variant="outline" size="lg" className="border-2">
                 <Globe className="w-5 h-5 mr-2" />
                 View on GitHub
