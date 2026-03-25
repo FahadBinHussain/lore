@@ -11,7 +11,7 @@ export default async function ThemeParksDashboardPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <MediaContent type="themepark" title="Theme Parks" icon="MapPin" />
     </DashboardLayout>
   );

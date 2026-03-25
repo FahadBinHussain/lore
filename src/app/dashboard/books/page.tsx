@@ -11,7 +11,7 @@ export default async function DashboardBooksPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <MediaContent type="book" title="Books" icon="BookOpen" />
     </DashboardLayout>
   );

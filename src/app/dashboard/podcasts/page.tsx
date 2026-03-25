@@ -11,7 +11,7 @@ export default async function PodcastsDashboardPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <MediaContent type="podcast" title="Podcasts" icon="Podcast" />
     </DashboardLayout>
   );
