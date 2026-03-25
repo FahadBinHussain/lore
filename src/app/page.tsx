@@ -12,7 +12,8 @@ import {
   MessageCircle, Heart, Eye,
   Clock, Calendar, MapPin, Mail,
   Phone, ExternalLink, Download, Share2,
-  Loader2
+  Loader2, BookOpen as ComicIcon, Music, Podcast, MapPin as ThemeParkIcon,
+  Puzzle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,6 +61,41 @@ const features = [
     description: 'Read more with intelligent progress monitoring',
     color: 'from-emerald-500 to-green-600',
     glow: 'shadow-emerald-500/25'
+  },
+  {
+    icon: ComicIcon,
+    title: 'Comics',
+    description: 'Follow your favorite comic series and graphic novels',
+    color: 'from-rose-500 to-pink-600',
+    glow: 'shadow-rose-500/25'
+  },
+  {
+    icon: Puzzle,
+    title: 'Board Games',
+    description: 'Track your board game collection and play sessions',
+    color: 'from-indigo-500 to-purple-600',
+    glow: 'shadow-indigo-500/25'
+  },
+  {
+    icon: Music,
+    title: 'Soundtracks',
+    description: 'Discover and track music from your favorite media',
+    color: 'from-teal-500 to-cyan-600',
+    glow: 'shadow-teal-500/25'
+  },
+  {
+    icon: Podcast,
+    title: 'Podcasts',
+    description: 'Stay updated with your favorite podcast episodes',
+    color: 'from-orange-500 to-red-600',
+    glow: 'shadow-orange-500/25'
+  },
+  {
+    icon: ThemeParkIcon,
+    title: 'Theme Parks',
+    description: 'Plan and track your theme park adventures',
+    color: 'from-lime-500 to-green-600',
+    glow: 'shadow-lime-500/25'
   }
 ];
 
@@ -96,14 +132,36 @@ export default function HomePage() {
   
   const [movies, setMovies] = useState<MediaItem[]>([]);
   const [tvShows, setTVShows] = useState<MediaItem[]>([]);
+  const [games, setGames] = useState<MediaItem[]>([]);
+  const [books, setBooks] = useState<MediaItem[]>([]);
+  const [comics, setComics] = useState<MediaItem[]>([]);
+  const [boardGames, setBoardGames] = useState<MediaItem[]>([]);
+  const [soundtracks, setSoundtracks] = useState<MediaItem[]>([]);
+  const [podcasts, setPodcasts] = useState<MediaItem[]>([]);
+  const [themeParks, setThemeParks] = useState<MediaItem[]>([]);
+  
   const [loadingMovies, setLoadingMovies] = useState(true);
   const [loadingTV, setLoadingTV] = useState(true);
+  const [loadingGames, setLoadingGames] = useState(true);
+  const [loadingBooks, setLoadingBooks] = useState(true);
+  const [loadingComics, setLoadingComics] = useState(true);
+  const [loadingBoardGames, setLoadingBoardGames] = useState(true);
+  const [loadingSoundtracks, setLoadingSoundtracks] = useState(true);
+  const [loadingPodcasts, setLoadingPodcasts] = useState(true);
+  const [loadingThemeParks, setLoadingThemeParks] = useState(true);
   const [activeTab, setActiveTab] = useState('movies');
 
   useEffect(() => {
     setMounted(true);
     fetchMovies();
     fetchTVShows();
+    fetchGames();
+    fetchBooks();
+    fetchComics();
+    fetchBoardGames();
+    fetchSoundtracks();
+    fetchPodcasts();
+    fetchThemeParks();
   }, []);
 
   const fetchMovies = async () => {
@@ -127,6 +185,90 @@ export default function HomePage() {
       console.error('Failed to fetch TV shows:', error);
     } finally {
       setLoadingTV(false);
+    }
+  };
+
+  const fetchGames = async () => {
+    try {
+      const response = await fetch('/api/games');
+      const data = await response.json();
+      setGames(data.results || []);
+    } catch (error) {
+      console.error('Failed to fetch games:', error);
+    } finally {
+      setLoadingGames(false);
+    }
+  };
+
+  const fetchBooks = async () => {
+    try {
+      const response = await fetch('/api/books');
+      const data = await response.json();
+      setBooks(data.results || []);
+    } catch (error) {
+      console.error('Failed to fetch books:', error);
+    } finally {
+      setLoadingBooks(false);
+    }
+  };
+
+  const fetchComics = async () => {
+    try {
+      const response = await fetch('/api/comics');
+      const data = await response.json();
+      setComics(data.results || []);
+    } catch (error) {
+      console.error('Failed to fetch comics:', error);
+    } finally {
+      setLoadingComics(false);
+    }
+  };
+
+  const fetchBoardGames = async () => {
+    try {
+      const response = await fetch('/api/boardgames');
+      const data = await response.json();
+      setBoardGames(data.results || []);
+    } catch (error) {
+      console.error('Failed to fetch board games:', error);
+    } finally {
+      setLoadingBoardGames(false);
+    }
+  };
+
+  const fetchSoundtracks = async () => {
+    try {
+      const response = await fetch('/api/soundtracks');
+      const data = await response.json();
+      setSoundtracks(data.results || []);
+    } catch (error) {
+      console.error('Failed to fetch soundtracks:', error);
+    } finally {
+      setLoadingSoundtracks(false);
+    }
+  };
+
+  const fetchPodcasts = async () => {
+    try {
+      const response = await fetch('/api/podcasts');
+      const data = await response.json();
+      setPodcasts(data.results || []);
+    } catch (error) {
+      console.error('Failed to fetch podcasts:', error);
+    } finally {
+      setLoadingPodcasts(false);
+    }
+  };
+
+  const fetchThemeParks = async () => {
+    try {
+      const response = await fetch('/api/themeparks');
+      const data = await response.json();
+      setThemeParks(data.results || []);
+    } catch (error) {
+      console.error('Failed to fetch theme parks:', error);
+    } finally {
+      setLoadingThemeParks(false);
     }
   };
 
@@ -292,14 +434,42 @@ export default function HomePage() {
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex justify-center mb-8">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="movies" className="flex items-center gap-2">
+              <TabsList className="inline-flex h-12 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground overflow-x-auto max-w-full">
+                <TabsTrigger value="movies" className="flex items-center gap-2 whitespace-nowrap">
                   <Film className="w-4 h-4" />
                   Movies
                 </TabsTrigger>
-                <TabsTrigger value="tv" className="flex items-center gap-2">
+                <TabsTrigger value="tv" className="flex items-center gap-2 whitespace-nowrap">
                   <Tv className="w-4 h-4" />
                   TV Shows
+                </TabsTrigger>
+                <TabsTrigger value="games" className="flex items-center gap-2 whitespace-nowrap">
+                  <Gamepad2 className="w-4 h-4" />
+                  Games
+                </TabsTrigger>
+                <TabsTrigger value="books" className="flex items-center gap-2 whitespace-nowrap">
+                  <BookOpen className="w-4 h-4" />
+                  Books
+                </TabsTrigger>
+                <TabsTrigger value="comics" className="flex items-center gap-2 whitespace-nowrap">
+                  <ComicIcon className="w-4 h-4" />
+                  Comics
+                </TabsTrigger>
+                <TabsTrigger value="boardgames" className="flex items-center gap-2 whitespace-nowrap">
+                  <Puzzle className="w-4 h-4" />
+                  Board Games
+                </TabsTrigger>
+                <TabsTrigger value="soundtracks" className="flex items-center gap-2 whitespace-nowrap">
+                  <Music className="w-4 h-4" />
+                  Soundtracks
+                </TabsTrigger>
+                <TabsTrigger value="podcasts" className="flex items-center gap-2 whitespace-nowrap">
+                  <Podcast className="w-4 h-4" />
+                  Podcasts
+                </TabsTrigger>
+                <TabsTrigger value="themeparks" className="flex items-center gap-2 whitespace-nowrap">
+                  <ThemeParkIcon className="w-4 h-4" />
+                  Theme Parks
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -417,6 +587,398 @@ export default function HomePage() {
                 <Link href="/tv">
                   <Button variant="outline" className="group">
                     View All TV Shows
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="games">
+              {loadingGames ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : games.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {games.slice(0, 12).map((game) => (
+                    <Link key={game.id} href={`/games/${game.id}`}>
+                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+                          {game.image ? (
+                            <img 
+                              src={game.image} 
+                              alt={game.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Gamepad2 className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          {game.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {game.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm truncate">{game.title}</h3>
+                          {game.year && (
+                            <p className="text-xs text-muted-foreground mt-1">{game.year}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <Gamepad2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">No Games Found</h3>
+                  <p className="text-muted-foreground">Unable to load trending games at this time.</p>
+                </Card>
+              )}
+              <div className="mt-8 text-center">
+                <Link href="/games">
+                  <Button variant="outline" className="group">
+                    View All Games
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="books">
+              {loadingBooks ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : books.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {books.slice(0, 12).map((book) => (
+                    <Link key={book.id} href={`/books/${book.id}`}>
+                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+                          {book.image ? (
+                            <img 
+                              src={book.image} 
+                              alt={book.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <BookOpen className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          {book.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {book.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm truncate">{book.title}</h3>
+                          {book.year && (
+                            <p className="text-xs text-muted-foreground mt-1">{book.year}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <BookOpen className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">No Books Found</h3>
+                  <p className="text-muted-foreground">Unable to load trending books at this time.</p>
+                </Card>
+              )}
+              <div className="mt-8 text-center">
+                <Link href="/books">
+                  <Button variant="outline" className="group">
+                    View All Books
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="comics">
+              {loadingComics ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : comics.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {comics.slice(0, 12).map((comic) => (
+                    <Link key={comic.id} href={`/comics/${comic.id}`}>
+                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+                          {comic.image ? (
+                            <img 
+                              src={comic.image} 
+                              alt={comic.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ComicIcon className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          {comic.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {comic.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm truncate">{comic.title}</h3>
+                          {comic.year && (
+                            <p className="text-xs text-muted-foreground mt-1">{comic.year}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <ComicIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">No Comics Found</h3>
+                  <p className="text-muted-foreground">Unable to load trending comics at this time.</p>
+                </Card>
+              )}
+              <div className="mt-8 text-center">
+                <Link href="/comics">
+                  <Button variant="outline" className="group">
+                    View All Comics
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="boardgames">
+              {loadingBoardGames ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : boardGames.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {boardGames.slice(0, 12).map((boardGame) => (
+                    <Link key={boardGame.id} href={`/boardgames/${boardGame.id}`}>
+                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+                          {boardGame.image ? (
+                            <img 
+                              src={boardGame.image} 
+                              alt={boardGame.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Puzzle className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          {boardGame.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {boardGame.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm truncate">{boardGame.title}</h3>
+                          {boardGame.year && (
+                            <p className="text-xs text-muted-foreground mt-1">{boardGame.year}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <Puzzle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">No Board Games Found</h3>
+                  <p className="text-muted-foreground">Unable to load trending board games at this time.</p>
+                </Card>
+              )}
+              <div className="mt-8 text-center">
+                <Link href="/boardgames">
+                  <Button variant="outline" className="group">
+                    View All Board Games
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="soundtracks">
+              {loadingSoundtracks ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : soundtracks.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {soundtracks.slice(0, 12).map((soundtrack) => (
+                    <Link key={soundtrack.id} href={`/soundtracks/${soundtrack.id}`}>
+                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+                          {soundtrack.image ? (
+                            <img 
+                              src={soundtrack.image} 
+                              alt={soundtrack.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Music className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          {soundtrack.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {soundtrack.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm truncate">{soundtrack.title}</h3>
+                          {soundtrack.year && (
+                            <p className="text-xs text-muted-foreground mt-1">{soundtrack.year}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <Music className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">No Soundtracks Found</h3>
+                  <p className="text-muted-foreground">Unable to load trending soundtracks at this time.</p>
+                </Card>
+              )}
+              <div className="mt-8 text-center">
+                <Link href="/soundtracks">
+                  <Button variant="outline" className="group">
+                    View All Soundtracks
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="podcasts">
+              {loadingPodcasts ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : podcasts.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {podcasts.slice(0, 12).map((podcast) => (
+                    <Link key={podcast.id} href={`/podcasts/${podcast.id}`}>
+                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+                          {podcast.image ? (
+                            <img 
+                              src={podcast.image} 
+                              alt={podcast.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Podcast className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          {podcast.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {podcast.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm truncate">{podcast.title}</h3>
+                          {podcast.year && (
+                            <p className="text-xs text-muted-foreground mt-1">{podcast.year}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <Podcast className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">No Podcasts Found</h3>
+                  <p className="text-muted-foreground">Unable to load trending podcasts at this time.</p>
+                </Card>
+              )}
+              <div className="mt-8 text-center">
+                <Link href="/podcasts">
+                  <Button variant="outline" className="group">
+                    View All Podcasts
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="themeparks">
+              {loadingThemeParks ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : themeParks.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {themeParks.slice(0, 12).map((themePark) => (
+                    <Link key={themePark.id} href={`/themeparks/${themePark.id}`}>
+                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+                          {themePark.image ? (
+                            <img 
+                              src={themePark.image} 
+                              alt={themePark.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ThemeParkIcon className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          {themePark.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {themePark.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm truncate">{themePark.title}</h3>
+                          {themePark.year && (
+                            <p className="text-xs text-muted-foreground mt-1">{themePark.year}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <ThemeParkIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">No Theme Parks Found</h3>
+                  <p className="text-muted-foreground">Unable to load trending theme parks at this time.</p>
+                </Card>
+              )}
+              <div className="mt-8 text-center">
+                <Link href="/themeparks">
+                  <Button variant="outline" className="group">
+                    View All Theme Parks
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
