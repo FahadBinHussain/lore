@@ -11,7 +11,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <DashboardContent />
     </DashboardLayout>
   );

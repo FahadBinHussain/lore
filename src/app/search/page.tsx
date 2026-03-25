@@ -11,7 +11,7 @@ export default async function SearchPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <SearchContent />
     </DashboardLayout>
   );

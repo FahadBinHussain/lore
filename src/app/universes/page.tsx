@@ -11,7 +11,7 @@ export default async function UniversesPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <UniversesContent />
     </DashboardLayout>
   );

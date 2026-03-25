@@ -11,7 +11,7 @@ export default async function DashboardTVPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <MediaContent type="tv" title="TV Shows" icon="Tv" />
     </DashboardLayout>
   );
