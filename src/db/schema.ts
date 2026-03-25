@@ -18,7 +18,7 @@ import { relations } from 'drizzle-orm';
 
 export const userRoleEnum = pgEnum('user_role', ['admin', 'user']);
 
-export const mediaTypeEnum = pgEnum('media_type', ['movie', 'tv', 'game', 'book']);
+export const mediaTypeEnum = pgEnum('media_type', ['movie', 'tv', 'game', 'book', 'comic', 'boardgame', 'soundtrack', 'podcast', 'themepark']);
 
 export const watchStatusEnum = pgEnum('watch_status', [
   'not_started', 
