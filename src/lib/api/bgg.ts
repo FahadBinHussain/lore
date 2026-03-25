@@ -1,142 +1,253 @@
+import { XMLParser } from 'fast-xml-parser';
+
 export interface BGGGame {
   id: string;
-  name: {
-    type: string;
-    value: string;
-  };
-  yearpublished?: {
-    value: string;
-  };
-  description: string;
-  thumbnail?: string;
-  image?: string;
-  minplayers?: {
-    value: string;
-  };
-  maxplayers?: {
-    value: string;
-  };
-  playingtime?: {
-    value: string;
-  };
-  minplaytime?: {
-    value: string;
-  };
-  maxplaytime?: {
-    value: string;
-  };
-  boardgamecategory?: Array<{
-    value: string;
-  }>;
-  boardgamemechanic?: Array<{
-    value: string;
-  }>;
-  boardgamedesigner?: Array<{
-    value: string;
-  }>;
-  boardgamepublisher?: Array<{
-    value: string;
-  }>;
+  name: string;
+  year_published?: number;
+  description?: string;
+  image_url?: string;
+  thumb_url?: string;
+  min_players?: number;
+  max_players?: number;
+  min_playtime?: number;
+  max_playtime?: number;
+  categories?: string[];
+  mechanics?: string[];
+  designers?: string[];
+  publishers?: string[];
+  price?: string;
+  msrp?: number;
+  url?: string;
 }
 
 export interface BGGSearchResponse {
-  items: {
-    item: BGGGame | BGGGame[];
-  };
+  games: BGGGame[];
+  count: number;
 }
 
-export async function searchBoardGames(query: string): Promise<BGGGame[]> {
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+});
+
+export async function searchBoardGames(query: string, apiKey?: string): Promise<BGGGame[]> {
+  const headers: Record<string, string> = {};
+
+  // Add authorization header if API key is provided
+  if (apiKey) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
+
   const response = await fetch(
     `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(query)}&type=boardgame`,
-    { next: { revalidate: 3600 } }
+    {
+      headers,
+      next: { revalidate: 3600 }
+    }
   );
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('BoardGameGeek API requires authentication. Please provide a valid API key.');
+    }
     throw new Error('Failed to search board games');
   }
 
   const xmlText = await response.text();
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-  const items = xmlDoc.getElementsByTagName('item');
+  const games = parseBGGSearchXML(xmlText);
+  return games;
+}
+
+export async function getBoardGameDetails(id: string, apiKey?: string): Promise<BGGGame> {
+  const headers: Record<string, string> = {};
+
+  // Add authorization header if API key is provided
+  if (apiKey) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
+
+  const response = await fetch(
+    `https://boardgamegeek.com/xmlapi2/thing?id=${id}&stats=1`,
+    {
+      headers,
+      next: { revalidate: 3600 }
+    }
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('BoardGameGeek API requires authentication. Please provide a valid API key.');
+    }
+    throw new Error('Failed to get board game details');
+  }
+
+  const xmlText = await response.text();
+  const game = parseBGGThingXML(xmlText);
+  if (!game) {
+    throw new Error('Board game not found');
+  }
+
+  return game;
+}
+
+export async function getHotBoardGames(apiKey?: string): Promise<BGGGame[]> {
+  const headers: Record<string, string> = {};
+
+  // Add authorization header if API key is provided
+  if (apiKey) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
+
+  const response = await fetch(
+    `https://boardgamegeek.com/xmlapi2/hot?type=boardgame`,
+    {
+      headers,
+      next: { revalidate: 3600 }
+    }
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('BoardGameGeek API requires authentication. Please provide a valid API key.');
+    }
+    throw new Error('Failed to get hot board games');
+  }
+
+  const xmlText = await response.text();
+  const games = parseBGHotXML(xmlText);
+  return games;
+}
+
+function parseBGGSearchXML(xmlText: string): BGGGame[] {
+  const result = xmlParser.parse(xmlText);
+  const items = result.items?.item || [];
+
+  // Handle single item case
+  const itemArray = Array.isArray(items) ? items : [items];
 
   const games: BGGGame[] = [];
-  for (let i = 0; i < Math.min(items.length, 20); i++) {
-    const item = items[i];
-    const game: BGGGame = {
-      id: item.getAttribute('id') || '',
-      name: {
-        type: item.getElementsByTagName('name')[0]?.getAttribute('type') || 'primary',
-        value: item.getElementsByTagName('name')[0]?.getAttribute('value') || ''
-      },
-      yearpublished: item.getElementsByTagName('yearpublished')[0] ? {
-        value: item.getElementsByTagName('yearpublished')[0].getAttribute('value') || ''
-      } : undefined,
-      description: '',
-      thumbnail: item.getElementsByTagName('thumbnail')[0]?.textContent || undefined,
-      image: item.getElementsByTagName('image')[0]?.textContent || undefined,
-    };
-    games.push(game);
+  for (const item of itemArray) {
+    const id = item['@_id'];
+    const nameElement = item.name;
+    const name = nameElement?.['@_value'] || '';
+
+    if (id && name) {
+      games.push({
+        id: id.toString(),
+        name,
+        url: `https://boardgamegeek.com/boardgame/${id}`,
+      });
+    }
   }
 
   return games;
 }
 
-export async function getBoardGameDetails(id: string): Promise<BGGGame> {
-  const response = await fetch(
-    `https://boardgamegeek.com/xmlapi2/thing?id=${id}`,
-    { next: { revalidate: 3600 } }
-  );
+function parseBGGThingXML(xmlText: string): BGGGame | null {
+  const result = xmlParser.parse(xmlText);
+  const item = result.items?.item;
 
-  if (!response.ok) {
-    throw new Error('Failed to get board game details');
+  if (!item) return null;
+
+  const id = item['@_id'];
+  const nameElement = item.name;
+  const name = nameElement?.['@_value'] || '';
+
+  // Get description
+  const description = item.description || '';
+
+  // Get year published
+  const year_published = item.yearpublished ? parseInt(item.yearpublished['@_value'] || '0') : undefined;
+
+  // Get player count
+  const min_players = item.minplayers ? parseInt(item.minplayers['@_value'] || '0') : undefined;
+  const max_players = item.maxplayers ? parseInt(item.maxplayers['@_value'] || '0') : undefined;
+
+  // Get playtime
+  const min_playtime = item.minplaytime ? parseInt(item.minplaytime['@_value'] || '0') : undefined;
+  const max_playtime = item.maxplaytime ? parseInt(item.maxplaytime['@_value'] || '0') : undefined;
+
+  // Get image
+  const image_url = item.image || undefined;
+
+  // Get thumbnail
+  const thumb_url = item.thumbnail || undefined;
+
+  // Get categories, mechanics, designers, publishers
+  const categories: string[] = [];
+  const mechanics: string[] = [];
+  const designers: string[] = [];
+  const publishers: string[] = [];
+
+  const links = item.link || [];
+  const linkArray = Array.isArray(links) ? links : [links];
+
+  for (const link of linkArray) {
+    const type = link['@_type'];
+    const value = link['@_value'];
+
+    if (value) {
+      switch (type) {
+        case 'boardgamecategory':
+          categories.push(value);
+          break;
+        case 'boardgamemechanic':
+          mechanics.push(value);
+          break;
+        case 'boardgamedesigner':
+          designers.push(value);
+          break;
+        case 'boardgamepublisher':
+          publishers.push(value);
+          break;
+      }
+    }
   }
 
-  const xmlText = await response.text();
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-  const item = xmlDoc.getElementsByTagName('item')[0];
-
-  const game: BGGGame = {
-    id: item.getAttribute('id') || '',
-    name: {
-      type: item.getElementsByTagName('name')[0]?.getAttribute('type') || 'primary',
-      value: item.getElementsByTagName('name')[0]?.getAttribute('value') || ''
-    },
-    yearpublished: item.getElementsByTagName('yearpublished')[0] ? {
-      value: item.getElementsByTagName('yearpublished')[0].getAttribute('value') || ''
-    } : undefined,
-    description: item.getElementsByTagName('description')[0]?.textContent || '',
-    thumbnail: item.getElementsByTagName('thumbnail')[0]?.textContent || undefined,
-    image: item.getElementsByTagName('image')[0]?.textContent || undefined,
-    minplayers: item.getElementsByTagName('minplayers')[0] ? {
-      value: item.getElementsByTagName('minplayers')[0].getAttribute('value') || ''
-    } : undefined,
-    maxplayers: item.getElementsByTagName('maxplayers')[0] ? {
-      value: item.getElementsByTagName('maxplayers')[0].getAttribute('value') || ''
-    } : undefined,
-    playingtime: item.getElementsByTagName('playingtime')[0] ? {
-      value: item.getElementsByTagName('playingtime')[0].getAttribute('value') || ''
-    } : undefined,
-    minplaytime: item.getElementsByTagName('minplaytime')[0] ? {
-      value: item.getElementsByTagName('minplaytime')[0].getAttribute('value') || ''
-    } : undefined,
-    maxplaytime: item.getElementsByTagName('maxplaytime')[0] ? {
-      value: item.getElementsByTagName('maxplaytime')[0].getAttribute('value') || ''
-    } : undefined,
-    boardgamecategory: Array.from(item.getElementsByTagName('link')).filter(link => link.getAttribute('type') === 'boardgamecategory').map(link => ({
-      value: link.getAttribute('value') || ''
-    })),
-    boardgamemechanic: Array.from(item.getElementsByTagName('link')).filter(link => link.getAttribute('type') === 'boardgamemechanic').map(link => ({
-      value: link.getAttribute('value') || ''
-    })),
-    boardgamedesigner: Array.from(item.getElementsByTagName('link')).filter(link => link.getAttribute('type') === 'boardgamedesigner').map(link => ({
-      value: link.getAttribute('value') || ''
-    })),
-    boardgamepublisher: Array.from(item.getElementsByTagName('link')).filter(link => link.getAttribute('type') === 'boardgamepublisher').map(link => ({
-      value: link.getAttribute('value') || ''
-    })),
+  return {
+    id: id?.toString() || '',
+    name,
+    year_published,
+    description,
+    image_url,
+    thumb_url,
+    min_players,
+    max_players,
+    min_playtime,
+    max_playtime,
+    categories,
+    mechanics,
+    designers,
+    publishers,
+    url: `https://boardgamegeek.com/boardgame/${id}`,
   };
+}
 
-  return game;
+function parseBGHotXML(xmlText: string): BGGGame[] {
+  const result = xmlParser.parse(xmlText);
+  const items = result.items?.item || [];
+
+  // Handle single item case
+  const itemArray = Array.isArray(items) ? items : [items];
+
+  const games: BGGGame[] = [];
+
+  for (const item of itemArray) {
+    const id = item['@_id'];
+    const name = item.name?.['@_value'] || '';
+    const year_published = item.yearpublished ? parseInt(item.yearpublished['@_value'] || '0') : undefined;
+    const thumbnail = item.thumbnail?.['@_value'] || undefined;
+
+    if (id && name) {
+      games.push({
+        id: id.toString(),
+        name,
+        year_published,
+        thumb_url: thumbnail,
+        url: `https://boardgamegeek.com/boardgame/${id}`,
+      });
+    }
+  }
+
+  return games;
 }

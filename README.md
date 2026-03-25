@@ -95,6 +95,7 @@ Track your progress across **10 different media types**:
    IGDB_CLIENT_SECRET="your-igdb-client-secret"
    COMICVINE_API_KEY="your-comicvine-api-key"
    LISTEN_NOTES_API_KEY="your-listen-notes-api-key"
+   BGG_API_KEY="your-bgg-api-key"  # Optional: For board games search
    ```
 
 4. **Set up the database**
@@ -168,9 +169,16 @@ pnpm test:watch   # Run tests in watch mode
 
 ### Optional APIs
 - **Open Library**: No API key required
-- **BoardGameGeek**: No API key required
+- **BoardGameGeek**: API key required (get from [BGG Applications](https://boardgamegeek.com/applications))
 - **MusicBrainz**: No API key required
 - **Themeparks.wiki**: No API key required
+
+### BoardGameGeek API Configuration
+BoardGameGeek requires an API key for their XML API2. Users can configure their own API key directly in the application:
+1. Visit the Board Games page
+2. If prompted for authentication, click the link to get an API key from BGG
+3. Enter your API key in the configuration form
+4. The key is stored locally in your browser for future use
 
 ## 🏗️ Tech Stack
 
