@@ -76,44 +76,6 @@ export default function TVPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
-      <header className="border-b border-border/50 sticky top-0 z-50 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="font-bold text-xl">Lore</span>
-            </Link>
-
-            <nav className="hidden md:flex items-center gap-6">
-              <Link href="/movies" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Movies
-              </Link>
-              <Link href="/tv" className="text-sm font-medium text-primary">
-                TV Shows
-              </Link>
-              <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                About
-              </Link>
-            </nav>
-
-            <div className="flex items-center gap-3">
-              <Link href="/auth/signin">
-                <Button variant="ghost" className="text-sm">Sign In</Button>
-              </Link>
-              <Link href="/auth/signin">
-                <Button className="bg-gradient-to-r from-primary to-primary/90">
-                  Get Started
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section className="relative py-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-blue-500/5" />

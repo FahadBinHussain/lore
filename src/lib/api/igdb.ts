@@ -42,6 +42,16 @@ export async function getIGDBAccessToken(): Promise<string> {
 }
 
 export async function searchGames(query: string, accessToken: string): Promise<IGDBGame[]> {
+  let body: string;
+  
+  if (query.trim()) {
+    // Search for specific games
+    body = `search "${query}"; fields id, name, summary, cover.url, first_release_date, rating, genres.name, involved_companies.company.name, involved_companies.developer, platforms.name, storyline; limit 20;`;
+  } else {
+    // Get popular games when no search query
+    body = `fields id, name, summary, cover.url, first_release_date, rating, genres.name, involved_companies.company.name, involved_companies.developer, platforms.name, storyline; sort rating desc; where rating > 80 & cover != null; limit 20;`;
+  }
+  
   const response = await fetch(`${IGDB_BASE_URL}/games`, {
     method: 'POST',
     headers: {
@@ -49,7 +59,7 @@ export async function searchGames(query: string, accessToken: string): Promise<I
       'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    body: `search "${query}"; fields id, name, summary, cover.url, first_release_date, rating, genres.name, involved_companies.company.name, involved_companies.developer, platforms.name, storyline; limit 20;`,
+    body,
     next: { revalidate: 3600 },
   });
 

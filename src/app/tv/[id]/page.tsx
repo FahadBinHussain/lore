@@ -134,13 +134,14 @@ export default function TVShowDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section with Backdrop */}
-      <div className="relative h-[50vh] min-h-[400px] overflow-hidden">
+      <div className="relative h-[60vh] min-h-[500px] overflow-hidden">
         {show.backdrop_path ? (
           <div 
             className="absolute inset-0 bg-cover bg-center"
             style={{ 
               backgroundImage: `url(https://image.tmdb.org/t/p/original${show.backdrop_path})` 
             }}
+            suppressHydrationWarning
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20" />
