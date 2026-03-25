@@ -27,10 +27,10 @@ interface DashboardLayoutProps {
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, color: 'from-violet-500 to-purple-600' },
-  { name: 'Movies', href: '/movies', icon: Film, color: 'from-rose-500 to-pink-600' },
-  { name: 'TV Shows', href: '/tv', icon: Tv, color: 'from-cyan-500 to-blue-600' },
-  { name: 'Games', href: '/games', icon: Gamepad2, color: 'from-amber-500 to-orange-600' },
-  { name: 'Books', href: '/books', icon: BookOpen, color: 'from-emerald-500 to-green-600' },
+  { name: 'Movies', href: '/dashboard/movies', icon: Film, color: 'from-rose-500 to-pink-600' },
+  { name: 'TV Shows', href: '/dashboard/tv', icon: Tv, color: 'from-cyan-500 to-blue-600' },
+  { name: 'Games', href: '/dashboard/games', icon: Gamepad2, color: 'from-amber-500 to-orange-600' },
+  { name: 'Books', href: '/dashboard/books', icon: BookOpen, color: 'from-emerald-500 to-green-600' },
   { name: 'Universes', href: '/universes', icon: Sparkles, color: 'from-purple-500 to-indigo-600' },
   { name: 'Search', href: '/search', icon: Search, color: 'from-slate-500 to-gray-600' },
 ];

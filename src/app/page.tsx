@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { 
   Film, Tv, Gamepad2, BookOpen, Sparkles,
   ArrowRight, Play, Star, Zap, Globe,
@@ -12,13 +12,37 @@ import {
   Monitor, Smartphone, Cloud, Lock,
   Menu, X, MessageCircle, Heart, Eye,
   Clock, Calendar, MapPin, Mail,
-  Phone, ExternalLink, Download, Share2
+  Phone, ExternalLink, Download, Share2,
+  LayoutDashboard, User, Settings, LogOut,
+  Search, Plus, Bell, Moon, Sun, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+} from '@/components/ui/dropdown-menu';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+
+interface MediaItem {
+  id: number;
+  title: string;
+  image: string | null;
+  year?: string;
+  rating?: number;
+  description?: string;
+  seasons?: number;
+  episodes?: number;
+}
 
 const features = [
   {
@@ -83,10 +107,42 @@ export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { data: session, status } = useSession();
+  
+  const [movies, setMovies] = useState<MediaItem[]>([]);
+  const [tvShows, setTVShows] = useState<MediaItem[]>([]);
+  const [loadingMovies, setLoadingMovies] = useState(true);
+  const [loadingTV, setLoadingTV] = useState(true);
+  const [activeTab, setActiveTab] = useState('movies');
 
   useEffect(() => {
     setMounted(true);
+    fetchMovies();
+    fetchTVShows();
   }, []);
+
+  const fetchMovies = async () => {
+    try {
+      const response = await fetch('/api/movies?category=trending&timeWindow=week');
+      const data = await response.json();
+      setMovies(data.results || []);
+    } catch (error) {
+      console.error('Failed to fetch movies:', error);
+    } finally {
+      setLoadingMovies(false);
+    }
+  };
+
+  const fetchTVShows = async () => {
+    try {
+      const response = await fetch('/api/tv?category=trending&timeWindow=week');
+      const data = await response.json();
+      setTVShows(data.results || []);
+    } catch (error) {
+      console.error('Failed to fetch TV shows:', error);
+    } finally {
+      setLoadingTV(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -114,16 +170,27 @@ export default function HomePage() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
-              {['Features', 'About', 'Contact'].map((item) => (
-                <a
-                  key={item}
-                  href="#"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-                >
-                  {item}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-                </a>
-              ))}
+              <a
+                href="#features"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+              >
+                Features
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+              </a>
+              <Link
+                href="/about"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+              >
+                About
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+              </Link>
+              <Link
+                href="/contact"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+              >
+                Contact
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+              </Link>
             </nav>
 
             {/* CTA Buttons */}
@@ -131,12 +198,114 @@ export default function HomePage() {
               {status === 'loading' ? (
                 <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               ) : session?.user ? (
-                <Link href="/dashboard">
-                  <Button className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                    Go to Dashboard
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger render={<div />}>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all duration-200">
+                      <Avatar className="h-10 w-10 ring-2 ring-background/50">
+                        <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
+                        <AvatarFallback className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground font-semibold text-sm">
+                          {session.user.name?.[0]?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-72 p-0 shadow-2xl border-border/50 bg-background/95 backdrop-blur-xl" align="end">
+                    {/* User Profile Section */}
+                    <div className="px-4 py-4 bg-gradient-to-r from-primary/5 via-primary/3 to-secondary/5 border-b border-border/50">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12 ring-2 ring-primary/20">
+                          <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
+                            {session.user.name?.[0]?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-foreground truncate">
+                            {session.user.name || 'User'}
+                          </p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {session.user.email || 'user@example.com'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Navigation Section */}
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Navigation
+                      </DropdownMenuLabel>
+                      
+                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                        <Link href="/dashboard" className="flex items-center w-full">
+                          <LayoutDashboard className="mr-3 h-4 w-4 text-primary" />
+                          <span className="font-medium">Dashboard</span>
+                          <ArrowRight className="ml-auto h-3 w-3 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                        <Link href="/search" className="flex items-center w-full">
+                          <Search className="mr-3 h-4 w-4 text-primary" />
+                          <span className="font-medium">Search Media</span>
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                        <Link href="/universes" className="flex items-center w-full">
+                          <Plus className="mr-3 h-4 w-4 text-primary" />
+                          <span className="font-medium">Create Universe</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+
+                    <DropdownMenuSeparator className="my-1" />
+
+                    {/* Account Section */}
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Account
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                        <div className="flex items-center w-full">
+                          <User className="mr-3 h-4 w-4 text-primary" />
+                          <span className="font-medium">Profile</span>
+                        </div>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                        <div className="flex items-center w-full">
+                          <Settings className="mr-3 h-4 w-4 text-primary" />
+                          <span className="font-medium">Settings</span>
+                        </div>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                        <div className="flex items-center w-full">
+                          <Bell className="mr-3 h-4 w-4 text-primary" />
+                          <span className="font-medium">Notifications</span>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+
+                    <DropdownMenuSeparator className="my-1" />
+
+                    {/* Sign Out */}
+                    <div className="p-2">
+                      <DropdownMenuItem 
+                        className="px-3 py-2.5 cursor-pointer hover:bg-destructive/5 focus:bg-destructive/5 transition-colors duration-150 text-destructive focus:text-destructive"
+                        onClick={() => signOut({ callbackUrl: '/' })}
+                      >
+                        <div className="flex items-center w-full">
+                          <LogOut className="mr-3 h-4 w-4" />
+                          <span className="font-medium">Sign Out</span>
+                        </div>
+                      </DropdownMenuItem>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
                 <>
                   <Link href="/auth/signin">
@@ -169,15 +338,24 @@ export default function HomePage() {
           {mobileMenuOpen && (
             <div className="md:hidden py-4 border-t border-border/50">
               <div className="flex flex-col space-y-4">
-                {['Features', 'About', 'Contact'].map((item) => (
-                  <a
-                    key={item}
-                    href="#"
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {item}
-                  </a>
-                ))}
+                <a
+                  href="#features"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Features
+                </a>
+                <Link
+                  href="/about"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  About
+                </Link>
+                <Link
+                  href="/contact"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Contact
+                </Link>
                 <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
                   {status === 'loading' ? (
                     <div className="flex justify-center py-4">
@@ -248,7 +426,7 @@ export default function HomePage() {
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 The most beautiful and intuitive way to track movies, TV shows, games, and books. 
-                Join thousands of enthusiasts who've transformed their media experience.
+                Join thousands of enthusiasts who&apos;ve transformed their media experience.
               </p>
             </div>
 
@@ -361,6 +539,161 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Trending Media Section */}
+      <section className="py-24 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/30">
+              <TrendingUp className="w-3 h-3 mr-1" />
+              Trending Now
+            </Badge>
+            <h2 className="text-4xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                Discover What&apos;s Hot
+              </span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Explore trending movies and TV shows from TMDB
+            </p>
+          </div>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex justify-center mb-8">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="movies" className="flex items-center gap-2">
+                  <Film className="w-4 h-4" />
+                  Movies
+                </TabsTrigger>
+                <TabsTrigger value="tv" className="flex items-center gap-2">
+                  <Tv className="w-4 h-4" />
+                  TV Shows
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="movies">
+              {loadingMovies ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : movies.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {movies.slice(0, 12).map((movie) => (
+                    <Link key={movie.id} href={`/movies/${movie.id}`}>
+                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+                          {movie.image ? (
+                            <img 
+                              src={movie.image} 
+                              alt={movie.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Film className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          {movie.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {movie.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm truncate">{movie.title}</h3>
+                          {movie.year && (
+                            <p className="text-xs text-muted-foreground mt-1">{movie.year}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <Film className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">No Movies Found</h3>
+                  <p className="text-muted-foreground">Unable to load trending movies at this time.</p>
+                </Card>
+              )}
+              <div className="mt-8 text-center">
+                <Link href="/movies">
+                  <Button variant="outline" className="group">
+                    View All Movies
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="tv">
+              {loadingTV ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : tvShows.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {tvShows.slice(0, 12).map((show) => (
+                    <Link key={show.id} href={`/tv/${show.id}`}>
+                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+                          {show.image ? (
+                            <img 
+                              src={show.image} 
+                              alt={show.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Tv className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          {show.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {show.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm truncate">{show.title}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            {show.year && (
+                              <p className="text-xs text-muted-foreground">{show.year}</p>
+                            )}
+                            {show.seasons && (
+                              <p className="text-xs text-muted-foreground">
+                                {show.seasons} season{show.seasons !== 1 ? 's' : ''}
+                              </p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <Tv className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">No TV Shows Found</h3>
+                  <p className="text-muted-foreground">Unable to load trending TV shows at this time.</p>
+                </Card>
+              )}
+              <div className="mt-8 text-center">
+                <Link href="/tv">
+                  <Button variant="outline" className="group">
+                    View All TV Shows
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
+
       {/* Stats Section */}
       <section className="py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5" />
@@ -411,7 +744,7 @@ export default function HomePage() {
                       <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-                  <p className="text-muted-foreground mb-6 italic">"{testimonial.quote}"</p>
+                  <p className="text-muted-foreground mb-6 italic">&ldquo;{testimonial.quote}&rdquo;</p>
                   <div className="flex items-center gap-3">
                   <div 
                     className="w-12 h-12 rounded-full bg-cover bg-center"
@@ -522,13 +855,26 @@ export default function HomePage() {
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2">
-                {['About', 'Blog', 'Careers', 'Contact'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                      {item}
-                    </a>
-                  </li>
-                ))}
+                <li>
+                  <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Contact
+                  </Link>
+                </li>
               </ul>
             </div>
 
