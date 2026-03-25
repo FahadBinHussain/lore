@@ -11,7 +11,7 @@ export default async function DashboardMoviesPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <MediaContent type="movie" title="Movies" icon="Film" />
     </DashboardLayout>
   );

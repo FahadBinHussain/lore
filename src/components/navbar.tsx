@@ -153,6 +153,9 @@ export function Navbar() {
                         <p className="text-sm text-muted-foreground truncate">
                           {session.user.email || 'user@example.com'}
                         </p>
+                        <p className="text-xs text-primary font-medium capitalize">
+                          {session.user.role || 'user'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -178,12 +181,14 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                      <Link href="/universes" className="flex items-center w-full">
-                        <Plus className="mr-3 h-4 w-4 text-primary" />
-                        <span className="font-medium">Create Universe</span>
-                      </Link>
-                    </DropdownMenuItem>
+                    {session?.user?.role === 'admin' && (
+                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
+                        <Link href="/universes/create" className="flex items-center w-full">
+                          <Plus className="mr-3 h-4 w-4 text-primary" />
+                          <span className="font-medium">Create Universe</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuGroup>
 
                   <DropdownMenuSeparator className="my-1" />

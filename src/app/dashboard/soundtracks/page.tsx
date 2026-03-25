@@ -11,7 +11,7 @@ export default async function SoundtracksDashboardPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <MediaContent type="soundtrack" title="Soundtracks" icon="Music" />
     </DashboardLayout>
   );

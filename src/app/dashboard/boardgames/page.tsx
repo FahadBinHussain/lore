@@ -11,7 +11,7 @@ export default async function BoardGamesDashboardPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <MediaContent type="boardgame" title="Board Games" icon="Dice6" />
     </DashboardLayout>
   );

@@ -11,7 +11,7 @@ export default async function ComicsDashboardPage() {
   }
 
   return (
-    <DashboardLayout user={session.user}>
+    <DashboardLayout>
       <MediaContent type="comic" title="Comics" icon="BookCopy" />
     </DashboardLayout>
   );
