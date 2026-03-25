@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   ArrowLeft, Star, Clock, Calendar, Globe, 
   DollarSign, Users, Loader2, Play, Plus, 
-  Heart, Share2, Bookmark, Film
+  Heart, Share2, Check, Film
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -61,8 +61,9 @@ export default function MovieDetailPage() {
   const [movie, setMovie] = useState<MovieDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isWatched, setIsWatched] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchMovieDetails();
@@ -89,10 +90,25 @@ export default function MovieDetailPage() {
       }
       const data = await response.json();
       setMovie(data);
+
+      // Check if user has already marked this movie as watched
+      await checkWatchStatus(data.id.toString());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load movie');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkWatchStatus = async (externalId: string) => {
+    try {
+      const response = await fetch(`/api/media/status?externalId=${externalId}&mediaType=movie`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsWatched(data.status === 'completed');
+      }
+    } catch (error) {
+      console.error('Failed to check watch status:', error);
     }
   };
 
@@ -117,6 +133,63 @@ export default function MovieDetailPage() {
 
   const getTopCast = () => {
     return movie?.credits?.cast.slice(0, 8) || [];
+  };
+
+  const handleMarkAsWatched = async () => {
+    if (!movie) return;
+
+    setIsLoading(true);
+    try {
+      // First, ensure the media item exists in our database
+      const mediaResponse = await fetch('/api/media/ensure', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          externalId: movie.id.toString(),
+          mediaType: 'movie',
+          title: movie.title,
+          posterPath: movie.poster_path,
+          backdropPath: movie.backdrop_path,
+          releaseDate: movie.release_date,
+          rating: movie.vote_average,
+          description: movie.overview,
+          genres: movie.genres?.map(g => g.name) || [],
+          runtime: movie.runtime,
+        }),
+      });
+
+      if (!mediaResponse.ok) {
+        throw new Error('Failed to ensure media item exists');
+      }
+
+      const mediaData = await mediaResponse.json();
+      const mediaItemId = mediaData.id;
+
+      // Now update the user's progress
+      const progressResponse = await fetch('/api/media', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mediaItemId,
+          status: isWatched ? 'not_started' : 'completed',
+        }),
+      });
+
+      if (!progressResponse.ok) {
+        throw new Error('Failed to update watch status');
+      }
+
+      setIsWatched(!isWatched);
+    } catch (error) {
+      console.error('Failed to mark as watched:', error);
+      // You might want to show a toast notification here
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (loading) {
@@ -238,11 +311,12 @@ export default function MovieDetailPage() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => setIsInWatchlist(!isInWatchlist)}
-                  className={cn(isInWatchlist && "bg-primary/10 border-primary")}
+                  onClick={handleMarkAsWatched}
+                  disabled={isLoading}
+                  className={cn(isWatched && "bg-green-500/10 border-green-500 text-green-500")}
                 >
-                  <Bookmark className={cn("w-4 h-4 mr-2", isInWatchlist && "fill-primary")} />
-                  {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+                  <Check className={cn("w-4 h-4 mr-2", isWatched && "fill-green-500")} />
+                  {isWatched ? 'Watched' : 'Mark as Watched'}
                 </Button>
                 <Button 
                   variant="outline" 

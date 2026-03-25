@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
           with: {
             mediaItem: true,
           },
-          orderBy: collectionItems.orderIndex,
+          orderBy: collectionItems.releaseOrder,
         },
         creator: {
           columns: {

@@ -189,7 +189,7 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-2xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl opacity-50" />
         
-        <div className="relative w-full px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+        <div className="relative w-full px-4 sm:px-6 lg:px-8 pt-16 pb-24 lg:pt-24 lg:pb-32">
           <div className="text-center space-y-8">
             {/* Badge */}
             <div className={cn(
@@ -216,7 +216,7 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                The most beautiful and intuitive way to track movies, TV shows, games, and books. 
+                Discover, track, and organize your entire media universe - from movies and TV shows to games, books, comics, podcasts, soundtracks, and theme parks. 
                 Join thousands of enthusiasts who&apos;ve transformed their media experience.
               </p>
             </div>
