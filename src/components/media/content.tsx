@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Film, Tv, Gamepad2, BookOpen, Plus, Check, Clock } from 'lucide-react';
+import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, Music, Podcast, MapPin, Plus, Check, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,10 +12,15 @@ const iconMap = {
   Tv,
   Gamepad2,
   BookOpen,
+  BookCopy,
+  Dice6,
+  Music,
+  Podcast,
+  MapPin,
 };
 
 interface MediaContentProps {
-  type: 'movie' | 'tv' | 'game' | 'book';
+  type: 'movie' | 'tv' | 'game' | 'book' | 'comic' | 'boardgame' | 'soundtrack' | 'podcast' | 'themepark';
   title: string;
   icon: keyof typeof iconMap;
 }
