@@ -173,7 +173,7 @@ export default function TVShowDetailPage() {
 
         {/* Show Info Overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+          <div className="w-full flex flex-col md:flex-row gap-8">
             {/* Poster */}
             <div className="flex-shrink-0">
               <div className="w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border-4 border-background/50">
@@ -284,7 +284,7 @@ export default function TVShowDetailPage() {
       </div>
 
       {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
+      <div className="w-full px-6 md:px-12 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-12">

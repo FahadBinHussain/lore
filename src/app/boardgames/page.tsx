@@ -94,7 +94,7 @@ export default function BoardGamesPage() {
       {/* Hero Section */}
       <section className="relative py-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge variant="outline" className="mb-4 bg-orange-500/10 text-orange-500 border-orange-500/30">
               <Gamepad2 className="w-3 h-3 mr-1" />
@@ -138,7 +138,7 @@ export default function BoardGamesPage() {
 
       {/* Board Games Grid */}
       <section className="pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           {searchQuery && (
             <div className="mb-6">
               <h2 className="text-2xl font-bold mb-2">
@@ -238,7 +238,7 @@ export default function BoardGamesPage() {
 
       {/* Footer */}
       <footer className="border-t border-border/50 py-8 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="w-full px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-sm text-muted-foreground">
             &copy; 2026 Lore. All rights reserved.
           </p>

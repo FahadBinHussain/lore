@@ -189,7 +189,7 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-2xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl opacity-50" />
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+        <div className="relative w-full px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
           <div className="text-center space-y-8">
             {/* Badge */}
             <div className={cn(
@@ -279,7 +279,7 @@ export default function HomePage() {
       {/* Trending Media Section */}
       <section className="py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/30">
               <TrendingUp className="w-3 h-3 mr-1" />
@@ -892,7 +892,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-border/50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="space-y-4">

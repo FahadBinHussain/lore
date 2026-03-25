@@ -135,7 +135,7 @@ export default function MoviesPage() {
       {/* Hero Section */}
       <section className="relative py-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-purple-500/5" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge variant="outline" className="mb-4 bg-violet-500/10 text-violet-500 border-violet-500/30">
               <Film className="w-3 h-3 mr-1" />
@@ -169,7 +169,7 @@ export default function MoviesPage() {
 
       {/* Content */}
       <section className="pb-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           {!searchQuery && (
             <>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
@@ -447,7 +447,7 @@ export default function MoviesPage() {
 
       {/* Footer */}
       <footer className="border-t border-border/50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="w-full px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-sm text-muted-foreground">
             Data provided by TMDB. &copy; 2026 Lore. All rights reserved.
           </p>
