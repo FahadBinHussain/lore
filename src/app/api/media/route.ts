@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { userMediaProgress, mediaItems } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
+import { getTMDBImageUrl } from '@/lib/api/tmdb';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -19,16 +20,32 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const items = await db.query.userMediaProgress.findMany({
-      where: and(
+    const rawItems = await db
+      .select()
+      .from(userMediaProgress)
+      .innerJoin(mediaItems, eq(userMediaProgress.mediaItemId, mediaItems.id))
+      .where(and(
         eq(userMediaProgress.userId, parseInt(session.user.id)),
-        eq(mediaItems.mediaType, type as 'movie' | 'tv' | 'game' | 'book')
-      ),
-      orderBy: desc(userMediaProgress.updatedAt),
-      with: {
-        mediaItem: true,
+        eq(mediaItems.mediaType, type as 'movie' | 'tv' | 'game' | 'book' | 'comic' | 'boardgame' | 'soundtrack' | 'podcast' | 'themepark' | 'anime' | 'manga')
+      ))
+      .orderBy(desc(userMediaProgress.updatedAt));
+
+    // Transform to match expected format
+    const items = rawItems.map(row => ({
+      id: row.user_media_progress.id,
+      status: row.user_media_progress.status,
+      progress: row.user_media_progress.currentProgress || 0,
+      mediaItem: {
+        id: row.media_items.id,
+        externalId: row.media_items.externalId,
+        title: row.media_items.title,
+        posterPath: getTMDBImageUrl(row.media_items.posterPath),
+        releaseDate: row.media_items.releaseDate ? new Date(row.media_items.releaseDate).toISOString().split('T')[0] : null,
+        rating: row.media_items.rating?.toString() || null,
+        description: row.media_items.description,
+        mediaType: row.media_items.mediaType,
       },
-    });
+    }));
 
     return NextResponse.json({ items });
   } catch (error) {
