@@ -70,3 +70,19 @@ export async function getComicDetails(id: number): Promise<ComicVineIssue> {
 export function getComicVineImageUrl(image: { original_url: string } | undefined): string | null {
   return image?.original_url || null;
 }
+
+export async function getRecentComics(page: number = 1): Promise<ComicVineSearchResponse> {
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
+  const response = await fetch(
+    `https://comicvine.gamespot.com/api/issues/?api_key=${process.env.COMICVINE_API_KEY}&format=json&sort=cover_date:desc&limit=${limit}&offset=${offset}`,
+    { next: { revalidate: 3600 } }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch recent comics');
+  }
+
+  return response.json();
+}

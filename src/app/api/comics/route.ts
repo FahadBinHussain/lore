@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchComics, getComicVineImageUrl } from '@/lib/api/comicvine';
+import { searchComics, getRecentComics, getComicVineImageUrl } from '@/lib/api/comicvine';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
     if (query) {
       comics = await searchComics(query, page);
     } else {
-      // For now, return empty array when no query
-      comics = { results: [], number_of_total_results: 0 };
+      // Fetch recent comics when no query is provided
+      comics = await getRecentComics(page);
     }
 
     const results = comics.results.map(c => ({
