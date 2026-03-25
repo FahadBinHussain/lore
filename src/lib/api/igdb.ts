@@ -3,21 +3,57 @@ const IGDB_BASE_URL = 'https://api.igdb.com/v4';
 export interface IGDBGame {
   id: number;
   name: string;
+  slug?: string;
+  url?: string;
   summary?: string;
-  cover?: {
-    id: number;
-    url: string;
-  };
+  storyline?: string;
+  cover?: { id: number; url: string };
   first_release_date?: number;
   rating?: number;
+  rating_count?: number;
+  aggregated_rating?: number;
+  aggregated_rating_count?: number;
+  total_rating?: number;
+  total_rating_count?: number;
+  hypes?: number;
+  follows?: number;
+  created_at?: number;
+  updated_at?: number;
+  checksum?: string;
+  game_type?: number;
+  age_ratings?: number[];
+  alternative_names?: number[];
+  artworks?: number[];
+  bundles?: number[];
+  collections?: number[];
+  dlcs?: number[];
+  expansions?: number[];
+  external_games?: number[];
+  franchises?: number[];
+  game_engines?: number[];
+  game_localizations?: number[];
+  game_modes?: number[];
   genres?: Array<{ id: number; name: string }>;
   involved_companies?: Array<{
     id: number;
-    company: { id: number; name: string };
-    developer: boolean;
+    company: { id: number; name: string; logo?: { url: string } };
+    developer?: boolean;
+    publisher?: boolean;
   }>;
-  platforms?: Array<{ id: number; name: string }>;
-  storyline?: string;
+  keywords?: number[];
+  language_supports?: number[];
+  multiplayer_modes?: number[];
+  platforms?: Array<{ id: number; name: string; platform_logo?: { url: string } }>;
+  player_perspectives?: number[];
+  release_dates?: number[];
+  screenshots?: number[];
+  similar_games?: number[];
+  tags?: number[];
+  themes?: number[];
+  videos?: number[];
+  websites?: number[];
+  status?: { name: string };
+  collection?: { name: string };
 }
 
 export async function getIGDBAccessToken(): Promise<string> {

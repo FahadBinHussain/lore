@@ -166,49 +166,51 @@ export default function BooksPage() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                 {displayBooks.map((book) => (
-                  <Card key={book.id} className="group hover:shadow-lg transition-all duration-300 hover:scale-105">
-                    <CardContent className="p-0">
-                      <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg bg-muted">
-                        {book.image ? (
-                          <img
-                            src={book.image}
-                            alt={book.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/20 dark:to-green-900/20">
-                            <BookOpen className="w-12 h-12 text-emerald-500" />
-                          </div>
-                        )}
-                        {book.rating && (
-                          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            {book.rating.toFixed(1)}
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-emerald-600 transition-colors">
-                          {book.title}
-                        </h3>
-                        {book.author && (
-                          <p className="text-sm text-muted-foreground mb-2">
-                            by {book.author}
-                          </p>
-                        )}
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
-                          {book.year && <span>{book.year}</span>}
-                          {book.pages && <span>{book.pages} pages</span>}
+                  <Link key={book.id} href={`/books/${book.id}`}>
+                    <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
+                      <CardContent className="p-0">
+                        <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg bg-muted">
+                          {book.image ? (
+                            <img
+                              src={book.image}
+                              alt={book.title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/20 dark:to-green-900/20">
+                              <BookOpen className="w-12 h-12 text-emerald-500" />
+                            </div>
+                          )}
+                          {book.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              {book.rating.toFixed(1)}
+                            </div>
+                          )}
                         </div>
-                        {book.description && (
-                          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                            {book.description}
-                          </p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                        <div className="p-4">
+                          <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                            {book.title}
+                          </h3>
+                          {book.author && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              by {book.author}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between text-sm text-muted-foreground">
+                            {book.year && <span>{book.year}</span>}
+                            {book.pages && <span>{book.pages} pages</span>}
+                          </div>
+                          {book.description && (
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                              {book.description}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
 

@@ -160,54 +160,56 @@ export default function GamesPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {displayGames.map((game) => (
-                <Card key={game.id} className="group hover:shadow-lg transition-all duration-300 hover:scale-105">
-                  <CardContent className="p-0">
-                    <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg bg-muted">
-                      {game.image ? (
-                        <img
-                          src={game.image}
-                          alt={game.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20">
-                          <Gamepad2 className="w-12 h-12 text-amber-500" />
-                        </div>
-                      )}
-                      {game.rating && (
-                        <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          {(game.rating / 10).toFixed(1)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-amber-600 transition-colors">
-                        {game.title}
-                      </h3>
-                      {game.developer && (
-                        <p className="text-sm text-muted-foreground mb-2">
-                          by {game.developer}
-                        </p>
-                      )}
-                      <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-                        {game.year && <span>{game.year}</span>}
-                        {game.genres && <span className="line-clamp-1">{game.genres}</span>}
+                <Link key={game.id} href={`/games/${game.id}`}>
+                  <Card className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
+                    <CardContent className="p-0">
+                      <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg bg-muted">
+                        {game.image ? (
+                          <img
+                            src={game.image}
+                            alt={game.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20">
+                            <Gamepad2 className="w-12 h-12 text-amber-500" />
+                          </div>
+                        )}
+                        {game.rating && (
+                          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            {(game.rating / 10).toFixed(1)}
+                          </div>
+                        )}
                       </div>
-                      {game.platforms && (
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {game.platforms}
-                        </p>
-                      )}
-                      {game.description && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                          {game.description}
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="p-4">
+                        <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-amber-600 transition-colors">
+                          {game.title}
+                        </h3>
+                        {game.developer && (
+                          <p className="text-sm text-muted-foreground mb-2">
+                            by {game.developer}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                          {game.year && <span>{game.year}</span>}
+                          {game.genres && <span className="line-clamp-1">{game.genres}</span>}
+                        </div>
+                        {game.platforms && (
+                          <p className="text-xs text-muted-foreground mb-2">
+                            {game.platforms}
+                          </p>
+                        )}
+                        {game.description && (
+                          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                            {game.description}
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}
