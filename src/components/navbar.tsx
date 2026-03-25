@@ -24,8 +24,8 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="relative z-50 border-b border-border/50">
-      <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/90 to-background/80 backdrop-blur-xl" />
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50">
+      <div className="absolute inset-0 bg-gradient-to-r from-background/20 via-background/30 to-background/20 backdrop-blur-sm" />
 
       <div className="relative w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
