@@ -89,7 +89,20 @@ export default function TVShowDetailPage() {
 
   const fetchTVShowDetails = async () => {
     try {
-      const response = await fetch(`/api/tv/${params.id}`);
+      // Extract numeric ID from prefixed format (e.g., "tv-764079" or "movie-764079" -> "764079")
+      const idParam = params.id as string;
+      
+      // Redirect to correct route if wrong media type
+      if (idParam.startsWith('movie-')) {
+        router.push(`/movies/${idParam}`);
+        return;
+      }
+      
+      // Use regex to extract the numeric ID from the end of the string
+      const numericIdMatch = idParam.match(/(\d+)$/);
+      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
+      
+      const response = await fetch(`/api/tv/${numericId}`);
       if (!response.ok) {
         throw new Error('TV show not found');
       }
