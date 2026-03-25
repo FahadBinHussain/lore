@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     const results = books.docs.map(b => ({
-      id: b.key,
+      id: b.key.replace('/works/', ''),
       title: b.title,
       image: getOpenLibraryCoverUrl(b.cover_i),
       year: b.first_publish_year?.toString(),
