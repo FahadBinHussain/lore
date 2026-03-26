@@ -89,6 +89,17 @@ export default function AnimeDetailPage() {
     }
   }, [anime]);
 
+  // Debug: Log trailer data whenever anime changes
+  useEffect(() => {
+    if (anime) {
+      console.log('=== ANIME TRAILER DEBUG ===');
+      console.log('anime.trailer:', anime.trailer);
+      console.log('anime.trailer?.site:', anime.trailer?.site);
+      console.log('Condition result (trailer?.site === "youtube"):', anime.trailer?.site === 'youtube');
+      console.log('=========================');
+    }
+  }, [anime]);
+
   const fetchAnimeDetails = async () => {
     try {
       const response = await fetch(`/api/anime/${params.id}`);
@@ -98,9 +109,14 @@ export default function AnimeDetailPage() {
       const data = await response.json();
       setAnime(data);
       
-      if (data.trailer?.site === 'youtube') {
-        setSelectedTrailer(data.trailer);
-      }
+      console.log('Anime detail data received:', {
+        title: data.name || data.title,
+        hasTrailer: !!data.trailer,
+        trailerData: data.trailer,
+        trailerSite: data.trailer?.site,
+      });
+      
+      // Don't auto-play trailers - user must click to play
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load anime');
     } finally {
@@ -214,9 +230,9 @@ export default function AnimeDetailPage() {
         >
           <div className="relative w-full max-w-5xl aspect-video">
             <iframe
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
+              src={`https://www.youtube.com/embed/${youtubeId}`}
               className="w-full h-full rounded-xl"
-              allow="autoplay; encrypted-media"
+              allow="accelerometer; autoplay; encrypted-media"
               allowFullScreen
             />
             <Button

@@ -5,14 +5,15 @@ import { DashboardSidebar } from './sidebar';
 
 interface DashboardLayoutProps {
   children: ReactNode;
+  showSidebar?: boolean;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children, showSidebar = true }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
-      <DashboardSidebar />
+      {showSidebar && <DashboardSidebar />}
       {/* Main content */}
-      <main className="md:ml-64 min-h-screen">
+      <main className={showSidebar ? 'md:ml-64 min-h-screen' : 'min-h-screen'}>
         {children}
       </main>
     </div>

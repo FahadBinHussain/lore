@@ -149,6 +149,8 @@ export default function TVShowDetailPage() {
   const [updatingWatched, setUpdatingWatched] = useState(false);
   const [showAllCast, setShowAllCast] = useState(false);
   const [selectedTrailer, setSelectedTrailer] = useState<Video | null>(null);
+  const [anilistLink, setAnilistLink] = useState<string | null>(null);
+  const [anilistLoading, setAnilistLoading] = useState(false);
 
   const fetchTVShowDetails = async () => {
     try {
@@ -169,10 +171,7 @@ export default function TVShowDetailPage() {
       const data = await response.json();
       setShow(data);
       
-      // Set first trailer if available
-      if (data.videos?.trailers?.length > 0) {
-        setSelectedTrailer(data.videos.trailers[0]);
-      }
+      // Don't auto-play trailers - user must click to play
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load TV show');
     } finally {
@@ -230,6 +229,29 @@ export default function TVShowDetailPage() {
     }
   };
 
+  // Search AniList for matching anime to redirect to site anime page
+  const searchAniList = async () => {
+    if (!show) return;
+    
+    setAnilistLoading(true);
+    try {
+      const searchQuery = show.name.split('(')[0].trim(); // Remove parenthetical info
+      const response = await fetch(`/api/search/anilist?q=${encodeURIComponent(searchQuery)}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+          // Use the first result as the best match - use site URL for redirect
+          setAnilistLink(data.results[0].siteUrl);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to search AniList:', err);
+    } finally {
+      setAnilistLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchTVShowDetails();
   }, [params.id]);
@@ -237,6 +259,11 @@ export default function TVShowDetailPage() {
   useEffect(() => {
     if (show) {
       fetchWatchedStatus();
+      
+      // Search AniList if this is Japanese animation
+      if (isJapaneseAnimation) {
+        searchAniList();
+      }
     }
   }, [show]);
 
@@ -281,6 +308,10 @@ export default function TVShowDetailPage() {
     return new Date(dateStr).getFullYear();
   };
 
+  // Check if this is Japanese animation - should redirect to anime tab
+  const isJapaneseAnimation = show?.genres?.some(g => g.name === 'Animation') && 
+    show?.origin_country?.some(c => c === 'JP');
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
@@ -308,6 +339,51 @@ export default function TVShowDetailPage() {
     );
   }
 
+  // Show overlay for Japanese animation - redirect to anime tab
+  if (isJapaneseAnimation) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex flex-col items-center justify-center gap-6 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 backdrop-blur-sm" />
+        <div className="relative z-10 flex flex-col items-center text-center p-8 max-w-md">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mb-6">
+            <Sparkles className="w-12 h-12 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-4">Japanese Animation</h1>
+          <p className="text-white/70 mb-6">
+            This title is categorized as Japanese animation. Please use the Anime section for the full experience.
+          </p>
+          <div className="flex flex-col gap-4">
+            {anilistLoading ? (
+              <div className="flex items-center justify-center gap-2 text-white/70">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Finding anime...</span>
+              </div>
+            ) : anilistLink ? (
+              <Button 
+                onClick={() => router.push(anilistLink)}
+                className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white"
+              >
+                <Tv className="w-4 h-4 mr-2" />
+                View on Anime Page
+              </Button>
+            ) : (
+              <Link href="/anime">
+                <Button className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white">
+                  <Tv className="w-4 h-4 mr-2" />
+                  Go to Anime
+                </Button>
+              </Link>
+            )}
+            <Button onClick={() => router.back()} variant="outline" className="border-white/20 text-white hover:bg-white/10">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Go Back
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Video Modal */}
@@ -318,9 +394,9 @@ export default function TVShowDetailPage() {
         >
           <div className="relative w-full max-w-5xl aspect-video">
             <iframe
-              src={`https://www.youtube.com/embed/${selectedTrailer.key}?autoplay=1`}
+              src={`https://www.youtube.com/embed/${selectedTrailer.key}`}
               className="w-full h-full rounded-xl"
-              allow="autoplay; encrypted-media"
+              allow="accelerometer; autoplay; encrypted-media"
               allowFullScreen
             />
             <Button
