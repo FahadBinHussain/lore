@@ -160,10 +160,7 @@ export default function MovieDetailPage() {
       const data = await response.json();
       setMovie(data);
       
-      // Set first trailer if available
-      if (data.videos?.trailers?.length > 0) {
-        setSelectedTrailer(data.videos.trailers[0]);
-      }
+      // Don't auto-play trailers - user must click to play
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load movie');
     } finally {
@@ -319,9 +316,9 @@ export default function MovieDetailPage() {
         >
           <div className="relative w-full max-w-5xl aspect-video">
             <iframe
-              src={`https://www.youtube.com/embed/${selectedTrailer.key}?autoplay=1`}
+              src={`https://www.youtube.com/embed/${selectedTrailer.key}`}
               className="w-full h-full rounded-xl"
-              allow="autoplay; encrypted-media"
+              allow="accelerometer; autoplay; encrypted-media"
               allowFullScreen
             />
             <Button

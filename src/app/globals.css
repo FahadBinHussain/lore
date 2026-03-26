@@ -46,6 +46,36 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Custom surface container colors for sign-in page */
+  --color-surface-container-lowest: #000000;
+  --color-surface-container-low: #131317;
+  --color-surface-container: #19191e;
+  --color-surface-container-high: #1f1f25;
+  --color-surface-container-highest: #25252b;
+  --color-surface-bright: #2c2b32;
+  --color-surface-dim: #0e0e12;
+  --color-surface: #0e0e12;
+  --color-surface-variant: #25252b;
+  --color-on-surface: #f3eff6;
+  --color-on-surface-variant: #acaab0;
+  --color-outline: #76757a;
+  --color-outline-variant: #48474c;
+  /* Inverse colors */
+  --color-inverse-surface: #fcf8fe;
+  --color-inverse-on-surface: #555459;
+  --color-inverse-primary: #524bd2;
+  /* Tertiary colors */
+  --color-tertiary: #ff9dd0;
+  --color-on-tertiary: #6c0f4c;
+  --color-tertiary-fixed: #fe8bca;
+  --color-tertiary-fixed-dim: #ee7ebc;
+  --color-on-tertiary-fixed: #000000;
+  --color-on-tertiary-fixed-variant: #6d104d;
+  /* Secondary fixed colors */
+  --color-secondary-fixed: #d8caff;
+  --color-secondary-fixed-dim: #cbbaff;
+  --color-on-secondary-fixed: #3b1b88;
+  --color-on-secondary-fixed-variant: #583da6;
 }
 
 :root {
@@ -134,3 +164,64 @@
 [data-avatar] {
   background-image: attr(data-avatar url);
 }
+
+/* Custom font families using CSS variables from layout */
+.font-headline {
+  font-family: var(--font-epilogue), 'Epilogue', sans-serif;
+}
+
+.font-body {
+  font-family: var(--font-manrope), 'Manrope', sans-serif;
+}
+
+.font-label {
+  font-family: var(--font-manrope), 'Manrope', sans-serif;
+}
+
+/* Glass panel effect for sign-in card */
+.glass-panel {
+  background: rgba(14, 14, 18, 0.7);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+
+/* Text gradient effect */
+.text-gradient {
+  background: linear-gradient(135deg, #f3eff6 0%, #a7a4ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Material symbols reset */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Custom scrollbar for horizontal scrolling */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #25252b;
+  border-radius: 10px;
+}
+
+/* Glowing text effect */
+.glowing-text {
+  text-shadow: 0 0 20px rgba(167, 164, 255, 0.4);
+}
+
+/* Glass card effect */
+.glass-card {
+  background: rgba(31, 31, 37, 0.4);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(72, 71, 76, 0.15);
+}
+
+/* Script font for decorative text - loaded via Google Fonts link in layout */
