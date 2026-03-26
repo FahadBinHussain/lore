@@ -22,6 +22,9 @@ export async function GET(
     const anime = await getAnimeDetails(numericId);
     
     console.log('AniList response:', anime ? 'Found' : 'Not found');
+    console.log('Anime trailer data:', anime?.trailer);
+    console.log('Has trailer:', !!anime?.trailer);
+    console.log('Trailer site:', anime?.trailer?.site);
 
     if (!anime) {
       return NextResponse.json(
@@ -37,6 +40,12 @@ export async function GET(
     const details = {
       // Core fields from normalizeAnimeForApp
       ...normalizedAnime,
+      
+      // Include trailer for video player
+      trailer: anime.trailer ? {
+        id: anime.trailer.id,
+        site: anime.trailer.site,
+      } : null,
       
       // Formatted badges for display
       statusBadge: getAnimeStatusBadge(anime.status),
