@@ -22,13 +22,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           session.user.id = dbUser.id.toString();
           session.user.role = dbUser.role;
           session.user.username = dbUser.username;
+          // Use database image if available, otherwise use token picture
+          session.user.image = dbUser.image || token.picture || session.user.image;
+        } else {
+          // If no db user, use token picture
+          session.user.image = token.picture || session.user.image;
         }
       }
       return session;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       if (user && account) {
         token.id = user.id;
+        // Preserve image from Google profile
+        if (account.provider === 'google') {
+          // Google profile picture can be in different places
+          token.picture = profile?.picture || profile?.image || user.image;
+        }
+      }
+      // Ensure picture persists in token
+      if (!token.picture && user?.image) {
+        token.picture = user.image;
       }
       return token;
     },
