@@ -5,6 +5,27 @@ import { userMediaProgress, mediaItems } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { getTMDBImageUrl } from '@/lib/api/tmdb';
 
+const ANILIST_IMAGE_BASE = 'https://s4.anilist.co/file/anilist/viz';
+
+function getImageUrl(path: string | null, source: string | null): string | null {
+  if (!path) return null;
+  
+  // If it's already a full URL, return as is
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  
+  // Handle different sources
+  switch (source) {
+    case 'anilist':
+      // AniList images are typically stored as just the filename
+      return `${ANILIST_IMAGE_BASE}/${path}`;
+    case 'tmdb':
+    default:
+      return getTMDBImageUrl(path);
+  }
+}
+
 export async function GET(request: NextRequest) {
   const session = await auth();
   
@@ -39,15 +60,24 @@ export async function GET(request: NextRequest) {
         id: row.media_items.id,
         externalId: row.media_items.externalId,
         title: row.media_items.title,
-        posterPath: getTMDBImageUrl(row.media_items.posterPath),
+        posterPath: getImageUrl(row.media_items.posterPath, row.media_items.source),
         releaseDate: row.media_items.releaseDate ? new Date(row.media_items.releaseDate).toISOString().split('T')[0] : null,
         rating: row.media_items.rating?.toString() || null,
         description: row.media_items.description,
         mediaType: row.media_items.mediaType,
+        source: row.media_items.source,
       },
     }));
 
-    return NextResponse.json({ items });
+    console.log('API /media returning items:', items.map(item => ({ id: item.id, status: item.status, title: item.mediaItem.title })));
+
+    return NextResponse.json({ items }, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (error) {
     console.error('Failed to fetch media items:', error);
     return NextResponse.json({ error: 'Failed to fetch items' }, { status: 500 });

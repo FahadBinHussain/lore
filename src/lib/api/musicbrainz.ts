@@ -27,10 +27,17 @@ export interface MusicBrainzSearchResponse {
 export async function searchRecordings(query: string, limit: number = 20): Promise<MusicBrainzRecording[]> {
   const response = await fetch(
     `https://musicbrainz.org/ws/2/recording?query=${encodeURIComponent(query)}&limit=${limit}&fmt=json`,
-    { next: { revalidate: 3600 } }
+    {
+      headers: {
+        'User-Agent': 'LoreMediaTracker/1.0 (https://github.com/your-repo)',
+        'Accept': 'application/json',
+      },
+      next: { revalidate: 3600 }
+    }
   );
 
   if (!response.ok) {
+    console.error('MusicBrainz API error:', response.status, response.statusText);
     throw new Error('Failed to search recordings');
   }
 

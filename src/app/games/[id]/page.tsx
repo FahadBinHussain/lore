@@ -401,12 +401,14 @@ export default function GameDetailPage() {
 
         {/* Back Button */}
         <div className="absolute top-6 left-6 z-20">
-          <Link href="/">
-            <Button variant="ghost" className="bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white transition-all duration-300">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            className="bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white transition-all duration-300"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
         </div>
 
         {/* Game Info Overlay */}

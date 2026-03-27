@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, Music, Podcast, MapPin, Plus, Check, Clock, Search, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,15 +49,40 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const Icon = iconMap[icon];
+  const router = useRouter();
 
   useEffect(() => {
+    console.log('Initial load for type:', type);
     fetchItems();
   }, [type]);
 
+  useEffect(() => {
+    console.log('Items state changed:', items.length, 'items');
+    items.forEach(item => {
+      console.log('Item:', item.id, item.status, item.mediaItem.title);
+    });
+  }, [items]);
+
+  // Refresh data when window regains focus (user navigates back)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('Window focused, refreshing dashboard data for type:', type);
+      fetchItems();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [type]);
+
   const fetchItems = async () => {
+    console.log('Fetching items for type:', type);
     try {
-      const response = await fetch(`/api/media?type=${type}`);
+      const response = await fetch(`/api/media?type=${type}`, {
+        cache: 'no-cache'
+      });
       const data = await response.json();
+      console.log('Fetched items:', data.items?.length, 'items for type:', type);
+      console.log('Setting items state with:', data.items?.map((item: any) => ({ id: item.id, status: item.status, title: item.mediaItem.title })));
       setItems(data.items || []);
     } catch (error) {
       console.error('Failed to fetch items:', error);
@@ -114,6 +140,14 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
         <div className="flex items-center gap-3 mb-2">
           <Icon className="w-8 h-8 text-primary" />
           <h1 className="text-3xl font-bold">{title}</h1>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => fetchItems()}
+            className="ml-auto"
+          >
+            Refresh
+          </Button>
         </div>
         <p className="text-muted-foreground">
           {stats.total} tracked • {stats.completed} completed • {stats.inProgress} in progress

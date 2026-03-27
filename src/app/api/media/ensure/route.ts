@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       source = 'tmdb', // Default to tmdb if not provided
     } = body;
 
-    // Check if media item already exists
+    // Check if media item already exists (check by externalId AND source for consistency)
     const existingItem = await db.query.mediaItems.findFirst({
       where: eq(mediaItems.externalId, externalId),
     });
