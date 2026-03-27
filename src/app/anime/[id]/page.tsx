@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  ArrowLeft, Star, Clock, Calendar, 
+import {
+  ArrowLeft, Star, Clock, Calendar,
   Loader2, Play, Plus, Check,
   Heart, Zap, PlayCircle, Monitor, Users
 } from 'lucide-react';
@@ -159,6 +159,7 @@ export default function AnimeDetailPage() {
           title: anime.title,
           posterPath: anime.image,
           releaseDate: anime.seasonYear ? `${anime.seasonYear}-01-01` : null,
+          totalEpisodes: anime.episodes,
         }),
       });
       
@@ -479,6 +480,61 @@ export default function AnimeDetailPage() {
             </div>
           </div>
         )}
+
+        {/* Episodes/Seasons */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
+              <Play className="w-5 h-5 text-white" />
+            </div>
+            Episodes & Seasons
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Current Season Episodes */}
+            {anime.episodes && anime.episodes > 1 && (
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold text-white mb-4">Current Season</h3>
+                  <p className="text-white/70 mb-4">
+                    {anime.title} has {anime.episodes} episodes in this season.
+                  </p>
+                  <Link href={`/anime/${anime.id}/season/1`}>
+                    <Button className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white">
+                      <Play className="w-4 h-4 mr-2" />
+                      View Episodes
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Related Seasons */}
+            {anime.relations && anime.relations.filter(rel => rel.relationType === 'SEQUEL' || rel.relationType === 'PREQUEL').length > 0 && (
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold text-white mb-4">Other Seasons</h3>
+                  <p className="text-white/70 mb-4">
+                    This anime has related seasons available.
+                  </p>
+                  <div className="space-y-2">
+                    {anime.relations
+                      .filter(rel => rel.relationType === 'SEQUEL' || rel.relationType === 'PREQUEL')
+                      .slice(0, 3)
+                      .map((rel) => (
+                        <Link key={rel.id} href={`/anime/${rel.id}`}>
+                          <Button variant="outline" className="w-full justify-start border-white/20 text-white hover:bg-white/10">
+                            <Monitor className="w-4 h-4 mr-2" />
+                            {rel.title} ({rel.relationType.toLowerCase()})
+                          </Button>
+                        </Link>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
 
         {/* Related Anime */}
         {anime.relations && anime.relations.length > 0 && (

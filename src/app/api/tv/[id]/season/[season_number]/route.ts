@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db/index';
-import { userEpisodeProgress } from '@/db/schema';
+import { userEpisodeProgress, episodes } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export async function GET(
@@ -35,11 +35,42 @@ export async function GET(
     let watchedEpisodes: { [key: number]: boolean } = {};
 
     if (session?.user?.id) {
-      // Get watched episodes for this season
-      // First, we need to find episodes that belong to this season and show
-      // Since we don't have the episodes stored yet, we'll return empty watched status for now
-      // This will be updated once we implement episode storage
-      watchedEpisodes = {};
+      try {
+        const userId = parseInt(session.user.id);
+
+        // Check watched status for each episode
+        for (const episode of season.episodes || []) {
+          const dbEpisode = await db
+            .select()
+            .from(episodes)
+            .where(and(
+              eq(episodes.externalId, `${showId}-${seasonNumber}-${episode.episode_number}`),
+              eq(episodes.source, 'tmdb')
+            ))
+            .limit(1);
+
+          if (dbEpisode.length > 0) {
+            const watchStatus = await db
+              .select()
+              .from(userEpisodeProgress)
+              .where(and(
+                eq(userEpisodeProgress.userId, userId),
+                eq(userEpisodeProgress.episodeId, dbEpisode[0].id)
+              ))
+              .limit(1);
+
+            watchedEpisodes[episode.episode_number] = watchStatus.length > 0 && watchStatus[0].isWatched;
+          } else {
+            watchedEpisodes[episode.episode_number] = false;
+          }
+        }
+      } catch (dbError) {
+        // If database tables don't exist yet, just set all episodes as unwatched
+        console.log('Database not ready, using default unwatched status');
+        for (const episode of season.episodes || []) {
+          watchedEpisodes[episode.episode_number] = false;
+        }
+      }
     }
 
     const result = {
@@ -60,7 +91,7 @@ export async function GET(
         still_path: episode.still_path,
         vote_average: episode.vote_average,
         vote_count: episode.vote_count,
-        // watched: watchedEpisodes[episode.episode_number] || false,
+        watched: watchedEpisodes[episode.episode_number] || false,
       })),
     };
 
