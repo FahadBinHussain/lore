@@ -68,6 +68,15 @@ export default function SeasonDetailPage() {
         const seasonData = await seasonResponse.json();
         setSeason(seasonData);
 
+        // Initialize watched episodes from API response
+        const watchedSet = new Set<number>();
+        seasonData.episodes?.forEach((episode: any) => {
+          if (episode.watched) {
+            watchedSet.add(episode.episode_number);
+          }
+        });
+        setWatchedEpisodes(watchedSet);
+
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -80,16 +89,30 @@ export default function SeasonDetailPage() {
     }
   }, [params.id, params.season_number]);
 
-  const toggleWatched = async (episodeId: number) => {
-    // For now, just toggle locally
-    // TODO: Implement API call to mark episode as watched/unwatched
-    const newWatched = new Set(watchedEpisodes);
-    if (newWatched.has(episodeId)) {
-      newWatched.delete(episodeId);
-    } else {
-      newWatched.add(episodeId);
+  const toggleWatched = async (episodeNumber: number) => {
+    try {
+      const response = await fetch(
+        `/api/tv/${params.id}/season/${params.season_number}/episode/${episodeNumber}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_watched: !watchedEpisodes.has(episodeNumber) }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        const newWatched = new Set(watchedEpisodes);
+        if (result.is_watched) {
+          newWatched.add(episodeNumber);
+        } else {
+          newWatched.delete(episodeNumber);
+        }
+        setWatchedEpisodes(newWatched);
+      }
+    } catch (err) {
+      console.error('Error updating watch status:', err);
     }
-    setWatchedEpisodes(newWatched);
   };
 
   const getYear = (dateString: string) => {
@@ -295,19 +318,19 @@ export default function SeasonDetailPage() {
                           size="sm"
                           onClick={(e) => {
                             e.preventDefault();
-                            toggleWatched(episode.id);
+                            toggleWatched(episode.episode_number);
                           }}
                           className={cn(
                             "text-white hover:bg-white/10 ml-4",
-                            watchedEpisodes.has(episode.id) && "text-green-400"
+                            watchedEpisodes.has(episode.episode_number) && "text-green-400"
                           )}
                         >
-                          {watchedEpisodes.has(episode.id) ? (
+                          {watchedEpisodes.has(episode.episode_number) ? (
                             <Eye className="w-4 h-4 mr-2" />
                           ) : (
                             <EyeOff className="w-4 h-4 mr-2" />
                           )}
-                          {watchedEpisodes.has(episode.id) ? 'Watched' : 'Mark as Watched'}
+                          {watchedEpisodes.has(episode.episode_number) ? 'Watched' : 'Mark as Watched'}
                         </Button>
                       </div>
                     </div>
