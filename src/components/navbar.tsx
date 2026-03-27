@@ -135,7 +135,9 @@ export function Navbar() {
                 <DropdownMenuTrigger>
                   <div className="relative h-10 w-10 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all duration-200 cursor-pointer">
                     <Avatar className="h-10 w-10 ring-2 ring-background/50">
-                      <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
+                      {session.user.image && (session.user.image.startsWith('http://') || session.user.image.startsWith('https://')) ? (
+                        <AvatarImage src={session.user.image} alt={session.user.name || ''} />
+                      ) : null}
                       <AvatarFallback className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground font-semibold text-sm">
                         {session.user.name?.[0]?.toUpperCase() || 'U'}
                       </AvatarFallback>
@@ -148,7 +150,9 @@ export function Navbar() {
                   <div className="px-4 py-4 bg-gradient-to-r from-primary/5 via-primary/3 to-secondary/5 border-b border-border/50">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-                        <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
+                        {session.user.image && (session.user.image.startsWith('http://') || session.user.image.startsWith('https://')) ? (
+                          <AvatarImage src={session.user.image} alt={session.user.name || ''} />
+                        ) : null}
                         <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
                           {session.user.name?.[0]?.toUpperCase() || 'U'}
                         </AvatarFallback>

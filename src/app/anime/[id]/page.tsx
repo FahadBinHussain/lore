@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ArrowLeft, Star, Clock, Calendar, 
-  Loader2, Play, Plus, 
+  Loader2, Play, Plus, Check,
   Heart, Zap, PlayCircle, Monitor, Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -422,13 +422,13 @@ export default function AnimeDetailPage() {
                 >
                   {isWatched ? (
                     <>
-                      <Heart className="w-5 h-5 mr-2 fill-current" />
-                      In Your List
+                      <Check className="w-5 h-5 mr-2 fill-current" />
+                      Watched
                     </>
                   ) : (
                     <>
                       <Plus className="w-5 h-5 mr-2" />
-                      Add to List
+                      Mark as Watched
                     </>
                   )}
                 </Button>
