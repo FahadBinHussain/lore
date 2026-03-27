@@ -13,7 +13,7 @@ import {
   Clock, Calendar, MapPin, Mail,
   Phone, ExternalLink, Download, Share2,
   Loader2, BookOpen as ComicIcon, Music, Podcast, MapPin as ThemeParkIcon,
-  Puzzle
+  Puzzle, Clapperboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,12 +55,15 @@ export default function HomePage() {
   const [loadingSoundtracks, setLoadingSoundtracks] = useState(true);
   const [loadingPodcasts, setLoadingPodcasts] = useState(true);
   const [loadingThemeParks, setLoadingThemeParks] = useState(true);
+  const [anime, setAnime] = useState<MediaItem[]>([]);
+  const [loadingAnime, setLoadingAnime] = useState(true);
   const [activeTab, setActiveTab] = useState('movies');
 
   useEffect(() => {
     setMounted(true);
     fetchMovies();
     fetchTVShows();
+    fetchAnime();
     fetchGames();
     fetchBooks();
     fetchComics();
@@ -91,6 +94,18 @@ export default function HomePage() {
       console.error('Failed to fetch TV shows:', error);
     } finally {
       setLoadingTV(false);
+    }
+  };
+
+  const fetchAnime = async () => {
+    try {
+      const response = await fetch('/api/anime?category=trending');
+      const data = await response.json();
+      setAnime(data.results || []);
+    } catch (error) {
+      console.error('Failed to fetch anime:', error);
+    } finally {
+      setLoadingAnime(false);
     }
   };
 
@@ -306,6 +321,10 @@ export default function HomePage() {
                   <Tv className="w-4 h-4" />
                   TV Shows
                 </TabsTrigger>
+                <TabsTrigger value="anime" className="flex items-center gap-2 whitespace-nowrap">
+                  <Clapperboard className="w-4 h-4" />
+                  Anime
+                </TabsTrigger>
                 <TabsTrigger value="games" className="flex items-center gap-2 whitespace-nowrap">
                   <Gamepad2 className="w-4 h-4" />
                   Games
@@ -450,6 +469,64 @@ export default function HomePage() {
                 <Link href="/tv">
                   <Button variant="outline" className="group">
                     View All TV Shows
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="anime">
+              {loadingAnime ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : anime.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {anime.slice(0, 12).map((item) => (
+                    <Link key={item.id} href={`/anime/${item.id}`}>
+                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+                          {item.image ? (
+                            <img 
+                              src={item.image} 
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Clapperboard className="w-12 h-12 text-muted-foreground" />
+                            </div>
+                          )}
+                          {item.rating && (
+                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              {item.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm truncate">{item.title}</h3>
+                          {item.year && (
+                            <p className="text-xs text-muted-foreground mt-1">{item.year}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-12 text-center">
+                  <div className="flex flex-col items-center gap-4">
+                    <Clapperboard className="w-12 h-12 text-muted-foreground" />
+                    <p className="text-muted-foreground">No anime found</p>
+                  </div>
+                </Card>
+              )}
+              
+              <div className="mt-8 text-center">
+                <Link href="/anime">
+                  <Button variant="outline" className="group">
+                    View All Anime
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
