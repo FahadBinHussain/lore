@@ -133,34 +133,34 @@ export default function MoviesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
-      <section className="relative py-16 overflow-hidden">
+      <section className="relative py-8 sm:py-12 lg:py-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-purple-500/5" />
         <div className="relative w-full px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge variant="outline" className="mb-4 bg-violet-500/10 text-violet-500 border-violet-500/30">
+          <div className="text-center mb-8 sm:mb-12">
+            <Badge variant="outline" className="mb-3 sm:mb-4 bg-violet-500/10 text-violet-500 border-violet-500/30">
               <Film className="w-3 h-3 mr-1" />
               Movies
             </Badge>
-            <h1 className="text-4xl sm:text-5xl font-bold mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
               <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                 Discover Movies
               </span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2 sm:px-0">
               Explore trending and popular movies from TMDB
             </p>
           </div>
 
           {/* Search */}
-          <form onSubmit={handleSearch} className="max-w-xl mx-auto mb-8">
+          <form onSubmit={handleSearch} className="max-w-xl mx-auto mb-6 sm:mb-8">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search movies..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-lg"
+                className="pl-10 sm:pl-12 h-10 sm:h-12 text-base sm:text-lg"
               />
             </div>
           </form>
@@ -168,46 +168,46 @@ export default function MoviesPage() {
       </section>
 
       {/* Content */}
-      <section className="pb-24">
+      <section className="pb-16 sm:pb-20 lg:pb-24">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           {!searchQuery && (
             <>
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-                <Tabs value={category} onValueChange={(value) => { setCategory(value); setPage(1); }}>
-                  <TabsList className="grid grid-cols-3 lg:grid-cols-6">
-                    <TabsTrigger value="trending" className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4" />
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
+                <Tabs value={category} onValueChange={(value) => { setCategory(value); setPage(1); }} className="w-full lg:w-auto">
+                  <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full lg:w-auto">
+                    <TabsTrigger value="trending" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                      <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">Trending</span>
                     </TabsTrigger>
-                    <TabsTrigger value="popular" className="flex items-center gap-2">
-                      <Flame className="w-4 h-4" />
+                    <TabsTrigger value="popular" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                      <Flame className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">Popular</span>
                     </TabsTrigger>
-                    <TabsTrigger value="top_rated" className="flex items-center gap-2">
-                      <Award className="w-4 h-4" />
+                    <TabsTrigger value="top_rated" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                      <Award className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">Top Rated</span>
                     </TabsTrigger>
-                    <TabsTrigger value="now_playing" className="flex items-center gap-2">
-                      <Play className="w-4 h-4" />
-                      <span className="hidden sm:inline">Now Playing</span>
+                    <TabsTrigger value="now_playing" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                      <Play className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline lg:hidden xl:inline">Now Playing</span>
                     </TabsTrigger>
-                    <TabsTrigger value="upcoming" className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      <span className="hidden sm:inline">Upcoming</span>
+                    <TabsTrigger value="upcoming" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                      <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline lg:hidden xl:inline">Upcoming</span>
                     </TabsTrigger>
-                    <TabsTrigger value="discover" className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      <span className="hidden sm:inline">Discover</span>
+                    <TabsTrigger value="discover" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                      <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline lg:hidden xl:inline">Discover</span>
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full lg:w-auto">
                   {category === 'trending' && (
                     <Tabs value={timeWindow} onValueChange={setTimeWindow}>
                       <TabsList>
-                        <TabsTrigger value="week">This Week</TabsTrigger>
-                        <TabsTrigger value="day">Today</TabsTrigger>
+                        <TabsTrigger value="week" className="text-xs sm:text-sm">This Week</TabsTrigger>
+                        <TabsTrigger value="day" className="text-xs sm:text-sm">Today</TabsTrigger>
                       </TabsList>
                     </Tabs>
                   )}
@@ -215,12 +215,13 @@ export default function MoviesPage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowFilters(!showFilters)}
-                    className={hasActiveFilters ? 'border-primary text-primary' : ''}
+                    className={`${hasActiveFilters ? 'border-primary text-primary' : ''} text-xs sm:text-sm`}
+                    size="sm"
                   >
-                    <Filter className="w-4 h-4 mr-2" />
+                    <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     Filters
                     {hasActiveFilters && (
-                      <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                      <Badge variant="secondary" className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5 p-0 flex items-center justify-center text-xs">
                         !
                       </Badge>
                     )}
@@ -231,8 +232,8 @@ export default function MoviesPage() {
               {/* Filters Panel */}
               {showFilters && (
                 <Card className="mb-6">
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="genre">Genre</Label>
                         <Select value={genre} onValueChange={(value) => setGenre(value || '')}>

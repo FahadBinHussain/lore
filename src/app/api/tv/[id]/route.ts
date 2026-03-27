@@ -6,7 +6,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: idParam } = await params;
-  const id = parseInt(idParam);
+  const numericIdMatch = idParam.match(/(\d+)$/);
+  const id = numericIdMatch ? parseInt(numericIdMatch[1]) : parseInt(idParam);
 
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid TV show ID' }, { status: 400 });

@@ -58,13 +58,13 @@ export function DashboardSidebar() {
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-6 border-b">
-            <h1 className="text-xl font-bold">Media Dashboard</h1>
-            <p className="text-sm text-muted-foreground mt-1">Track your favorites</p>
+          <div className="p-4 sm:p-6 border-b">
+            <h1 className="text-lg sm:text-xl font-bold">Media Dashboard</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">Track your favorites</p>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-3 sm:p-4 space-y-1 overflow-y-auto">
             {categories.map((category) => {
               const Icon = category.icon;
               const isActive = pathname === category.href;
