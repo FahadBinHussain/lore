@@ -1,14 +1,23 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function SignInPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.push('/dashboard');
+    }
+  }, [status, router]);
 
   const handleGoogleSignIn = () => {
     signIn('google', { callbackUrl: '/dashboard' });

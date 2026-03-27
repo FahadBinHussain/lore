@@ -153,6 +153,71 @@ export const mediaItems = pgTable('media_items', {
   index('media_items_releaseDate_idx').on(table.releaseDate),
 ]);
 
+// ==================== SEASONS ====================
+
+export const seasons = pgTable('seasons', {
+  id: serial('id').primaryKey(),
+  mediaItemId: integer('media_item_id').references(() => mediaItems.id, { onDelete: 'cascade' }).notNull(),
+  externalId: varchar('external_id', { length: 255 }).notNull(),
+  source: varchar('source', { length: 50 }).notNull(), // 'tmdb'
+
+  seasonNumber: integer('season_number').notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  overview: text('overview'),
+  posterPath: text('poster_path'),
+  episodeCount: integer('episode_count').notNull(),
+  airDate: date('air_date'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('seasons_external_source_idx').on(table.externalId, table.source),
+  index('seasons_mediaItemId_idx').on(table.mediaItemId),
+  index('seasons_seasonNumber_idx').on(table.seasonNumber),
+]);
+
+// ==================== EPISODES ====================
+
+export const episodes = pgTable('episodes', {
+  id: serial('id').primaryKey(),
+  seasonId: integer('season_id').references(() => seasons.id, { onDelete: 'cascade' }).notNull(),
+  externalId: varchar('external_id', { length: 255 }).notNull(),
+  source: varchar('source', { length: 50 }).notNull(), // 'tmdb'
+
+  episodeNumber: integer('episode_number').notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  overview: text('overview'),
+  stillPath: text('still_path'),
+  airDate: date('air_date'),
+  runtime: integer('runtime'), // minutes
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('episodes_external_source_idx').on(table.externalId, table.source),
+  index('episodes_seasonId_idx').on(table.seasonId),
+  index('episodes_episodeNumber_idx').on(table.episodeNumber),
+]);
+
+// ==================== USER EPISODE PROGRESS ====================
+
+export const userEpisodeProgress = pgTable('user_episode_progress', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  episodeId: integer('episode_id').references(() => episodes.id, { onDelete: 'cascade' }).notNull(),
+
+  isWatched: boolean('is_watched').default(false).notNull(),
+  watchedAt: timestamp('watched_at'),
+  rating: integer('rating'), // 1-10
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('user_episode_progress_userId_episodeId_idx').on(table.userId, table.episodeId),
+  index('user_episode_progress_userId_idx').on(table.userId),
+  index('user_episode_progress_isWatched_idx').on(table.isWatched),
+]);
+
 // ==================== USER MEDIA PROGRESS ====================
 
 export const userMediaProgress = pgTable('user_media_progress', {
@@ -291,15 +356,32 @@ export const activityLog = pgTable('activity_log', {
 
 // ==================== RELATIONS ====================
 
+export const seasonsRelations = relations(seasons, ({ one, many }) => ({
+  mediaItem: one(mediaItems, { fields: [seasons.mediaItemId], references: [mediaItems.id] }),
+  episodes: many(episodes),
+}));
+
+export const episodesRelations = relations(episodes, ({ one, many }) => ({
+  season: one(seasons, { fields: [episodes.seasonId], references: [seasons.id] }),
+  userProgress: many(userEpisodeProgress),
+}));
+
+export const userEpisodeProgressRelations = relations(userEpisodeProgress, ({ one }) => ({
+  user: one(users, { fields: [userEpisodeProgress.userId], references: [users.id] }),
+  episode: one(episodes, { fields: [userEpisodeProgress.episodeId], references: [episodes.id] }),
+}));
+
 export const usersRelations = relations(users, ({ many }) => ({
   mediaProgress: many(userMediaProgress),
   collections: many(collections),
   collectionProgress: many(userCollectionProgress),
+  episodeProgress: many(userEpisodeProgress),
 }));
 
 export const mediaItemsRelations = relations(mediaItems, ({ many }) => ({
   collectionItems: many(collectionItems),
   mediaProgress: many(userMediaProgress),
+  seasons: many(seasons),
 }));
 
 export const collectionsRelations = relations(collections, ({ one, many }) => ({
