@@ -217,10 +217,10 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
                       {new Date(item.mediaItem.releaseDate).getFullYear()}
                     </p>
                   )}
-                  {item.progress > 0 && (
+                  {item.progress > 0 && item.mediaItem.mediaType !== 'movie' && (
                     <div className="mt-3">
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className="h-full bg-primary transition-all duration-300 rounded-full"
                           style={{ width: `${item.progress}%` }}
                         />

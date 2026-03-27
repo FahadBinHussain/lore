@@ -815,36 +815,37 @@ export default function TVShowDetailPage() {
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {show.seasons.map((season) => (
-                    <Card 
-                      key={season.id} 
-                      className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-violet-500/50 transition-all duration-300 hover:transform hover:scale-105"
-                    >
-                      <div className="aspect-[2/3] relative overflow-hidden bg-slate-800">
-                        {season.poster_path ? (
-                          <img 
-                            src={`https://image.tmdb.org/t/p/w300${season.poster_path}`}
-                            alt={season.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20">
-                            <Monitor className="w-12 h-12 text-white/30" />
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold text-white">{season.name}</h3>
-                        <p className="text-sm text-white/60">
-                          {season.episode_count} Episode{season.episode_count !== 1 ? 's' : ''}
-                        </p>
-                        {season.air_date && (
-                          <p className="text-xs text-white/40 mt-1">
-                            {getYear(season.air_date)}
+                    <Link key={season.id} href={`/tv/${params.id}/season/${season.season_number}`}>
+                      <Card
+                        className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-violet-500/50 transition-all duration-300 hover:transform hover:scale-105 cursor-pointer"
+                      >
+                        <div className="aspect-[2/3] relative overflow-hidden bg-slate-800">
+                          {season.poster_path ? (
+                            <img
+                              src={`https://image.tmdb.org/t/p/w300${season.poster_path}`}
+                              alt={season.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20">
+                              <Monitor className="w-12 h-12 text-white/30" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </div>
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold text-white">{season.name}</h3>
+                          <p className="text-sm text-white/60">
+                            {season.episode_count} Episode{season.episode_count !== 1 ? 's' : ''}
                           </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                          {season.air_date && (
+                            <p className="text-xs text-white/40 mt-1">
+                              {getYear(season.air_date)}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
                   ))}
                 </div>
               </section>

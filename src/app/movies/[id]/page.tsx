@@ -344,7 +344,7 @@ export default function MovieDetailPage() {
       )}
 
       {/* Hero Section with Backdrop */}
-      <div className="relative h-[70vh] min-h-[600px] overflow-hidden">
+      <div className="relative h-[50vh] sm:h-[60vh] lg:h-[70vh] min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] overflow-hidden">
         {movie.backdrop_path ? (
           <div 
             className="absolute inset-0 bg-cover bg-center scale-105"
@@ -380,12 +380,12 @@ export default function MovieDetailPage() {
         </div>
 
         {/* Movie Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-10">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12 z-10">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-4 sm:gap-6 lg:gap-8">
             {/* Poster */}
-            <div className="flex-shrink-0 relative group">
+            <div className="flex-shrink-0 relative group mx-auto sm:mx-0">
               <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
-              <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
+              <div className="relative w-32 sm:w-40 md:w-48 lg:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {movie.poster_path ? (
                   <img 
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -408,24 +408,24 @@ export default function MovieDetailPage() {
             {/* Info */}
             <div className="flex-1 min-w-0">
               {/* Title and Tagline */}
-              <div className="mb-4">
-                <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 tracking-tight">
+              <div className="mb-3 sm:mb-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-1 sm:mb-2 tracking-tight">
                   {movie.title}
                 </h1>
                 {movie.original_title && movie.original_title !== movie.title && (
-                  <p className="text-lg text-white/50 mb-2">
+                  <p className="text-sm sm:text-base lg:text-lg text-white/50 mb-1 sm:mb-2">
                     Original: {movie.original_title}
                   </p>
                 )}
                 {movie.tagline && (
-                  <p className="text-xl text-white/70 italic font-light">
+                  <p className="text-base sm:text-lg lg:text-xl text-white/70 italic font-light">
                     "{movie.tagline}"
                   </p>
                 )}
               </div>
 
               {/* Meta Info Row */}
-              <div className="flex flex-wrap items-center gap-3 mb-6">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
                 {movie.release_date && (
                   <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
                     <Calendar className="w-4 h-4 text-cyan-400" />

@@ -197,31 +197,31 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
 
       {/* Hero Section */}
-      <section className="relative h-screen -mt-16 overflow-hidden z-0">
+      <section className="relative h-screen overflow-hidden z-0">
         {/* Animated Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-2xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl opacity-50" />
         
-        <div className="relative w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 pb-24 lg:pb-32" style={{ paddingTop: '10rem' }}>
-          <div className="text-center space-y-8 w-full max-w-4xl">
+        <div className="relative w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-32 pb-20 sm:pb-24 lg:pb-32">
+          <div className="text-center space-y-4 sm:space-y-6 lg:space-y-8 w-full max-w-4xl">
             {/* Badge */}
             <div className={cn(
-              "inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 transition-all duration-1000",
+              "inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20 transition-all duration-1000",
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             )}>
-              <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Introducing Lore 2.0</span>
+              <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+              <span className="text-xs sm:text-sm font-medium text-primary">Introducing Lore 2.0</span>
               <Badge variant="secondary" className="text-xs">New</Badge>
             </div>
 
             {/* Main Headline */}
             <div className={cn(
-              "space-y-4 transition-all duration-1000 delay-200",
+              "space-y-3 sm:space-y-4 transition-all duration-1000 delay-200",
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             )}>
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
                 <span className="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
                   Track Your
                 </span>
@@ -230,7 +230,7 @@ export default function HomePage() {
                   Media Universe
                 </span>
               </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
                 Discover, track, and organize your entire media universe - from movies and TV shows to games, books, comics, podcasts, soundtracks, and theme parks. 
                 Join thousands of enthusiasts who&apos;ve transformed their media experience.
               </p>
@@ -292,65 +292,65 @@ export default function HomePage() {
       </section>
 
       {/* Trending Media Section */}
-      <section className="py-24 relative">
+      <section className="py-12 sm:py-16 lg:py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5" />
         <div className="relative w-full px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/30">
+          <div className="text-center mb-8 sm:mb-12">
+            <Badge variant="outline" className="mb-3 sm:mb-4 bg-primary/10 text-primary border-primary/30">
               <TrendingUp className="w-3 h-3 mr-1" />
               Trending Now
             </Badge>
-            <h2 className="text-4xl font-bold mb-4">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
               <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                Discover What&apos;s Hot
+                Discover What's Hot
               </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2 sm:px-0">
               Explore trending movies and TV shows from TMDB
             </p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-center mb-8">
-              <TabsList className="inline-flex h-12 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground overflow-x-auto max-w-full">
-                <TabsTrigger value="movies" className="flex items-center gap-2 whitespace-nowrap">
-                  <Film className="w-4 h-4" />
+            <div className="flex justify-center mb-6 sm:mb-8">
+              <TabsList className="flex flex-wrap h-auto items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground gap-1">
+                <TabsTrigger value="movies" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  <Film className="w-3 h-3 sm:w-4 sm:h-4" />
                   Movies
                 </TabsTrigger>
-                <TabsTrigger value="tv" className="flex items-center gap-2 whitespace-nowrap">
-                  <Tv className="w-4 h-4" />
+                <TabsTrigger value="tv" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  <Tv className="w-3 h-3 sm:w-4 sm:h-4" />
                   TV Shows
                 </TabsTrigger>
-                <TabsTrigger value="anime" className="flex items-center gap-2 whitespace-nowrap">
-                  <Clapperboard className="w-4 h-4" />
+                <TabsTrigger value="anime" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  <Clapperboard className="w-3 h-3 sm:w-4 sm:h-4" />
                   Anime
                 </TabsTrigger>
-                <TabsTrigger value="games" className="flex items-center gap-2 whitespace-nowrap">
-                  <Gamepad2 className="w-4 h-4" />
+                <TabsTrigger value="games" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  <Gamepad2 className="w-3 h-3 sm:w-4 sm:h-4" />
                   Games
                 </TabsTrigger>
-                <TabsTrigger value="books" className="flex items-center gap-2 whitespace-nowrap">
-                  <BookOpen className="w-4 h-4" />
+                <TabsTrigger value="books" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
                   Books
                 </TabsTrigger>
-                <TabsTrigger value="comics" className="flex items-center gap-2 whitespace-nowrap">
-                  <ComicIcon className="w-4 h-4" />
+                <TabsTrigger value="comics" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  <ComicIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                   Comics
                 </TabsTrigger>
-                <TabsTrigger value="boardgames" className="flex items-center gap-2 whitespace-nowrap">
-                  <Puzzle className="w-4 h-4" />
+                <TabsTrigger value="boardgames" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  <Puzzle className="w-3 h-3 sm:w-4 sm:h-4" />
                   Board Games
                 </TabsTrigger>
-                <TabsTrigger value="soundtracks" className="flex items-center gap-2 whitespace-nowrap">
-                  <Music className="w-4 h-4" />
+                <TabsTrigger value="soundtracks" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  <Music className="w-3 h-3 sm:w-4 sm:h-4" />
                   Soundtracks
                 </TabsTrigger>
-                <TabsTrigger value="podcasts" className="flex items-center gap-2 whitespace-nowrap">
-                  <Podcast className="w-4 h-4" />
+                <TabsTrigger value="podcasts" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  <Podcast className="w-3 h-3 sm:w-4 sm:h-4" />
                   Podcasts
                 </TabsTrigger>
-                <TabsTrigger value="themeparks" className="flex items-center gap-2 whitespace-nowrap">
-                  <ThemeParkIcon className="w-4 h-4" />
+                <TabsTrigger value="themeparks" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                  <ThemeParkIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                   Theme Parks
                 </TabsTrigger>
               </TabsList>
@@ -929,37 +929,37 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 relative">
+      <section className="py-12 sm:py-16 lg:py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10" />
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
         
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-              <Rocket className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Ready to Start?</span>
+          <div className="space-y-6 sm:space-y-8">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20">
+              <Rocket className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+              <span className="text-xs sm:text-sm font-medium text-primary">Ready to Start?</span>
             </div>
             
-            <h2 className="text-4xl sm:text-5xl font-bold">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">
               <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                 Begin Your Journey Today
               </span>
             </h2>
             
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2 sm:px-0">
               Join our community of media enthusiasts and transform how you track your entertainment.
             </p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
               <Link href="/auth/signin">
-                <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                  <Zap className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                <Button size="lg" className="w-full sm:w-auto group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2 group-hover:rotate-12 transition-transform" />
                   Get Started Free
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="border-2">
-                <Globe className="w-5 h-5 mr-2" />
+              <Button variant="outline" size="lg" className="w-full sm:w-auto border-2">
+                <Globe className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 View on GitHub
               </Button>
             </div>
