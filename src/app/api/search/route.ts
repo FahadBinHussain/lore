@@ -9,6 +9,19 @@ import { searchRecordings } from '@/lib/api/musicbrainz';
 import { searchAttractions } from '@/lib/api/themeparks';
 import { searchAnime, normalizeAnimeForApp } from '@/lib/api/anilist';
 
+interface IGDBCover {
+  url?: string;
+}
+
+interface IGDBGame {
+  id: number;
+  name: string;
+  cover?: IGDBCover;
+  first_release_date?: number;
+  rating?: number;
+  summary?: string;
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q');
@@ -100,15 +113,15 @@ export async function GET(request: NextRequest) {
     if (!type) {
       try {
         const accessToken = await getIGDBAccessToken();
-        const games = await searchGames(query, accessToken);
-        results.push(...games.map(g => ({
+        const games = (await searchGames(query, accessToken)) as IGDBGame[];
+        results.push(...games.map((g) => ({
           id: `game-${g.id}`,
           title: g.name,
-        type: 'game',
-        image: getIGDBCoverUrl(g.cover?.url),
-        year: g.first_release_date ? new Date(g.first_release_date * 1000).getFullYear().toString() : undefined,
-        rating: g.rating ? g.rating / 10 : undefined,
-        description: g.summary,
+          type: 'game',
+          image: getIGDBCoverUrl(g.cover?.url),
+          year: g.first_release_date ? new Date(g.first_release_date * 1000).getFullYear().toString() : undefined,
+          rating: g.rating ? g.rating / 10 : undefined,
+          description: g.summary,
         })));
       } catch (error) {
         console.error('IGDB search error:', error);

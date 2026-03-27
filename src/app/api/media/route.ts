@@ -105,11 +105,15 @@ export async function GET(request: NextRequest) {
                     description: showData.overview || row.mediaItem.description,
                     posterPath: showData.poster_path || row.mediaItem.posterPath,
                     backdropPath: showData.backdrop_path || row.mediaItem.backdropPath,
-                    releaseDate: showData.first_air_date ? new Date(showData.first_air_date) : row.mediaItem.releaseDate,
+                    releaseDate: showData.first_air_date || null,
                     rating: showData.vote_average || row.mediaItem.rating,
                     voteCount: showData.vote_count || row.mediaItem.voteCount,
-                    genres: showData.genres ? JSON.stringify(showData.genres) : row.mediaItem.genres,
-                    networks: showData.networks ? JSON.stringify(showData.networks) : row.mediaItem.networks,
+                    genres: Array.isArray(showData.genres)
+                      ? showData.genres.map((genre: { name?: string }) => genre?.name).filter(Boolean)
+                      : row.mediaItem.genres,
+                    networks: Array.isArray(showData.networks)
+                      ? showData.networks.map((network: { name?: string }) => network?.name).filter(Boolean)
+                      : row.mediaItem.networks,
                     seasons: showData.number_of_seasons || row.mediaItem.seasons,
                     totalEpisodes: showData.number_of_episodes || row.mediaItem.totalEpisodes,
                     status: showData.status || row.mediaItem.status,
@@ -180,10 +184,16 @@ export async function GET(request: NextRequest) {
         };
       } else {
         // Regular media progress
+        const currentProgress = row.user_media_progress.currentProgress || 0;
+        const animeProgress =
+          type === 'anime' && row.media_items.totalEpisodes && row.media_items.totalEpisodes > 0
+            ? Math.round((currentProgress / row.media_items.totalEpisodes) * 100)
+            : currentProgress;
+
         return {
           id: row.user_media_progress.id,
           status: row.user_media_progress.status,
-          progress: row.user_media_progress.currentProgress || 0,
+          progress: animeProgress,
           mediaItem: {
             id: row.media_items.id,
             externalId: row.media_items.externalId,

@@ -11,7 +11,7 @@ export default async function SearchPage() {
   }
 
   return (
-    <DashboardLayout showSidebar={false}>
+    <DashboardLayout>
       <SearchContent />
     </DashboardLayout>
   );
