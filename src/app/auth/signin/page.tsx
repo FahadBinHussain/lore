@@ -20,7 +20,8 @@ export default function SignInPage() {
   }, [status, router]);
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/dashboard' });
+    const callbackUrl = `${window.location.origin}/dashboard`;
+    signIn('google', { callbackUrl });
   };
 
   if (!mounted) {

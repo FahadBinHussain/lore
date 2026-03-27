@@ -4,6 +4,25 @@ import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
+function getPreferredAuthBaseUrl(baseUrl: string): string {
+  const explicitAuthUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL;
+  if (explicitAuthUrl) {
+    return explicitAuthUrl;
+  }
+
+  const vercelProjectProductionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (vercelProjectProductionUrl) {
+    return `https://${vercelProjectProductionUrl}`;
+  }
+
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl) {
+    return `https://${vercelUrl}`;
+  }
+
+  return baseUrl;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Google({
@@ -12,6 +31,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      const preferredBaseUrl = getPreferredAuthBaseUrl(baseUrl).replace(/\/$/, '');
+
+      if (url.startsWith('/')) {
+        return `${preferredBaseUrl}${url}`;
+      }
+
+      try {
+        const parsedUrl = new URL(url);
+        const parsedBaseUrl = new URL(preferredBaseUrl);
+
+        if (parsedUrl.origin === parsedBaseUrl.origin) {
+          return url;
+        }
+      } catch {
+        return `${preferredBaseUrl}/dashboard`;
+      }
+
+      return `${preferredBaseUrl}/dashboard`;
+    },
     async session({ session, token }) {
       if (session.user?.email) {
         const dbUser = await db.query.users.findFirst({
