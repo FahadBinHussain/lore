@@ -174,10 +174,17 @@ export default function MovieDetailPage() {
       const numericIdMatch = idParam.match(/(\d+)$/);
       const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
       
-      const response = await fetch(`/api/media/status?mediaId=${numericId}&mediaType=movie`);
+      console.log('Fetching watched status for mediaId:', numericId, 'mediaType: movie');
+      const response = await fetch(`/api/media/status?mediaId=${numericId}&mediaType=movie`, {
+        cache: 'no-cache'
+      });
+      console.log('Status response:', response.status, response.statusText);
       if (response.ok) {
         const data = await response.json();
+        console.log('Watched status data:', data);
         setIsWatched(data.isWatched);
+      } else {
+        console.error('Failed to fetch status:', response.status);
       }
     } catch (err) {
       console.error('Failed to fetch watched status:', err);
@@ -198,6 +205,7 @@ export default function MovieDetailPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        cache: 'no-cache',
         body: JSON.stringify({
           mediaId: numericId,
           mediaType: 'movie',
@@ -298,10 +306,12 @@ export default function MovieDetailPage() {
           <Film className="w-20 h-20 text-white relative z-10" />
         </div>
         <h1 className="text-3xl font-bold text-white">{error || 'Movie not found'}</h1>
-        <Button onClick={() => router.back()} variant="outline" className="border-white/20 text-white hover:bg-white/10">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Go Back
-        </Button>
+        <Link href="/movies">
+          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Go Back
+          </Button>
+        </Link>
       </div>
     );
   }
@@ -359,12 +369,14 @@ export default function MovieDetailPage() {
 
         {/* Back Button */}
         <div className="absolute top-6 left-6 z-20">
-          <Link href="/">
-            <Button variant="ghost" className="bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white transition-all duration-300">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            className="bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white transition-all duration-300"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
         </div>
 
         {/* Movie Info Overlay */}

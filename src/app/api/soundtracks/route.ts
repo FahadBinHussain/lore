@@ -3,22 +3,21 @@ import { searchRecordings, formatDuration, MusicBrainzRecording } from '@/lib/ap
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const query = searchParams.get('q');
+  const query = searchParams.get('q') || 'soundtrack';
+  const limit = parseInt(searchParams.get('limit') || '20');
 
   try {
-    let recordings: MusicBrainzRecording[];
-
-    if (query) {
-      recordings = await searchRecordings(query);
-    } else {
-      // For now, return empty array when no query
-      recordings = [];
-    }
+    console.log('Fetching soundtracks with query:', query, 'limit:', limit);
+    
+    // Search MusicBrainz for soundtrack recordings
+    const recordings = await searchRecordings(query, limit);
+    
+    console.log('Found recordings:', recordings.length);
 
     const results = recordings.map((r: MusicBrainzRecording) => ({
       id: r.id,
       title: r.title,
-      artist: r['artist-credit']?.[0]?.artist?.name,
+      artist: r['artist-credit']?.[0]?.artist?.name || 'Unknown Artist',
       duration: formatDuration(r.length),
       year: r.releases?.[0]?.date?.split('-')[0],
       album: r.releases?.[0]?.title,
