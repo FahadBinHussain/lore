@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     } else {
       mediaItemId = existingItem.id;
 
-      if (mediaType === 'anime' && typeof totalEpisodes === 'number' && totalEpisodes > 0 && existingItem.totalEpisodes !== totalEpisodes) {
+      if (['anime', 'tv'].includes(mediaType) && typeof totalEpisodes === 'number' && totalEpisodes > 0 && existingItem.totalEpisodes !== totalEpisodes) {
         await db.update(mediaItems)
           .set({
             totalEpisodes,
@@ -226,9 +226,128 @@ export async function POST(request: NextRequest) {
       });
     }
 
-  // Handle cascading for TV shows
+    // Handle cascading for TV shows
     if (mediaType === 'tv') {
       console.log('Handling cascading episode updates for TV show:', { mediaId, isWatched });
+
+      if (isWatched) {
+        const numericMediaId = parseInt(mediaId);
+
+        if (!Number.isNaN(numericMediaId)) {
+          try {
+            const showResponse = await fetch(
+              `https://api.themoviedb.org/3/tv/${numericMediaId}?api_key=${process.env.TMDB_API_KEY}`,
+              { cache: 'no-store' }
+            );
+
+            if (showResponse.ok) {
+              const showData = await showResponse.json() as {
+                number_of_seasons?: number;
+                number_of_episodes?: number;
+              };
+
+              const seasonsCount = showData.number_of_seasons || null;
+              const episodesCount = showData.number_of_episodes || null;
+
+              await db.update(mediaItems)
+                .set({
+                  seasons: seasonsCount,
+                  totalEpisodes: episodesCount,
+                  updatedAt: new Date(),
+                })
+                .where(eq(mediaItems.id, mediaItemId));
+
+              for (let seasonNum = 1; seasonNum <= (seasonsCount || 0); seasonNum++) {
+                const seasonResponse = await fetch(
+                  `https://api.themoviedb.org/3/tv/${numericMediaId}/season/${seasonNum}?api_key=${process.env.TMDB_API_KEY}`,
+                  { cache: 'no-store' }
+                );
+
+                if (!seasonResponse.ok) {
+                  continue;
+                }
+
+                const seasonData = await seasonResponse.json() as {
+                  name?: string;
+                  overview?: string;
+                  poster_path?: string | null;
+                  air_date?: string | null;
+                  episodes?: Array<{
+                    episode_number: number;
+                    name?: string;
+                    overview?: string;
+                    still_path?: string | null;
+                    air_date?: string | null;
+                    runtime?: number | null;
+                  }>;
+                };
+
+                const seasonExternalId = `${mediaId}-${seasonNum}`;
+                let seasonRecord = await db.query.seasons.findFirst({
+                  where: and(
+                    eq(seasons.externalId, seasonExternalId),
+                    eq(seasons.source, 'tmdb')
+                  ),
+                });
+
+                const episodeCount = seasonData.episodes?.length || 0;
+
+                if (!seasonRecord) {
+                  const [createdSeason] = await db.insert(seasons).values({
+                    mediaItemId,
+                    externalId: seasonExternalId,
+                    source: 'tmdb',
+                    seasonNumber: seasonNum,
+                    name: seasonData.name || `Season ${seasonNum}`,
+                    overview: seasonData.overview || null,
+                    posterPath: seasonData.poster_path || null,
+                    airDate: seasonData.air_date || null,
+                    episodeCount,
+                  }).returning();
+                  seasonRecord = createdSeason;
+                } else {
+                  await db.update(seasons)
+                    .set({
+                      name: seasonData.name || seasonRecord.name,
+                      overview: seasonData.overview || seasonRecord.overview,
+                      posterPath: seasonData.poster_path || seasonRecord.posterPath,
+                      airDate: seasonData.air_date || seasonRecord.airDate,
+                      episodeCount,
+                      updatedAt: new Date(),
+                    })
+                    .where(eq(seasons.id, seasonRecord.id));
+                }
+
+                for (const ep of seasonData.episodes || []) {
+                  const episodeExternalId = `${mediaId}-${seasonNum}-${ep.episode_number}`;
+                  const existingEpisode = await db.query.episodes.findFirst({
+                    where: and(
+                      eq(episodes.externalId, episodeExternalId),
+                      eq(episodes.source, 'tmdb')
+                    ),
+                  });
+
+                  if (!existingEpisode) {
+                    await db.insert(episodes).values({
+                      seasonId: seasonRecord.id,
+                      externalId: episodeExternalId,
+                      source: 'tmdb',
+                      episodeNumber: ep.episode_number,
+                      name: ep.name || `Episode ${ep.episode_number}`,
+                      overview: ep.overview || null,
+                      stillPath: ep.still_path || null,
+                      airDate: ep.air_date || null,
+                      runtime: ep.runtime || null,
+                    });
+                  }
+                }
+              }
+            }
+          } catch (seedError) {
+            console.error('Failed to seed TV episodes before cascading watched status:', seedError);
+          }
+        }
+      }
 
       // Get all episodes for this TV show
       const showEpisodes = await db

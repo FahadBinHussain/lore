@@ -61,6 +61,7 @@ interface TMDBMovie {
 interface ImportItem extends TraktItem {
   tmdbData?: TMDBMovie;
   selected: boolean;
+  alreadyWatched: boolean;
 }
 
 interface ImportModalProps {
@@ -72,6 +73,7 @@ interface ImportModalProps {
 export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
   const [items, setItems] = useState<ImportItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingStatuses, setIsCheckingStatuses] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,6 +82,7 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
     if (!file) return;
 
     setIsLoading(true);
+  setIsCheckingStatuses(true);
     setError(null);
 
     try {
@@ -92,16 +95,31 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
           try {
             const tmdbId = item.type === 'movie' ? item.movie?.ids.tmdb : item.show?.ids.tmdb;
             const apiEndpoint = item.type === 'movie' ? '/api/movies' : '/api/tv';
+            const mediaType = item.type === 'movie' ? 'movie' : 'tv';
+
+            let alreadyWatched = false;
+
+            if (tmdbId) {
+              const statusResponse = await fetch(`/api/media/status?mediaId=${tmdbId}&mediaType=${mediaType}`, {
+                cache: 'no-cache',
+              });
+
+              if (statusResponse.ok) {
+                const statusData = await statusResponse.json();
+                alreadyWatched = Boolean(statusData.isWatched);
+              }
+            }
+
             if (tmdbId) {
               const response = await fetch(`${apiEndpoint}/${tmdbId}`);
               if (response.ok) {
                 const tmdbData = await response.json();
-                return { ...item, tmdbData, selected: true };
+                return { ...item, tmdbData, selected: !alreadyWatched, alreadyWatched };
               }
             }
-            return { ...item, selected: true };
+            return { ...item, selected: !alreadyWatched, alreadyWatched };
           } catch {
-            return { ...item, selected: true };
+            return { ...item, selected: true, alreadyWatched: false };
           }
         })
       );
@@ -112,25 +130,26 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
       console.error(err);
     } finally {
       setIsLoading(false);
+      setIsCheckingStatuses(false);
     }
   }, []);
 
   const toggleItemSelection = (index: number) => {
     setItems(prev => prev.map((item, i) =>
-      i === index ? { ...item, selected: !item.selected } : item
+      i === index && !item.alreadyWatched ? { ...item, selected: !item.selected } : item
     ));
   };
 
   const selectAll = () => {
-    setItems(prev => prev.map(item => ({ ...item, selected: true })));
+    setItems(prev => prev.map(item => item.alreadyWatched ? item : { ...item, selected: true }));
   };
 
   const deselectAll = () => {
-    setItems(prev => prev.map(item => ({ ...item, selected: false })));
+    setItems(prev => prev.map(item => item.alreadyWatched ? item : { ...item, selected: false }));
   };
 
   const handleImport = async () => {
-    const selectedItems = items.filter(item => item.selected);
+    const selectedItems = items.filter(item => item.selected && !item.alreadyWatched);
     if (selectedItems.length === 0) return;
 
     setIsImporting(true);
@@ -146,7 +165,9 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
     }
   };
 
-  const selectedCount = items.filter(item => item.selected).length;
+  const importableItems = items.filter(item => !item.alreadyWatched);
+  const alreadyWatchedItems = items.filter(item => item.alreadyWatched);
+  const selectedCount = importableItems.filter(item => item.selected).length;
 
   if (!isOpen) return null;
 
@@ -182,7 +203,11 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
           {isLoading && (
             <div className="text-center py-8">
               <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-              <p>Loading and fetching item details...</p>
+              <p>
+                {isCheckingStatuses
+                  ? 'Loading, fetching item details, and checking your DB watched status...'
+                  : 'Loading and fetching item details...'}
+              </p>
             </div>
           )}
 
@@ -203,8 +228,13 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
                     Deselect All
                   </Button>
                   <span className="text-sm text-muted-foreground">
-                    {selectedCount} of {items.length} selected
+                    {selectedCount} of {importableItems.length} importable selected
                   </span>
+                  {alreadyWatchedItems.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {alreadyWatchedItems.length} already watched in DB
+                    </Badge>
+                  )}
                 </div>
                 <Button onClick={handleImport} disabled={selectedCount === 0 || isImporting}>
                   {isImporting ? (
@@ -222,22 +252,26 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
               </div>
 
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {items.map((item, index) => {
+                {importableItems.map((item) => {
                   const title = item.type === 'movie' ? item.movie?.title : item.show?.title;
                   const year = item.type === 'movie' ? item.movie?.year : item.show?.year;
-                  const traktId = item.type === 'movie' ? item.movie?.ids.trakt : item.show?.ids.trakt;
+                  const itemIndex = items.findIndex((candidate) => candidate.id === item.id);
+                  const posterUrl = item.tmdbData?.poster_path
+                    ? getTMDBImageUrl(item.tmdbData.poster_path)
+                    : null;
+
                   return (
                     <div key={item.id} className="flex items-center gap-3 p-3 border rounded-lg">
                       <input
                         type="checkbox"
                         checked={item.selected}
-                        onChange={() => toggleItemSelection(index)}
+                        onChange={() => toggleItemSelection(itemIndex)}
                         className="w-4 h-4"
                       />
                       <div className="flex items-center gap-3 flex-1">
-                        {item.tmdbData?.poster_path && (
+                        {posterUrl && (
                           <img
-                            src={getTMDBImageUrl(item.tmdbData.poster_path as string)}
+                            src={posterUrl}
                             alt={title}
                             className="w-12 h-16 object-cover rounded"
                           />
@@ -264,6 +298,58 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
                     </div>
                   );
                 })}
+
+                {alreadyWatchedItems.length > 0 && (
+                  <>
+                    <div className="pt-4 mt-4 border-t">
+                      <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        Already watched in your DB (excluded from import)
+                      </h4>
+                    </div>
+
+                    {alreadyWatchedItems.map((item) => {
+                      const title = item.type === 'movie' ? item.movie?.title : item.show?.title;
+                      const year = item.type === 'movie' ? item.movie?.year : item.show?.year;
+                      const posterUrl = item.tmdbData?.poster_path
+                        ? getTMDBImageUrl(item.tmdbData.poster_path)
+                        : null;
+
+                      return (
+                        <div key={`already-${item.id}`} className="flex items-center gap-3 p-3 border rounded-lg opacity-70 bg-muted/30">
+                          <input
+                            type="checkbox"
+                            checked={false}
+                            disabled
+                            className="w-4 h-4"
+                          />
+                          <div className="flex items-center gap-3 flex-1">
+                            {posterUrl && (
+                              <img
+                                src={posterUrl}
+                                alt={title}
+                                className="w-12 h-16 object-cover rounded"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold">{title}</h4>
+                                <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600">
+                                  Already Watched
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {year} • {item.type === 'movie' ? 'Movie' : 'TV Show'}
+                                {item.tmdbData?.vote_average && (
+                                  <> • ⭐ {item.tmdbData.vote_average.toFixed(1)}</>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
               </div>
             </>
           )}

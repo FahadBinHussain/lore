@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
 interface Genre {
@@ -147,10 +148,30 @@ export default function TVShowDetailPage() {
   const [isWatched, setIsWatched] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [updatingWatched, setUpdatingWatched] = useState(false);
+  const [syncProgress, setSyncProgress] = useState(0);
   const [showAllCast, setShowAllCast] = useState(false);
   const [selectedTrailer, setSelectedTrailer] = useState<Video | null>(null);
   const [anilistLink, setAnilistLink] = useState<string | null>(null);
   const [anilistLoading, setAnilistLoading] = useState(false);
+
+  useEffect(() => {
+    if (!updatingWatched) {
+      setSyncProgress(0);
+      return;
+    }
+
+    setSyncProgress(8);
+    const startedAt = Date.now();
+    const estimatedDurationMs = Math.max(4000, (show?.number_of_episodes || 1) * 120);
+
+    const timer = setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      const ratio = Math.min(elapsed / estimatedDurationMs, 0.92);
+      setSyncProgress(Math.max(8, Math.round(ratio * 100)));
+    }, 180);
+
+    return () => clearInterval(timer);
+  }, [updatingWatched, show?.number_of_episodes]);
 
   const fetchTVShowDetails = async () => {
     try {
@@ -216,12 +237,17 @@ export default function TVShowDetailPage() {
           title: show.name,
           posterPath: show.poster_path,
           releaseDate: show.first_air_date,
+          totalEpisodes: show.number_of_episodes,
         }),
       });
-      
-      if (response.ok) {
-        setIsWatched(!isWatched);
+
+      if (!response.ok) {
+        throw new Error('Failed to update watched status');
       }
+      
+      setSyncProgress(100);
+      setIsWatched(!isWatched);
+      await new Promise((resolve) => setTimeout(resolve, 300));
     } catch (err) {
       console.error('Failed to update watched status:', err);
     } finally {
@@ -611,6 +637,20 @@ export default function TVShowDetailPage() {
                   <Share2 className="w-4 h-4" />
                 </Button>
               </div>
+
+              {updatingWatched && (
+                <div className="mt-4 w-full max-w-md rounded-xl border border-white/15 bg-black/25 p-3 backdrop-blur-sm">
+                  <div className="mb-2 flex items-center justify-between text-xs text-white/80">
+                    <span>
+                      {isWatched
+                        ? 'Removing watched flag from episodes...'
+                        : `Marking ${show.number_of_episodes || 0} episodes as watched...`}
+                    </span>
+                    <span>{syncProgress}%</span>
+                  </div>
+                  <Progress value={syncProgress} className="h-2 bg-white/15" />
+                </div>
+              )}
             </div>
           </div>
         </div>

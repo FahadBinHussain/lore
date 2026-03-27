@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db/index';
-import { userEpisodeProgress, episodes, seasons, mediaItems } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { userEpisodeProgress, episodes, seasons, mediaItems, userMediaProgress } from '@/db/schema';
+import { eq, and, sql } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
@@ -173,7 +173,7 @@ export async function POST(
             // Create the media item
             const newMediaItem = await db
               .insert(mediaItems)
-              .values({
+              .values([{
                 externalId: showId.toString(),
                 source: 'tmdb',
                 mediaType: 'tv',
@@ -181,10 +181,12 @@ export async function POST(
                 description: showData?.overview || null,
                 posterPath: showData?.poster_path || null,
                 backdropPath: showData?.backdrop_path || null,
-                releaseDate: showData?.first_air_date ? new Date(showData.first_air_date) : null,
+                releaseDate: showData?.first_air_date || null,
                 rating: showData?.vote_average || null,
                 voteCount: showData?.vote_count || 0,
-                genres: showData?.genres ? JSON.stringify(showData.genres) : null,
+                genres: Array.isArray(showData?.genres)
+                  ? showData.genres.map((genre: { name?: string }) => genre?.name).filter(Boolean)
+                  : null,
                 runtime: null,
                 pageCount: null,
                 developer: null,
@@ -192,7 +194,9 @@ export async function POST(
                 author: null,
                 isbn: null,
                 platforms: null,
-                networks: showData?.networks ? JSON.stringify(showData.networks) : null,
+                networks: Array.isArray(showData?.networks)
+                  ? showData.networks.map((network: { name?: string }) => network?.name).filter(Boolean)
+                  : null,
                 seasons: showData?.number_of_seasons || null,
                 totalEpisodes: showData?.number_of_episodes || null,
                 status: showData?.status || null,
@@ -200,7 +204,7 @@ export async function POST(
                 tagline: showData?.tagline || null,
                 popularity: showData?.popularity || null,
                 additionalData: null,
-              })
+              }])
               .returning();
 
             mediaItem = newMediaItem;
@@ -226,11 +230,15 @@ export async function POST(
                   description: showData.overview || mediaItem[0].description,
                   posterPath: showData.poster_path || mediaItem[0].posterPath,
                   backdropPath: showData.backdrop_path || mediaItem[0].backdropPath,
-                  releaseDate: showData.first_air_date ? new Date(showData.first_air_date) : mediaItem[0].releaseDate,
+                  releaseDate: showData.first_air_date || mediaItem[0].releaseDate,
                   rating: showData.vote_average || mediaItem[0].rating,
                   voteCount: showData.vote_count || mediaItem[0].voteCount,
-                  genres: showData.genres ? JSON.stringify(showData.genres) : mediaItem[0].genres,
-                  networks: showData.networks ? JSON.stringify(showData.networks) : mediaItem[0].networks,
+                  genres: Array.isArray(showData.genres)
+                    ? showData.genres.map((genre: { name?: string }) => genre?.name).filter(Boolean)
+                    : mediaItem[0].genres,
+                  networks: Array.isArray(showData.networks)
+                    ? showData.networks.map((network: { name?: string }) => network?.name).filter(Boolean)
+                    : mediaItem[0].networks,
                   seasons: showData.number_of_seasons || mediaItem[0].seasons,
                   totalEpisodes: showData.number_of_episodes || mediaItem[0].totalEpisodes,
                   status: showData.status || mediaItem[0].status,
@@ -309,6 +317,97 @@ export async function POST(
             isWatched: is_watched,
             watchedAt: is_watched ? new Date() : null,
           });
+      }
+
+      // Recompute parent show status from DB episode progress (anime parity behavior)
+      const mediaItem = await db
+        .select()
+        .from(mediaItems)
+        .where(and(
+          eq(mediaItems.externalId, showId.toString()),
+          eq(mediaItems.source, 'tmdb'),
+          eq(mediaItems.mediaType, 'tv')
+        ))
+        .limit(1);
+
+      if (mediaItem.length > 0) {
+        const mediaItemId = mediaItem[0].id;
+
+        const watchedCountResult = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(userEpisodeProgress)
+          .innerJoin(episodes, eq(userEpisodeProgress.episodeId, episodes.id))
+          .innerJoin(seasons, eq(episodes.seasonId, seasons.id))
+          .where(and(
+            eq(userEpisodeProgress.userId, userId),
+            eq(userEpisodeProgress.isWatched, true),
+            eq(seasons.mediaItemId, mediaItemId)
+          ));
+
+        const totalCountResult = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(episodes)
+          .innerJoin(seasons, eq(episodes.seasonId, seasons.id))
+          .where(eq(seasons.mediaItemId, mediaItemId));
+
+        const watchedCount = Number(watchedCountResult[0]?.count || 0);
+        const totalCount = Number(totalCountResult[0]?.count || 0);
+        const shouldBeCompleted = totalCount > 0 && watchedCount === totalCount;
+
+        const existingMediaProgress = await db
+          .select()
+          .from(userMediaProgress)
+          .where(and(
+            eq(userMediaProgress.userId, userId),
+            eq(userMediaProgress.mediaItemId, mediaItemId)
+          ))
+          .limit(1);
+
+        if (shouldBeCompleted) {
+          if (existingMediaProgress.length > 0) {
+            await db.update(userMediaProgress)
+              .set({
+                status: 'completed',
+                currentProgress: watchedCount,
+                completedAt: new Date(),
+                lastActivityAt: new Date(),
+                updatedAt: new Date(),
+              })
+              .where(eq(userMediaProgress.id, existingMediaProgress[0].id));
+          } else {
+            await db.insert(userMediaProgress).values({
+              userId,
+              mediaItemId,
+              status: 'completed',
+              currentProgress: watchedCount,
+              completedAt: new Date(),
+              lastActivityAt: new Date(),
+            });
+          }
+        } else if (watchedCount > 0) {
+          if (existingMediaProgress.length > 0) {
+            await db.update(userMediaProgress)
+              .set({
+                status: 'in_progress',
+                currentProgress: watchedCount,
+                completedAt: null,
+                lastActivityAt: new Date(),
+                updatedAt: new Date(),
+              })
+              .where(eq(userMediaProgress.id, existingMediaProgress[0].id));
+          } else {
+            await db.insert(userMediaProgress).values({
+              userId,
+              mediaItemId,
+              status: 'in_progress',
+              currentProgress: watchedCount,
+              lastActivityAt: new Date(),
+            });
+          }
+        } else if (existingMediaProgress.length > 0) {
+          await db.delete(userMediaProgress)
+            .where(eq(userMediaProgress.id, existingMediaProgress[0].id));
+        }
       }
 
       return NextResponse.json({ success: true, is_watched });
