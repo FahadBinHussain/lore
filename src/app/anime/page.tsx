@@ -5,13 +5,16 @@ import Link from 'next/link';
 import { 
   Zap, Star, Loader2, ArrowRight, ArrowLeft,
   TrendingUp, Flame, Sparkles, Search,
-  Award, Play, Clock
+  Award, Play, Clock, Filter, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
 
 interface AnimeItem {
   id: number;
@@ -47,17 +50,28 @@ export default function AnimePage() {
   const [anime, setAnime] = useState<AnimeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('trending');
+  const [timeWindow, setTimeWindow] = useState('week');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<AnimeItem[]>([]);
   const [searching, setSearching] = useState(false);
 
+  // Filter states
+  const [showFilters, setShowFilters] = useState(false);
+  const [genre, setGenre] = useState('');
+  const [year, setYear] = useState('');
+  const [sortBy, setSortBy] = useState('POPULARITY_DESC');
+  const [ratingRange, setRatingRange] = useState([0, 100]);
+  const [format, setFormat] = useState('');
+  const [status, setStatus] = useState('');
+  const [season, setSeason] = useState('');
+
   useEffect(() => {
     if (!searchQuery) {
       fetchAnime();
     }
-  }, [category, page]);
+  }, [category, timeWindow, page, genre, year, sortBy, ratingRange, format, status, season]);
 
   // Debounced search effect
   useEffect(() => {
@@ -77,8 +91,19 @@ export default function AnimePage() {
     try {
       const params = new URLSearchParams({
         category,
+        timeWindow,
         page: page.toString(),
       });
+
+      // Add filter parameters
+      if (genre) params.append('genre', genre);
+      if (year) params.append('year', year);
+      if (sortBy) params.append('sortBy', sortBy);
+      if (ratingRange[0] > 0) params.append('minRating', ratingRange[0].toString());
+      if (ratingRange[1] < 100) params.append('maxRating', ratingRange[1].toString());
+      if (format) params.append('format', format);
+      if (status) params.append('status', status);
+      if (season) params.append('season', season);
 
       const response = await fetch(`/api/anime?${params.toString()}`);
       const data = await response.json();
@@ -109,18 +134,20 @@ export default function AnimePage() {
   };
 
   const displayAnime = searchQuery ? searchResults : anime;
-
-  const getCategoryLabel = (cat: string) => {
-    switch (cat) {
-      case 'trending': return 'Trending';
-      case 'popular': return 'Popular';
-      case 'top_rated': return 'Top Rated';
-      case 'now_playing': return 'Now Playing';
-      case 'upcoming': return 'Upcoming';
-      case 'discover': return 'Discover';
-      default: return cat;
-    }
+  
+  const clearFilters = () => {
+    setGenre('');
+    setYear('');
+    setSortBy('POPULARITY_DESC');
+    setRatingRange([0, 100]);
+    setFormat('');
+    setStatus('');
+    setSeason('');
+    setPage(1);
   };
+
+  const hasActiveFilters = genre || year || sortBy !== 'POPULARITY_DESC' || 
+                          ratingRange[0] > 0 || ratingRange[1] < 100 || format || status || season;
 
   const getFormatBadge = (format: string) => {
     switch (format) {
@@ -175,36 +202,211 @@ export default function AnimePage() {
       <section className="pb-24">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           {!searchQuery && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-              <Tabs value={category} onValueChange={(value) => { setCategory(value); setPage(1); }}>
-                <TabsList className="grid grid-cols-3 lg:grid-cols-6">
-                  <TabsTrigger value="trending" className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />
-                    <span className="hidden sm:inline">Trending</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="popular" className="flex items-center gap-2">
-                    <Flame className="w-4 h-4" />
-                    <span className="hidden sm:inline">Popular</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="top_rated" className="flex items-center gap-2">
-                    <Award className="w-4 h-4" />
-                    <span className="hidden sm:inline">Top Rated</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="now_playing" className="flex items-center gap-2">
-                    <Play className="w-4 h-4" />
-                    <span className="hidden sm:inline lg:hidden xl:inline">Now Playing</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="upcoming" className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    <span className="hidden sm:inline lg:hidden xl:inline">Upcoming</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="discover" className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    <span className="hidden sm:inline lg:hidden xl:inline">Discover</span>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+            <>
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
+                <Tabs value={category} onValueChange={(value) => { setCategory(value); setPage(1); }} className="w-full lg:w-auto">
+                  <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
+                    <div className="overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                      <TabsList className="inline-flex min-w-max h-auto items-center gap-1 rounded-xl p-1">
+                        <TabsTrigger value="trending" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
+                          <TrendingUp className="w-4 h-4" />
+                          <span className="hidden sm:inline">Trending</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="popular" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
+                          <Flame className="w-4 h-4" />
+                          <span className="hidden sm:inline">Popular</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="top_rated" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
+                          <Award className="w-4 h-4" />
+                          <span className="hidden sm:inline">Top Rated</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="now_playing" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
+                          <Play className="w-4 h-4" />
+                          <span className="hidden sm:inline lg:hidden xl:inline">Now Playing</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="upcoming" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
+                          <Clock className="w-4 h-4" />
+                          <span className="hidden sm:inline lg:hidden xl:inline">Upcoming</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="discover" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
+                          <Sparkles className="w-4 h-4" />
+                          <span className="hidden sm:inline lg:hidden xl:inline">Discover</span>
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
+                  </div>
+                </Tabs>
+
+                <div className="flex items-center gap-2 w-full lg:w-auto">
+                  {category === 'trending' && (
+                    <Tabs value={timeWindow} onValueChange={setTimeWindow}>
+                      <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                        <TabsList className="inline-flex min-w-max">
+                          <TabsTrigger value="week" className="shrink-0 text-xs sm:text-sm">This Week</TabsTrigger>
+                          <TabsTrigger value="day" className="shrink-0 text-xs sm:text-sm">Today</TabsTrigger>
+                        </TabsList>
+                      </div>
+                    </Tabs>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`${hasActiveFilters ? 'border-primary text-primary' : ''} text-xs sm:text-sm`}
+                    size="sm"
+                  >
+                    <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    Filters
+                    {hasActiveFilters && (
+                      <Badge variant="secondary" className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5 p-0 flex items-center justify-center text-xs">
+                        !
+                      </Badge>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {showFilters && (
+                <Card className="mb-6">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="genre">Genre</Label>
+                        <Select value={genre} onValueChange={(value) => setGenre(value || '')}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="All Genres" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All Genres</SelectItem>
+                            <SelectItem value="Action">Action</SelectItem>
+                            <SelectItem value="Adventure">Adventure</SelectItem>
+                            <SelectItem value="Comedy">Comedy</SelectItem>
+                            <SelectItem value="Drama">Drama</SelectItem>
+                            <SelectItem value="Fantasy">Fantasy</SelectItem>
+                            <SelectItem value="Horror">Horror</SelectItem>
+                            <SelectItem value="Mystery">Mystery</SelectItem>
+                            <SelectItem value="Romance">Romance</SelectItem>
+                            <SelectItem value="Sci-Fi">Sci-Fi</SelectItem>
+                            <SelectItem value="Slice of Life">Slice of Life</SelectItem>
+                            <SelectItem value="Sports">Sports</SelectItem>
+                            <SelectItem value="Supernatural">Supernatural</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="year">Year</Label>
+                        <Select value={year} onValueChange={(value) => setYear(value || '')}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="All Years" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All Years</SelectItem>
+                            {Array.from({ length: 50 }, (_, i) => {
+                              const yearValue = (2026 - i).toString();
+                              return (
+                                <SelectItem key={yearValue} value={yearValue}>
+                                  {yearValue}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Rating: {ratingRange[0]} - {ratingRange[1]}</Label>
+                        <Slider
+                          value={ratingRange}
+                          onValueChange={(value) => setRatingRange(Array.isArray(value) ? value : [value, value])}
+                          max={100}
+                          min={0}
+                          step={5}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="sortBy">Sort By</Label>
+                        <Select value={sortBy} onValueChange={(value) => setSortBy(value || 'POPULARITY_DESC')}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="POPULARITY_DESC">Popularity</SelectItem>
+                            <SelectItem value="SCORE_DESC">Rating</SelectItem>
+                            <SelectItem value="TRENDING_DESC">Trending</SelectItem>
+                            <SelectItem value="START_DATE_DESC">Newest</SelectItem>
+                            <SelectItem value="START_DATE">Oldest</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="format">Format</Label>
+                        <Select value={format} onValueChange={(value) => setFormat(value || '')}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="All Formats" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All Formats</SelectItem>
+                            <SelectItem value="TV">TV</SelectItem>
+                            <SelectItem value="TV_SHORT">TV Short</SelectItem>
+                            <SelectItem value="MOVIE">Movie</SelectItem>
+                            <SelectItem value="SPECIAL">Special</SelectItem>
+                            <SelectItem value="OVA">OVA</SelectItem>
+                            <SelectItem value="ONA">ONA</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="status">Status</Label>
+                        <Select value={status} onValueChange={(value) => setStatus(value || '')}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="All Statuses" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All Statuses</SelectItem>
+                            <SelectItem value="RELEASING">Airing</SelectItem>
+                            <SelectItem value="FINISHED">Finished</SelectItem>
+                            <SelectItem value="NOT_YET_RELEASED">Upcoming</SelectItem>
+                            <SelectItem value="HIATUS">Hiatus</SelectItem>
+                            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="season">Season</Label>
+                        <Select value={season} onValueChange={(value) => setSeason(value || '')}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Any Season" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Any Season</SelectItem>
+                            <SelectItem value="WINTER">Winter</SelectItem>
+                            <SelectItem value="SPRING">Spring</SelectItem>
+                            <SelectItem value="SUMMER">Summer</SelectItem>
+                            <SelectItem value="FALL">Fall</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="flex items-end gap-2">
+                        <Button variant="outline" onClick={clearFilters} className="flex-1">
+                          <X className="w-4 h-4 mr-2" />
+                          Clear
+                        </Button>
+                        <Button onClick={() => setShowFilters(false)} className="flex-1">
+                          Apply
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
 
           {searchQuery && (
