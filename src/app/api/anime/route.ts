@@ -5,6 +5,7 @@ import {
   getTopRatedAnime, 
   getAiringAnime, 
   getUpcomingAnime,
+  discoverAnime,
   searchAnime,
   normalizeAnimeForApp
 } from '@/lib/api/anilist';
@@ -12,8 +13,19 @@ import {
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const category = searchParams.get('category') || 'trending';
+  const timeWindow = searchParams.get('timeWindow') || 'week';
   const page = parseInt(searchParams.get('page') || '1');
   const search = searchParams.get('search');
+  
+  // Filter parameters (used for discover)
+  const genre = searchParams.get('genre') || undefined;
+  const year = searchParams.get('year') ? parseInt(searchParams.get('year')!, 10) : undefined;
+  const sortBy = searchParams.get('sortBy') || 'POPULARITY_DESC';
+  const minRating = searchParams.get('minRating') ? parseInt(searchParams.get('minRating')!, 10) : undefined;
+  const maxRating = searchParams.get('maxRating') ? parseInt(searchParams.get('maxRating')!, 10) : undefined;
+  const format = searchParams.get('format') || undefined;
+  const status = searchParams.get('status') || undefined;
+  const season = searchParams.get('season') || undefined;
 
   try {
     let anime;
@@ -31,7 +43,7 @@ export async function GET(request: NextRequest) {
     // Fetch based on category
     switch (category) {
       case 'trending':
-        anime = await getTrendingAnime(page);
+        anime = timeWindow === 'day' ? await getAiringAnime(page) : await getTrendingAnime(page);
         break;
       case 'popular':
         anime = await getPopularAnime(page);
@@ -47,7 +59,17 @@ export async function GET(request: NextRequest) {
         anime = await getUpcomingAnime(page);
         break;
       case 'discover':
-        anime = await getPopularAnime(page);
+        anime = await discoverAnime({
+          page,
+          genre: genre ? [genre] : undefined,
+          year,
+          sortBy,
+          minRating,
+          maxRating,
+          format,
+          status,
+          season,
+        });
         break;
       default:
         anime = await getTrendingAnime(page);

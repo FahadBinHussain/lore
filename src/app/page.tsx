@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import {
   Film, Tv, Gamepad2, BookOpen, Sparkles,
   ArrowRight, Play, Star, Zap, Globe,
@@ -35,6 +36,7 @@ interface MediaItem {
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
+  const { status } = useSession();
   
   const [movies, setMovies] = useState<MediaItem[]>([]);
   const [tvShows, setTVShows] = useState<MediaItem[]>([]);
@@ -58,6 +60,7 @@ export default function HomePage() {
   const [anime, setAnime] = useState<MediaItem[]>([]);
   const [loadingAnime, setLoadingAnime] = useState(true);
   const [activeTab, setActiveTab] = useState('movies');
+  const isAuthenticated = status === 'authenticated';
 
   useEffect(() => {
     setMounted(true);
@@ -241,10 +244,10 @@ export default function HomePage() {
               "flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-1000 delay-300",
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             )}>
-              <Link href="/auth/signin">
+              <Link href={isAuthenticated ? "/dashboard" : "/auth/signin"}>
                 <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
                   <Rocket className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                  Start Tracking Free
+                  {isAuthenticated ? 'Go to Dashboard' : 'Start Tracking Free'}
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -306,54 +309,56 @@ export default function HomePage() {
               </span>
             </h2>
             <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2 sm:px-0">
-              Explore trending movies and TV shows from TMDB
+              Explore trending picks across movies, TV, anime, games, books, and more
             </p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-center mb-6 sm:mb-8">
-              <TabsList className="flex flex-wrap h-auto items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground gap-1">
-                <TabsTrigger value="movies" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+            <div className="mb-6 sm:mb-8 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="overflow-x-auto pb-2 sm:flex sm:justify-center [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <TabsList className="inline-flex min-w-max h-auto items-center rounded-xl bg-muted p-1 text-muted-foreground gap-1 sm:mx-auto">
+                <TabsTrigger value="movies" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
                   <Film className="w-3 h-3 sm:w-4 sm:h-4" />
                   Movies
                 </TabsTrigger>
-                <TabsTrigger value="tv" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                <TabsTrigger value="tv" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
                   <Tv className="w-3 h-3 sm:w-4 sm:h-4" />
                   TV Shows
                 </TabsTrigger>
-                <TabsTrigger value="anime" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                <TabsTrigger value="anime" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
                   <Clapperboard className="w-3 h-3 sm:w-4 sm:h-4" />
                   Anime
                 </TabsTrigger>
-                <TabsTrigger value="games" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                <TabsTrigger value="games" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
                   <Gamepad2 className="w-3 h-3 sm:w-4 sm:h-4" />
                   Games
                 </TabsTrigger>
-                <TabsTrigger value="books" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                <TabsTrigger value="books" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
                   <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
                   Books
                 </TabsTrigger>
-                <TabsTrigger value="comics" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                <TabsTrigger value="comics" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
                   <ComicIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                   Comics
                 </TabsTrigger>
-                <TabsTrigger value="boardgames" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                <TabsTrigger value="boardgames" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
                   <Puzzle className="w-3 h-3 sm:w-4 sm:h-4" />
                   Board Games
                 </TabsTrigger>
-                <TabsTrigger value="soundtracks" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                <TabsTrigger value="soundtracks" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
                   <Music className="w-3 h-3 sm:w-4 sm:h-4" />
                   Soundtracks
                 </TabsTrigger>
-                <TabsTrigger value="podcasts" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                <TabsTrigger value="podcasts" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
                   <Podcast className="w-3 h-3 sm:w-4 sm:h-4" />
                   Podcasts
                 </TabsTrigger>
-                <TabsTrigger value="themeparks" className="flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                <TabsTrigger value="themeparks" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
                   <ThemeParkIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                   Theme Parks
                 </TabsTrigger>
-              </TabsList>
+                </TabsList>
+              </div>
             </div>
 
             <TabsContent value="movies">
@@ -937,24 +942,28 @@ export default function HomePage() {
           <div className="space-y-6 sm:space-y-8">
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20">
               <Rocket className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-              <span className="text-xs sm:text-sm font-medium text-primary">Ready to Start?</span>
+              <span className="text-xs sm:text-sm font-medium text-primary">
+                {isAuthenticated ? 'Welcome Back' : 'Ready to Start?'}
+              </span>
             </div>
             
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">
               <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                Begin Your Journey Today
+                {isAuthenticated ? 'Continue Your Journey' : 'Begin Your Journey Today'}
               </span>
             </h2>
             
             <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2 sm:px-0">
-              Join our community of media enthusiasts and transform how you track your entertainment.
+              {isAuthenticated
+                ? 'Jump back in and keep your media universe up to date.'
+                : 'Join our community of media enthusiasts and transform how you track your entertainment.'}
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-              <Link href="/auth/signin">
+              <Link href={isAuthenticated ? "/dashboard" : "/auth/signin"}>
                 <Button size="lg" className="w-full sm:w-auto group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
                   <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                  Get Started Free
+                  {isAuthenticated ? 'Open Dashboard' : 'Get Started Free'}
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>

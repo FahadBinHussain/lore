@@ -352,8 +352,8 @@ export function Navbar() {
                       </DropdownMenuLabel>
 
                       <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                        <Link href="/dashboard" className="flex items-center w-full">
-                          <LayoutDashboard className="mr-3 h-4 w-4 text-primary" />
+                        <Link href="/dashboard" className="group flex items-center w-full">
+                          <LayoutDashboard className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="font-medium">Dashboard</span>
                           <ArrowRight className="ml-auto h-3 w-3 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                         </Link>
@@ -361,7 +361,7 @@ export function Navbar() {
 
                       <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
                         <Link href="/search" className="flex items-center w-full">
-                          <Search className="mr-3 h-4 w-4 text-primary" />
+                          <Search className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="font-medium">Search Media</span>
                         </Link>
                       </DropdownMenuItem>
@@ -369,7 +369,7 @@ export function Navbar() {
                       {session?.user?.role === 'admin' && (
                         <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
                           <Link href="/universes/create" className="flex items-center w-full">
-                            <Plus className="mr-3 h-4 w-4 text-primary" />
+                            <Plus className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
                             <span className="font-medium">Create Universe</span>
                           </Link>
                         </DropdownMenuItem>
@@ -386,21 +386,21 @@ export function Navbar() {
 
                       <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
                         <div className="flex items-center w-full">
-                          <User className="mr-3 h-4 w-4 text-primary" />
+                          <User className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="font-medium">Profile</span>
                         </div>
                       </DropdownMenuItem>
 
                       <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
                         <div className="flex items-center w-full">
-                          <Settings className="mr-3 h-4 w-4 text-primary" />
+                          <Settings className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="font-medium">Settings</span>
                         </div>
                       </DropdownMenuItem>
 
                       <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
                         <div className="flex items-center w-full">
-                          <Bell className="mr-3 h-4 w-4 text-primary" />
+                          <Bell className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
                           <span className="font-medium">Notifications</span>
                         </div>
                       </DropdownMenuItem>
