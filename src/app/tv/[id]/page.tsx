@@ -10,12 +10,17 @@ import {
   ExternalLink, TrendingUp, Award, Building2,
   Languages, MapPin, Film, ChevronDown, ChevronUp,
   PlayCircle, Image as ImageIcon, Sparkles,
-  MessageCircle, Camera, ThumbsUp
+  Camera, ThumbsUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import {
+  FacebookBrandIcon,
+  InstagramBrandIcon,
+  TwitterBrandIcon,
+} from '@/components/icons/social-icons';
 import { cn } from '@/lib/utils';
 
 interface Genre {
@@ -1025,7 +1030,7 @@ export default function TVShowDetailPage() {
                     className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-blue-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5 text-primary-foreground" />
+                      <FacebookBrandIcon className="w-5 h-5 text-primary-foreground" />
                     </div>
                     <span className="text-foreground group-hover:text-secondary transition-colors">Facebook</span>
                     <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-secondary" />
@@ -1039,7 +1044,7 @@ export default function TVShowDetailPage() {
                     className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-pink-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
-                      <Camera className="w-5 h-5 text-primary-foreground" />
+                      <InstagramBrandIcon className="w-5 h-5 text-primary-foreground" />
                     </div>
                     <span className="text-foreground group-hover:text-secondary transition-colors">Instagram</span>
                     <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-secondary" />
@@ -1053,7 +1058,7 @@ export default function TVShowDetailPage() {
                     className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-sky-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5 text-primary-foreground" />
+                      <TwitterBrandIcon className="w-5 h-5 text-primary-foreground" />
                     </div>
                     <span className="text-foreground group-hover:text-secondary transition-colors">Twitter</span>
                     <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-secondary" />
