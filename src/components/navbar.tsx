@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useSyncExternalStore, useState } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import {
   Sparkles, ArrowRight, LayoutDashboard, Search, Plus,
-  User, Settings, Bell, LogOut, Menu, X
+  User, Settings, Bell, LogOut, Menu, X, Palette, Check
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -19,9 +19,116 @@ import {
   DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 
+const DAISYUI_THEMES = [
+  'light',
+  'dark',
+  'cupcake',
+  'bumblebee',
+  'emerald',
+  'corporate',
+  'synthwave',
+  'retro',
+  'cyberpunk',
+  'valentine',
+  'halloween',
+  'garden',
+  'forest',
+  'aqua',
+  'lofi',
+  'pastel',
+  'fantasy',
+  'wireframe',
+  'black',
+  'luxury',
+  'dracula',
+  'cmyk',
+  'autumn',
+  'business',
+  'acid',
+  'lemonade',
+  'night',
+  'coffee',
+  'winter',
+  'dim',
+  'nord',
+  'sunset',
+  'caramellatte',
+  'abyss',
+  'silk',
+] as const;
+
+const DARK_THEMES = new Set([
+  'dark',
+  'synthwave',
+  'halloween',
+  'forest',
+  'black',
+  'luxury',
+  'dracula',
+  'business',
+  'night',
+  'coffee',
+  'dim',
+  'sunset',
+  'abyss',
+]);
+
+function isValidTheme(theme: string | null): theme is (typeof DAISYUI_THEMES)[number] {
+  return !!theme && DAISYUI_THEMES.includes(theme as (typeof DAISYUI_THEMES)[number]);
+}
+
+function getServerTheme() {
+  return 'light';
+}
+
+function getClientTheme() {
+  if (typeof window === 'undefined') {
+    return 'light';
+  }
+
+  const savedTheme = localStorage.getItem('theme');
+  if (isValidTheme(savedTheme)) {
+    return savedTheme;
+  }
+
+  const htmlTheme = document.documentElement.getAttribute('data-theme');
+  if (isValidTheme(htmlTheme)) {
+    return htmlTheme;
+  }
+
+  return 'light';
+}
+
+function subscribeTheme(callback: () => void) {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
+  const handleThemeChange = () => callback();
+  window.addEventListener('storage', handleThemeChange);
+  window.addEventListener('theme-change', handleThemeChange);
+
+  return () => {
+    window.removeEventListener('storage', handleThemeChange);
+    window.removeEventListener('theme-change', handleThemeChange);
+  };
+}
+
+function applyTheme(theme: string) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.documentElement.classList.toggle('dark', DARK_THEMES.has(theme));
+  localStorage.setItem('theme', theme);
+  window.dispatchEvent(new Event('theme-change'));
+}
+
 export function Navbar() {
   const { data: session, status } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const theme = useSyncExternalStore(subscribeTheme, getClientTheme, getServerTheme);
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50">
@@ -160,6 +267,39 @@ export function Navbar() {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={buttonVariants({
+                  variant: 'ghost',
+                  size: 'sm',
+                  className: 'h-9 px-2 sm:px-3 text-xs sm:text-sm',
+                })}
+                title={`Theme: ${theme}`}
+              >
+                <Palette className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline capitalize">{theme}</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-56 max-h-80 overflow-y-auto"
+              >
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {DAISYUI_THEMES.map((themeName) => (
+                    <DropdownMenuItem
+                      key={themeName}
+                      className="capitalize"
+                      onClick={() => applyTheme(themeName)}
+                    >
+                      <span>{themeName}</span>
+                      {theme === themeName && <Check className="ml-auto h-4 w-4" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* CTA Buttons */}
             <div className="flex items-center gap-3">
               {status === 'loading' ? (
