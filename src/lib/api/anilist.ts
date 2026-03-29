@@ -371,6 +371,82 @@ const UPCOMING_ANIME_QUERY = `
   }
 `;
 
+// Discover Anime Query (with filters)
+const DISCOVER_ANIME_QUERY = `
+  query (
+    $page: Int
+    $perPage: Int
+    $sort: [MediaSort]
+    $genre_in: [String]
+    $seasonYear: Int
+    $season: MediaSeason
+    $status: MediaStatus
+    $format: MediaFormat
+    $averageScore_greater: Int
+    $averageScore_lesser: Int
+  ) {
+    Page(page: $page, perPage: $perPage) {
+      media(
+        type: ANIME
+        sort: $sort
+        genre_in: $genre_in
+        seasonYear: $seasonYear
+        season: $season
+        status: $status
+        format: $format
+        averageScore_greater: $averageScore_greater
+        averageScore_lesser: $averageScore_lesser
+      ) {
+        id
+        title {
+          romaji
+          english
+          native
+        }
+        type
+        format
+        status
+        description
+        startDate {
+          year
+          month
+          day
+        }
+        season
+        seasonYear
+        episodes
+        duration
+        coverImage {
+          large
+          medium
+        }
+        bannerImage
+        genres
+        averageScore
+        popularity
+        favourites
+        nextAiringEpisode {
+          airingAt
+          episode
+          timeUntilAiring
+        }
+        studios(isMain: true) {
+          nodes {
+            id
+            name
+            isAnimationStudio
+          }
+        }
+        trailer {
+          id
+          site
+          thumbnail
+        }
+      }
+    }
+  }
+`;
+
 // Search Anime Query
 const SEARCH_ANIME_QUERY = `
   query ($search: String, $page: Int, $perPage: Int) {
@@ -581,6 +657,47 @@ export async function getAiringAnime(page: number = 1, perPage: number = PAGE_SI
 
 export async function getUpcomingAnime(page: number = 1, perPage: number = PAGE_SIZE) {
   const data = await fetchAniList(UPCOMING_ANIME_QUERY, { page, perPage });
+  return data?.Page?.media || [];
+}
+
+export async function discoverAnime(params: {
+  page?: number;
+  perPage?: number;
+  sortBy?: string;
+  genre?: string[];
+  year?: number;
+  season?: string;
+  status?: string;
+  format?: string;
+  minRating?: number;
+  maxRating?: number;
+}) {
+  const {
+    page = 1,
+    perPage = PAGE_SIZE,
+    sortBy = 'POPULARITY_DESC',
+    genre,
+    year,
+    season,
+    status,
+    format,
+    minRating,
+    maxRating,
+  } = params;
+
+  const data = await fetchAniList(DISCOVER_ANIME_QUERY, {
+    page,
+    perPage,
+    sort: [sortBy],
+    genre_in: genre && genre.length > 0 ? genre : undefined,
+    seasonYear: year,
+    season,
+    status,
+    format,
+    averageScore_greater: minRating,
+    averageScore_lesser: maxRating,
+  });
+
   return data?.Page?.media || [];
 }
 

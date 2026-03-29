@@ -174,41 +174,47 @@ export default function MoviesPage() {
             <>
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
                 <Tabs value={category} onValueChange={(value) => { setCategory(value); setPage(1); }} className="w-full lg:w-auto">
-                  <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full lg:w-auto">
-                    <TabsTrigger value="trending" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
+                    <div className="overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                      <TabsList className="inline-flex min-w-max h-auto items-center gap-1 rounded-xl p-1">
+                    <TabsTrigger value="trending" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
                       <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">Trending</span>
                     </TabsTrigger>
-                    <TabsTrigger value="popular" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <TabsTrigger value="popular" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
                       <Flame className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">Popular</span>
                     </TabsTrigger>
-                    <TabsTrigger value="top_rated" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <TabsTrigger value="top_rated" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
                       <Award className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">Top Rated</span>
                     </TabsTrigger>
-                    <TabsTrigger value="now_playing" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <TabsTrigger value="now_playing" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
                       <Play className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline lg:hidden xl:inline">Now Playing</span>
                     </TabsTrigger>
-                    <TabsTrigger value="upcoming" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <TabsTrigger value="upcoming" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
                       <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline lg:hidden xl:inline">Upcoming</span>
                     </TabsTrigger>
-                    <TabsTrigger value="discover" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <TabsTrigger value="discover" className="shrink-0 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2.5 sm:px-3">
                       <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline lg:hidden xl:inline">Discover</span>
                     </TabsTrigger>
-                  </TabsList>
+                      </TabsList>
+                    </div>
+                  </div>
                 </Tabs>
 
-                <div className="flex items-center gap-2 w-full lg:w-auto">
+                <div className="flex items-center gap-2 w-full lg:w-auto flex-wrap">
                   {category === 'trending' && (
                     <Tabs value={timeWindow} onValueChange={setTimeWindow}>
-                      <TabsList>
-                        <TabsTrigger value="week" className="text-xs sm:text-sm">This Week</TabsTrigger>
-                        <TabsTrigger value="day" className="text-xs sm:text-sm">Today</TabsTrigger>
-                      </TabsList>
+                      <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                        <TabsList className="inline-flex min-w-max">
+                          <TabsTrigger value="week" className="shrink-0 text-xs sm:text-sm">This Week</TabsTrigger>
+                          <TabsTrigger value="day" className="shrink-0 text-xs sm:text-sm">Today</TabsTrigger>
+                        </TabsList>
+                      </div>
                     </Tabs>
                   )}
 
