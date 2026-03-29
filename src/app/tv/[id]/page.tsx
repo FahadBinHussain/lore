@@ -340,10 +340,10 @@ export default function TVShowDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full blur-xl opacity-50 animate-pulse" />
-          <Loader2 className="w-16 h-16 animate-spin text-white relative z-10" />
+          <Loader2 className="w-16 h-16 animate-spin text-foreground relative z-10" />
         </div>
       </div>
     );
@@ -351,14 +351,14 @@ export default function TVShowDetailPage() {
 
   if (error || !show) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex flex-col items-center justify-center gap-6">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex flex-col items-center justify-center gap-6">
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-full blur-xl opacity-50" />
           <Tv className="w-20 h-20 text-white relative z-10" />
         </div>
-        <h1 className="text-3xl font-bold text-white">{error || 'TV show not found'}</h1>
+        <h1 className="text-3xl font-bold text-foreground">{error || 'TV show not found'}</h1>
         <Link href="/tv">
-          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+          <Button variant="outline" className="border-border text-foreground hover:bg-accent">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Back
           </Button>
@@ -370,19 +370,19 @@ export default function TVShowDetailPage() {
   // Show overlay for Japanese animation - redirect to anime tab
   if (isJapaneseAnimation) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex flex-col items-center justify-center gap-6 relative">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex flex-col items-center justify-center gap-6 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 backdrop-blur-sm" />
         <div className="relative z-10 flex flex-col items-center text-center p-8 max-w-md">
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mb-6">
             <Sparkles className="w-12 h-12 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-4">Japanese Animation</h1>
-          <p className="text-white/70 mb-6">
+          <h1 className="text-3xl font-bold text-foreground mb-4">Japanese Animation</h1>
+          <p className="text-muted-foreground mb-6">
             This title is categorized as Japanese animation. Please use the Anime section for the full experience.
           </p>
           <div className="flex flex-col gap-4">
             {anilistLoading ? (
-              <div className="flex items-center justify-center gap-2 text-white/70">
+              <div className="flex items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Finding anime...</span>
               </div>
@@ -403,7 +403,7 @@ export default function TVShowDetailPage() {
               </Link>
             )}
             <Link href="/tv">
-              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+              <Button variant="outline" className="border-border text-foreground hover:bg-accent">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Go Back
               </Button>
@@ -415,7 +415,7 @@ export default function TVShowDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
       {/* Video Modal */}
       {selectedTrailer && (
         <div 
@@ -432,7 +432,7 @@ export default function TVShowDetailPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute -top-12 right-0 text-white hover:bg-white/20"
+              className="absolute -top-12 right-0 text-foreground hover:bg-background/80"
               onClick={() => setSelectedTrailer(null)}
             >
               ✕
@@ -456,8 +456,8 @@ export default function TVShowDetailPage() {
         )}
         
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-slate-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-transparent to-background/45" />
         
         {/* Animated Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
@@ -469,7 +469,7 @@ export default function TVShowDetailPage() {
         <div className="absolute top-6 left-6 z-20">
           <Button 
             variant="ghost" 
-            className="bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white transition-all duration-300"
+            className="bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300"
             onClick={() => router.back()}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -507,16 +507,16 @@ export default function TVShowDetailPage() {
             <div className="flex-1 min-w-0">
               {/* Title and Tagline */}
               <div className="mb-4">
-                <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 tracking-tight">
+                <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-2 tracking-tight">
                   {show.name}
                 </h1>
                 {show.original_name && show.original_name !== show.name && (
-                  <p className="text-lg text-white/50 mb-2">
+                  <p className="text-lg text-muted-foreground/80 mb-2">
                     Original: {show.original_name}
                   </p>
                 )}
                 {show.tagline && (
-                  <p className="text-xl text-white/70 italic font-light">
+                  <p className="text-xl text-muted-foreground italic font-light">
                     "{show.tagline}"
                   </p>
                 )}
@@ -525,9 +525,9 @@ export default function TVShowDetailPage() {
               {/* Meta Info Row */}
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 {show.first_air_date && (
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
                     <Calendar className="w-4 h-4 text-cyan-400" />
-                    <span className="text-white font-medium">
+                    <span className="text-foreground font-medium">
                       {getYear(show.first_air_date)}
                       {show.last_air_date && show.status === 'Ended' && ` - ${getYear(show.last_air_date)}`}
                     </span>
@@ -535,18 +535,18 @@ export default function TVShowDetailPage() {
                 )}
                 
                 {show.number_of_seasons > 0 && (
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
                     <Monitor className="w-4 h-4 text-violet-400" />
-                    <span className="text-white font-medium">
+                    <span className="text-foreground font-medium">
                       {show.number_of_seasons} Season{show.number_of_seasons !== 1 ? 's' : ''}
                     </span>
                   </div>
                 )}
                 
                 {show.number_of_episodes > 0 && (
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
                     <Clock className="w-4 h-4 text-fuchsia-400" />
-                    <span className="text-white font-medium">{show.number_of_episodes} Episodes</span>
+                    <span className="text-foreground font-medium">{show.number_of_episodes} Episodes</span>
                   </div>
                 )}
 
@@ -554,7 +554,7 @@ export default function TVShowDetailPage() {
                 <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-amber-500/30">
                   <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
                   <span className="font-bold text-amber-400">{show.vote_average.toFixed(1)}</span>
-                  <span className="text-white/50 text-sm">({show.vote_count.toLocaleString()})</span>
+                  <span className="text-muted-foreground/80 text-sm">({show.vote_count.toLocaleString()})</span>
                 </div>
 
                 {/* Status Badge */}
@@ -609,7 +609,7 @@ export default function TVShowDetailPage() {
                   onClick={handleMarkAsWatched}
                   disabled={updatingWatched}
                   className={cn(
-                    "border-white/20 text-white hover:bg-white/10 transition-all duration-300",
+                    "border-border text-foreground hover:bg-accent transition-all duration-300",
                     isWatched && "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
                   )}
                 >
@@ -626,21 +626,21 @@ export default function TVShowDetailPage() {
                   size="icon"
                   onClick={() => setIsFavorite(!isFavorite)}
                   className={cn(
-                    "border-white/20 text-white hover:bg-white/10 transition-all duration-300",
+                    "border-border text-foreground hover:bg-accent transition-all duration-300",
                     isFavorite && "bg-red-500/20 border-red-500/50 text-red-400"
                   )}
                 >
                   <Heart className={cn("w-4 h-4", isFavorite && "fill-red-400")} />
                 </Button>
                 
-                <Button variant="outline" size="icon" className="border-white/20 text-white hover:bg-white/10">
+                <Button variant="outline" size="icon" className="border-border text-foreground hover:bg-accent">
                   <Share2 className="w-4 h-4" />
                 </Button>
               </div>
 
               {updatingWatched && (
-                <div className="mt-4 w-full max-w-md rounded-xl border border-white/15 bg-black/25 p-3 backdrop-blur-sm">
-                  <div className="mb-2 flex items-center justify-between text-xs text-white/80">
+                <div className="mt-4 w-full max-w-md rounded-xl border border-border/70 bg-background/70 p-3 backdrop-blur-sm">
+                  <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
                     <span>
                       {isWatched
                         ? 'Removing watched flag from episodes...'
@@ -648,7 +648,7 @@ export default function TVShowDetailPage() {
                     </span>
                     <span>{syncProgress}%</span>
                   </div>
-                  <Progress value={syncProgress} className="h-2 bg-white/15" />
+                  <Progress value={syncProgress} className="h-2 bg-muted" />
                 </div>
               )}
             </div>
@@ -664,12 +664,12 @@ export default function TVShowDetailPage() {
             {/* Overview */}
             <section className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-3xl blur-xl" />
-              <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
-                <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+              <div className="relative bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-8">
+                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
                   <Sparkles className="w-6 h-6 text-violet-400" />
                   Overview
                 </h2>
-                <p className="text-white/80 leading-relaxed text-lg">
+                <p className="text-muted-foreground leading-relaxed text-lg">
                   {show.overview || 'No overview available.'}
                 </p>
               </div>
@@ -678,7 +678,7 @@ export default function TVShowDetailPage() {
             {/* Videos Section */}
             {(show.videos?.trailers?.length > 0 || show.videos?.teasers?.length > 0 || show.videos?.clips?.length > 0) && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <PlayCircle className="w-6 h-6 text-fuchsia-400" />
                   Videos
                 </h2>
@@ -686,10 +686,10 @@ export default function TVShowDetailPage() {
                   {show.videos.trailers.map((video, idx) => (
                     <Card 
                       key={`trailer-${idx}`}
-                      className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-violet-500/50 transition-all duration-300 cursor-pointer"
+                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/50 transition-all duration-300 cursor-pointer"
                       onClick={() => setSelectedTrailer(video)}
                     >
-                      <div className="aspect-video relative bg-slate-800">
+                      <div className="aspect-video relative bg-muted">
                         <img 
                           src={`https://img.youtube.com/vi/${video.key}/mqdefault.jpg`}
                           alt={video.name}
@@ -700,18 +700,18 @@ export default function TVShowDetailPage() {
                         </div>
                       </div>
                       <CardContent className="p-3">
-                        <p className="text-white text-sm font-medium truncate">{video.name}</p>
-                        <p className="text-white/50 text-xs">Trailer</p>
+                        <p className="text-foreground text-sm font-medium truncate">{video.name}</p>
+                        <p className="text-muted-foreground/80 text-xs">Trailer</p>
                       </CardContent>
                     </Card>
                   ))}
                   {show.videos.teasers.slice(0, 3).map((video, idx) => (
                     <Card 
                       key={`teaser-${idx}`}
-                      className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-fuchsia-500/50 transition-all duration-300 cursor-pointer"
+                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-fuchsia-500/50 transition-all duration-300 cursor-pointer"
                       onClick={() => setSelectedTrailer(video)}
                     >
-                      <div className="aspect-video relative bg-slate-800">
+                      <div className="aspect-video relative bg-muted">
                         <img 
                           src={`https://img.youtube.com/vi/${video.key}/mqdefault.jpg`}
                           alt={video.name}
@@ -722,8 +722,8 @@ export default function TVShowDetailPage() {
                         </div>
                       </div>
                       <CardContent className="p-3">
-                        <p className="text-white text-sm font-medium truncate">{video.name}</p>
-                        <p className="text-white/50 text-xs">Teaser</p>
+                        <p className="text-foreground text-sm font-medium truncate">{video.name}</p>
+                        <p className="text-muted-foreground/80 text-xs">Teaser</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -735,7 +735,7 @@ export default function TVShowDetailPage() {
             {getCast().length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                     <Users className="w-6 h-6 text-cyan-400" />
                     Cast
                   </h2>
@@ -743,7 +743,7 @@ export default function TVShowDetailPage() {
                     <Button
                       variant="ghost"
                       onClick={() => setShowAllCast(!showAllCast)}
-                      className="text-white/70 hover:text-white hover:bg-white/10"
+                      className="text-muted-foreground hover:text-foreground hover:bg-accent"
                     >
                       {showAllCast ? (
                         <>Show Less <ChevronUp className="w-4 h-4 ml-2" /></>
@@ -757,9 +757,9 @@ export default function TVShowDetailPage() {
                   {getDisplayCast().map((actor) => (
                     <Card 
                       key={actor.id} 
-                      className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-cyan-500/50 transition-all duration-300 hover:transform hover:scale-105"
+                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/50 transition-all duration-300 hover:transform hover:scale-105"
                     >
-                      <div className="aspect-square relative overflow-hidden bg-slate-800">
+                      <div className="aspect-square relative overflow-hidden bg-muted">
                         {actor.profile_path ? (
                           <img 
                             src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
@@ -773,8 +773,8 @@ export default function TVShowDetailPage() {
                         )}
                       </div>
                       <CardContent className="p-3">
-                        <p className="font-semibold text-sm text-white truncate">{actor.name}</p>
-                        <p className="text-xs text-white/50 truncate">{actor.character}</p>
+                        <p className="font-semibold text-sm text-foreground truncate">{actor.name}</p>
+                        <p className="text-xs text-muted-foreground/80 truncate">{actor.character}</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -785,58 +785,58 @@ export default function TVShowDetailPage() {
             {/* Crew Section */}
             {(getCreator() || getDirectors().length > 0 || getWriters().length > 0 || getProducers().length > 0) && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <Award className="w-6 h-6 text-amber-400" />
                   Key Crew
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {getCreator() && (
-                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-amber-500/30 transition-all duration-300">
+                    <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-amber-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
                           <Sparkles className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="text-white font-semibold">{getCreator()?.name}</p>
+                          <p className="text-foreground font-semibold">{getCreator()?.name}</p>
                           <p className="text-amber-400 text-sm">Creator</p>
                         </div>
                       </CardContent>
                     </Card>
                   )}
                   {getDirectors().slice(0, 3).map((director) => (
-                    <Card key={director.id} className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-violet-500/30 transition-all duration-300">
+                    <Card key={director.id} className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
                           <Film className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="text-white font-semibold">{director.name}</p>
+                          <p className="text-foreground font-semibold">{director.name}</p>
                           <p className="text-violet-400 text-sm">{director.job}</p>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                   {getWriters().slice(0, 3).map((writer) => (
-                    <Card key={writer.id} className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-300">
+                    <Card key={writer.id} className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
                           <Users className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="text-white font-semibold">{writer.name}</p>
+                          <p className="text-foreground font-semibold">{writer.name}</p>
                           <p className="text-cyan-400 text-sm">{writer.job}</p>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                   {getProducers().slice(0, 2).map((producer) => (
-                    <Card key={producer.id} className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-emerald-500/30 transition-all duration-300">
+                    <Card key={producer.id} className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
                           <TrendingUp className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="text-white font-semibold">{producer.name}</p>
+                          <p className="text-foreground font-semibold">{producer.name}</p>
                           <p className="text-emerald-400 text-sm">{producer.job}</p>
                         </div>
                       </CardContent>
@@ -849,7 +849,7 @@ export default function TVShowDetailPage() {
             {/* Seasons Section */}
             {show.seasons && show.seasons.length > 0 && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <Monitor className="w-6 h-6 text-violet-400" />
                   Seasons
                 </h2>
@@ -857,9 +857,9 @@ export default function TVShowDetailPage() {
                   {show.seasons.map((season) => (
                     <Link key={season.id} href={`/tv/${params.id}/season/${season.season_number}`}>
                       <Card
-                        className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-violet-500/50 transition-all duration-300 hover:transform hover:scale-105 cursor-pointer"
+                        className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/50 transition-all duration-300 hover:transform hover:scale-105 cursor-pointer"
                       >
-                        <div className="aspect-[2/3] relative overflow-hidden bg-slate-800">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {season.poster_path ? (
                             <img
                               src={`https://image.tmdb.org/t/p/w300${season.poster_path}`}
@@ -874,12 +874,12 @@ export default function TVShowDetailPage() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </div>
                         <CardContent className="p-4">
-                          <h3 className="font-semibold text-white">{season.name}</h3>
-                          <p className="text-sm text-white/60">
+                          <h3 className="font-semibold text-foreground">{season.name}</h3>
+                          <p className="text-sm text-muted-foreground">
                             {season.episode_count} Episode{season.episode_count !== 1 ? 's' : ''}
                           </p>
                           {season.air_date && (
-                            <p className="text-xs text-white/40 mt-1">
+                            <p className="text-xs text-muted-foreground/70 mt-1">
                               {getYear(season.air_date)}
                             </p>
                           )}
@@ -894,7 +894,7 @@ export default function TVShowDetailPage() {
             {/* Backdrops Gallery */}
             {show.backdrops && show.backdrops.length > 0 && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <ImageIcon className="w-6 h-6 text-pink-400" />
                   Gallery
                 </h2>
@@ -902,7 +902,7 @@ export default function TVShowDetailPage() {
                   {show.backdrops.map((backdrop, idx) => (
                     <div 
                       key={idx}
-                      className="aspect-video rounded-lg overflow-hidden bg-slate-800 hover:scale-105 transition-transform duration-300 cursor-pointer group"
+                      className="aspect-video rounded-lg overflow-hidden bg-muted hover:scale-105 transition-transform duration-300 cursor-pointer group"
                     >
                       <img 
                         src={`https://image.tmdb.org/t/p/w780${backdrop.file_path}`}
@@ -918,15 +918,15 @@ export default function TVShowDetailPage() {
             {/* Similar Shows */}
             {show.similar && show.similar.length > 0 && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <ThumbsUp className="w-6 h-6 text-emerald-400" />
                   Similar Shows
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                   {show.similar.map((similar) => (
                     <Link key={similar.id} href={`/tv/tv-${similar.id}`}>
-                      <Card className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-emerald-500/50 transition-all duration-300 hover:transform hover:scale-105">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-slate-800">
+                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/50 transition-all duration-300 hover:transform hover:scale-105">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {similar.poster_path ? (
                             <img 
                               src={`https://image.tmdb.org/t/p/w300${similar.poster_path}`}
@@ -940,12 +940,12 @@ export default function TVShowDetailPage() {
                           )}
                           <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
                             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                            <span className="text-white text-xs font-semibold">{similar.vote_average.toFixed(1)}</span>
+                            <span className="text-foreground text-xs font-semibold">{similar.vote_average.toFixed(1)}</span>
                           </div>
                         </div>
                         <CardContent className="p-3">
-                          <p className="font-semibold text-sm text-white truncate">{similar.name}</p>
-                          <p className="text-xs text-white/50">{similar.first_air_date ? getYear(similar.first_air_date) : '—'}</p>
+                          <p className="font-semibold text-sm text-foreground truncate">{similar.name}</p>
+                          <p className="text-xs text-muted-foreground/80">{similar.first_air_date ? getYear(similar.first_air_date) : '—'}</p>
                         </CardContent>
                       </Card>
                     </Link>
@@ -957,15 +957,15 @@ export default function TVShowDetailPage() {
             {/* Recommendations */}
             {show.recommendations && show.recommendations.length > 0 && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <Sparkles className="w-6 h-6 text-fuchsia-400" />
                   Recommendations
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                   {show.recommendations.map((rec) => (
                     <Link key={rec.id} href={`/tv/tv-${rec.id}`}>
-                      <Card className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-fuchsia-500/50 transition-all duration-300 hover:transform hover:scale-105">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-slate-800">
+                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-fuchsia-500/50 transition-all duration-300 hover:transform hover:scale-105">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {rec.poster_path ? (
                             <img 
                               src={`https://image.tmdb.org/t/p/w300${rec.poster_path}`}
@@ -979,12 +979,12 @@ export default function TVShowDetailPage() {
                           )}
                           <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
                             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                            <span className="text-white text-xs font-semibold">{rec.vote_average.toFixed(1)}</span>
+                            <span className="text-foreground text-xs font-semibold">{rec.vote_average.toFixed(1)}</span>
                           </div>
                         </div>
                         <CardContent className="p-3">
-                          <p className="font-semibold text-sm text-white truncate">{rec.name}</p>
-                          <p className="text-xs text-white/50">{rec.first_air_date ? getYear(rec.first_air_date) : '—'}</p>
+                          <p className="font-semibold text-sm text-foreground truncate">{rec.name}</p>
+                          <p className="text-xs text-muted-foreground/80">{rec.first_air_date ? getYear(rec.first_air_date) : '—'}</p>
                         </CardContent>
                       </Card>
                     </Link>
@@ -998,7 +998,7 @@ export default function TVShowDetailPage() {
           <div className="space-y-8">
             {/* External Links */}
             <section>
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <ExternalLink className="w-5 h-5 text-violet-400" />
                 External Links
               </h3>
@@ -1008,13 +1008,13 @@ export default function TVShowDetailPage() {
                     href={`https://www.imdb.com/title/${show.external_ids.imdb_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-amber-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-amber-500/50 transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-white font-bold text-sm">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-black font-bold text-sm">
                       IMDb
                     </div>
-                    <span className="text-white group-hover:text-amber-400 transition-colors">View on IMDb</span>
-                    <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-amber-400" />
+                    <span className="text-foreground group-hover:text-amber-400 transition-colors">View on IMDb</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-amber-400" />
                   </a>
                 )}
                 {show.external_ids?.facebook_id && (
@@ -1022,13 +1022,13 @@ export default function TVShowDetailPage() {
                     href={`https://www.facebook.com/${show.external_ids.facebook_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-blue-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-blue-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
                       <MessageCircle className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-white group-hover:text-blue-400 transition-colors">Facebook</span>
-                    <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-blue-400" />
+                    <span className="text-foreground group-hover:text-blue-400 transition-colors">Facebook</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-blue-400" />
                   </a>
                 )}
                 {show.external_ids?.instagram_id && (
@@ -1036,13 +1036,13 @@ export default function TVShowDetailPage() {
                     href={`https://www.instagram.com/${show.external_ids.instagram_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-pink-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-pink-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
                       <Camera className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-white group-hover:text-pink-400 transition-colors">Instagram</span>
-                    <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-pink-400" />
+                    <span className="text-foreground group-hover:text-pink-400 transition-colors">Instagram</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-pink-400" />
                   </a>
                 )}
                 {show.external_ids?.twitter_id && (
@@ -1050,13 +1050,13 @@ export default function TVShowDetailPage() {
                     href={`https://twitter.com/${show.external_ids.twitter_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-sky-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-sky-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center">
                       <MessageCircle className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-white group-hover:text-sky-400 transition-colors">Twitter</span>
-                    <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-sky-400" />
+                    <span className="text-foreground group-hover:text-sky-400 transition-colors">Twitter</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-sky-400" />
                   </a>
                 )}
                 {show.homepage && (
@@ -1064,49 +1064,49 @@ export default function TVShowDetailPage() {
                     href={show.homepage}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-green-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-green-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
                       <Globe className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-white group-hover:text-green-400 transition-colors">Official Website</span>
-                    <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-green-400" />
+                    <span className="text-foreground group-hover:text-green-400 transition-colors">Official Website</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-green-400" />
                   </a>
                 )}
               </div>
             </section>
 
             {/* Details Card */}
-            <section className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Details</h3>
+            <section className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Details</h3>
               <div className="space-y-4">
                 {show.type && (
                   <div className="flex justify-between items-center">
-                    <span className="text-white/60 text-sm">Type</span>
-                    <span className="text-white font-medium">{show.type}</span>
+                    <span className="text-muted-foreground text-sm">Type</span>
+                    <span className="text-foreground font-medium">{show.type}</span>
                   </div>
                 )}
                 
                 {show.original_language && (
                   <div className="flex justify-between items-center">
-                    <span className="text-white/60 text-sm">Original Language</span>
-                    <span className="text-white font-medium uppercase">{show.original_language}</span>
+                    <span className="text-muted-foreground text-sm">Original Language</span>
+                    <span className="text-foreground font-medium uppercase">{show.original_language}</span>
                   </div>
                 )}
 
                 {show.origin_country && show.origin_country.length > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-white/60 text-sm">Origin Country</span>
-                    <span className="text-white font-medium">{show.origin_country.join(', ')}</span>
+                    <span className="text-muted-foreground text-sm">Origin Country</span>
+                    <span className="text-foreground font-medium">{show.origin_country.join(', ')}</span>
                   </div>
                 )}
 
                 {show.spoken_languages && show.spoken_languages.length > 0 && (
                   <div>
-                    <span className="text-white/60 text-sm block mb-2">Spoken Languages</span>
+                    <span className="text-muted-foreground text-sm block mb-2">Spoken Languages</span>
                     <div className="flex flex-wrap gap-2">
                       {show.spoken_languages.map((lang) => (
-                        <Badge key={lang.iso_639_1} variant="outline" className="border-white/20 text-white/80">
+                        <Badge key={lang.iso_639_1} variant="outline" className="border-border text-muted-foreground">
                           {lang.english_name}
                         </Badge>
                       ))}
@@ -1115,15 +1115,15 @@ export default function TVShowDetailPage() {
                 )}
 
                 <div className="flex justify-between items-center">
-                  <span className="text-white/60 text-sm">Popularity</span>
+                  <span className="text-muted-foreground text-sm">Popularity</span>
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    <span className="text-white font-medium">{show.popularity.toFixed(0)}</span>
+                    <span className="text-foreground font-medium">{show.popularity.toFixed(0)}</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-white/60 text-sm">In Production</span>
+                  <span className="text-muted-foreground text-sm">In Production</span>
                   <Badge className={show.in_production ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}>
                     {show.in_production ? 'Yes' : 'No'}
                   </Badge>
@@ -1133,14 +1133,14 @@ export default function TVShowDetailPage() {
 
             {/* Networks */}
             {show.networks && show.networks.length > 0 && (
-              <section className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <section className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-6">
+                <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                   <Monitor className="w-5 h-5 text-fuchsia-400" />
                   Networks
                 </h3>
                 <div className="space-y-3">
                   {show.networks.map((network) => (
-                    <div key={network.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                    <div key={network.id} className="flex items-center gap-3 p-3 bg-muted/70 rounded-xl border border-border">
                       {network.logo_path ? (
                         <img 
                           src={`https://image.tmdb.org/t/p/w92${network.logo_path}`}
@@ -1152,7 +1152,7 @@ export default function TVShowDetailPage() {
                           <Tv className="w-5 h-5 text-white" />
                         </div>
                       )}
-                      <span className="text-white font-medium text-sm">{network.name}</span>
+                      <span className="text-foreground font-medium text-sm">{network.name}</span>
                     </div>
                   ))}
                 </div>
@@ -1161,14 +1161,14 @@ export default function TVShowDetailPage() {
 
             {/* Production Companies */}
             {show.production_companies && show.production_companies.length > 0 && (
-              <section className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <section className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-6">
+                <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                   <Building2 className="w-5 h-5 text-cyan-400" />
                   Production Companies
                 </h3>
                 <div className="space-y-3">
                   {show.production_companies.slice(0, 5).map((company) => (
-                    <div key={company.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                    <div key={company.id} className="flex items-center gap-3 p-3 bg-muted/70 rounded-xl border border-border">
                       {company.logo_path ? (
                         <img 
                           src={`https://image.tmdb.org/t/p/w92${company.logo_path}`}
@@ -1181,8 +1181,8 @@ export default function TVShowDetailPage() {
                         </div>
                       )}
                       <div>
-                        <span className="text-white font-medium text-sm block">{company.name}</span>
-                        <span className="text-white/50 text-xs">{company.origin_country}</span>
+                        <span className="text-foreground font-medium text-sm block">{company.name}</span>
+                        <span className="text-muted-foreground/80 text-xs">{company.origin_country}</span>
                       </div>
                     </div>
                   ))}
@@ -1195,3 +1195,4 @@ export default function TVShowDetailPage() {
     </div>
   );
 }
+

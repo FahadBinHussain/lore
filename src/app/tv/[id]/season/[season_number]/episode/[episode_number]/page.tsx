@@ -134,7 +134,7 @@ export default function EpisodeDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
       </div>
     );
@@ -142,17 +142,17 @@ export default function EpisodeDetailPage() {
 
   if (error || !episode || !show || !season) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Error</h1>
-          <p className="text-white/60">{error || 'Failed to load episode details'}</p>
+          <h1 className="text-2xl font-bold text-foreground mb-4">Error</h1>
+          <p className="text-muted-foreground">{error || 'Failed to load episode details'}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
       {/* Video Modal */}
       {/* Hero Section with Backdrop */}
       <div className="relative h-[70vh] min-h-[600px] overflow-hidden">
@@ -177,8 +177,8 @@ export default function EpisodeDetailPage() {
         )}
 
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-slate-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-transparent to-background/45" />
 
         {/* Animated Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
@@ -191,7 +191,7 @@ export default function EpisodeDetailPage() {
           <Link href={`/tv/${params.id}/season/${params.season_number}`}>
             <Button
               variant="ghost"
-              className="bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white transition-all duration-300"
+              className="bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to {season.name}
@@ -219,7 +219,7 @@ export default function EpisodeDetailPage() {
                 )}
               </div>
               {episode.is_watched && (
-                <div className="absolute -top-3 -right-3 bg-green-500 text-white font-bold px-3 py-1 rounded-lg shadow-lg text-sm flex items-center gap-1">
+                <div className="absolute -top-3 -right-3 bg-green-500 text-foreground font-bold px-3 py-1 rounded-lg shadow-lg text-sm flex items-center gap-1">
                   <Eye className="w-3 h-3" />
                   Watched
                 </div>
@@ -230,7 +230,7 @@ export default function EpisodeDetailPage() {
             <div className="flex-1 min-w-0">
               {/* Title and Episode Number */}
               <div className="mb-4">
-                <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 tracking-tight">
+                <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-2 tracking-tight">
                   {episode.name}
                 </h1>
                 <div className="flex items-center gap-4 mb-4">
@@ -245,7 +245,7 @@ export default function EpisodeDetailPage() {
                   )}
                 </div>
                 {episode.overview && (
-                  <p className="text-xl text-white/70 italic font-light max-w-2xl">
+                  <p className="text-xl text-muted-foreground italic font-light max-w-2xl">
                     {episode.overview}
                   </p>
                 )}
@@ -254,7 +254,7 @@ export default function EpisodeDetailPage() {
               {/* Meta Info Row */}
               <div className="flex flex-wrap items-center gap-6 mb-8">
                 {episode.air_date && (
-                  <div className="flex items-center gap-2 text-white/80">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="w-5 h-5" />
                     <span className="text-lg">{new Date(episode.air_date).toLocaleDateString('en-US', {
                       year: 'numeric',
@@ -264,13 +264,13 @@ export default function EpisodeDetailPage() {
                   </div>
                 )}
                 {episode.runtime && (
-                  <div className="flex items-center gap-2 text-white/80">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Clock className="w-5 h-5" />
                     <span className="text-lg">{episode.runtime} minutes</span>
                   </div>
                 )}
                 {episode.vote_average > 0 && (
-                  <div className="flex items-center gap-2 text-white/80">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Star className="w-5 h-5 text-yellow-400" />
                     <span className="text-lg">{episode.vote_average.toFixed(1)} ({episode.vote_count} votes)</span>
                   </div>
@@ -301,7 +301,7 @@ export default function EpisodeDetailPage() {
                   variant="outline"
                   onClick={() => navigateToEpisode('prev')}
                   disabled={episode.episode_number === 1}
-                  className="border-white/20 text-white hover:bg-white/10 px-6 py-3 text-lg"
+                  className="border-border text-foreground hover:bg-accent px-6 py-3 text-lg"
                 >
                   <ChevronLeft className="w-5 h-5 mr-1" />
                   Previous Episode
@@ -311,7 +311,7 @@ export default function EpisodeDetailPage() {
                   variant="outline"
                   onClick={() => navigateToEpisode('next')}
                   disabled={episode.episode_number === season.episodes.length}
-                  className="border-white/20 text-white hover:bg-white/10 px-6 py-3 text-lg"
+                  className="border-border text-foreground hover:bg-accent px-6 py-3 text-lg"
                 >
                   Next Episode
                   <ChevronRight className="w-5 h-5 ml-1" />
@@ -329,7 +329,7 @@ export default function EpisodeDetailPage() {
             {/* Guest Stars */}
             {episode.guest_stars && episode.guest_stars.length > 0 && (
               <section className="mb-12">
-                <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-4">
+                <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
                     <Users className="w-5 h-5 text-white" />
                   </div>
@@ -338,7 +338,7 @@ export default function EpisodeDetailPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                   {episode.guest_stars.slice(0, 12).map((star: any) => (
                     <div key={star.id} className="group">
-                      <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-slate-800 mb-3 group-hover:scale-105 transition-transform duration-300">
+                      <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-muted mb-3 group-hover:scale-105 transition-transform duration-300">
                         {star.profile_path ? (
                           <img
                             src={`https://image.tmdb.org/t/p/w300${star.profile_path}`}
@@ -352,8 +352,8 @@ export default function EpisodeDetailPage() {
                         )}
                       </div>
                       <div className="text-center">
-                        <h3 className="text-white font-semibold text-sm mb-1">{star.name}</h3>
-                        <p className="text-white/60 text-xs">{star.character}</p>
+                        <h3 className="text-foreground font-semibold text-sm mb-1">{star.name}</h3>
+                        <p className="text-muted-foreground text-xs">{star.character}</p>
                       </div>
                     </div>
                   ))}
@@ -364,7 +364,7 @@ export default function EpisodeDetailPage() {
             {/* Crew */}
             {episode.crew && episode.crew.length > 0 && (
               <section>
-                <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-4">
+                <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
                     <Users className="w-5 h-5 text-white" />
                   </div>
@@ -373,7 +373,7 @@ export default function EpisodeDetailPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                   {episode.crew.slice(0, 12).map((member: any) => (
                     <div key={`${member.id}-${member.job}`} className="group">
-                      <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-slate-800 mb-3 group-hover:scale-105 transition-transform duration-300">
+                      <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-muted mb-3 group-hover:scale-105 transition-transform duration-300">
                         {member.profile_path ? (
                           <img
                             src={`https://image.tmdb.org/t/p/w300${member.profile_path}`}
@@ -387,8 +387,8 @@ export default function EpisodeDetailPage() {
                         )}
                       </div>
                       <div className="text-center">
-                        <h3 className="text-white font-semibold text-sm mb-1">{member.name}</h3>
-                        <p className="text-white/60 text-xs">{member.job}</p>
+                        <h3 className="text-foreground font-semibold text-sm mb-1">{member.name}</h3>
+                        <p className="text-muted-foreground text-xs">{member.job}</p>
                       </div>
                     </div>
                   ))}
@@ -401,3 +401,4 @@ export default function EpisodeDetailPage() {
     </div>
   );
 }
+

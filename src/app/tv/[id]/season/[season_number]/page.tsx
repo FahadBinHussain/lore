@@ -121,7 +121,7 @@ export default function SeasonDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
       </div>
     );
@@ -129,17 +129,17 @@ export default function SeasonDetailPage() {
 
   if (error || !season || !show) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Error</h1>
-          <p className="text-white/60">{error || 'Failed to load season details'}</p>
+          <h1 className="text-2xl font-bold text-foreground mb-4">Error</h1>
+          <p className="text-muted-foreground">{error || 'Failed to load season details'}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
       {/* Hero Section with Backdrop */}
       <div className="relative h-[60vh] min-h-[500px] overflow-hidden">
         {season.poster_path ? (
@@ -163,8 +163,8 @@ export default function SeasonDetailPage() {
         )}
 
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-slate-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-transparent to-background/45" />
 
         {/* Animated Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
@@ -177,7 +177,7 @@ export default function SeasonDetailPage() {
           <Link href={`/tv/${params.id}`}>
             <Button
               variant="ghost"
-              className="bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white transition-all duration-300"
+              className="bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to {show.name}
@@ -210,7 +210,7 @@ export default function SeasonDetailPage() {
             <div className="flex-1 min-w-0">
               {/* Title and Season Number */}
               <div className="mb-4">
-                <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 tracking-tight">
+                <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-2 tracking-tight">
                   {season.name}
                 </h1>
                 <div className="flex items-center gap-4 mb-4">
@@ -219,7 +219,7 @@ export default function SeasonDetailPage() {
                   </Badge>
                 </div>
                 {season.overview && (
-                  <p className="text-xl text-white/70 italic font-light max-w-2xl">
+                  <p className="text-xl text-muted-foreground italic font-light max-w-2xl">
                     {season.overview}
                   </p>
                 )}
@@ -228,12 +228,12 @@ export default function SeasonDetailPage() {
               {/* Meta Info Row */}
               <div className="flex flex-wrap items-center gap-6 mb-8">
                 {season.air_date && (
-                  <div className="flex items-center gap-2 text-white/80">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="w-5 h-5" />
                     <span className="text-lg">{getYear(season.air_date)}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-white/80">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <PlayCircle className="w-5 h-5" />
                   <span className="text-lg">{season.episode_count} Episodes</span>
                 </div>
@@ -246,7 +246,7 @@ export default function SeasonDetailPage() {
       {/* Episodes */}
       <div className="px-6 md:px-12 pb-12">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-4">
+          <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
               <PlayCircle className="w-5 h-5 text-white" />
             </div>
@@ -257,7 +257,7 @@ export default function SeasonDetailPage() {
             {season.episodes.map((episode) => (
               <Card
                 key={episode.id}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-violet-500/50 transition-all duration-300"
+                className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/50 transition-all duration-300"
               >
                 <CardContent className="p-6">
                   <div className="flex gap-6">
@@ -286,10 +286,10 @@ export default function SeasonDetailPage() {
                           className="flex-1 hover:opacity-80 transition-opacity"
                         >
                           <div>
-                            <h3 className="text-xl font-semibold text-white">
+                            <h3 className="text-xl font-semibold text-foreground">
                               {episode.episode_number}. {episode.name}
                             </h3>
-                            <div className="flex items-center gap-4 mt-1 text-sm text-white/60">
+                            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                               {episode.air_date && (
                                 <span>{new Date(episode.air_date).toLocaleDateString()}</span>
                               )}
@@ -306,7 +306,7 @@ export default function SeasonDetailPage() {
                           </div>
 
                           {episode.overview && (
-                            <p className="text-white/70 leading-relaxed mt-2 line-clamp-2">
+                            <p className="text-muted-foreground leading-relaxed mt-2 line-clamp-2">
                               {episode.overview}
                             </p>
                           )}
@@ -321,7 +321,7 @@ export default function SeasonDetailPage() {
                             toggleWatched(episode.episode_number);
                           }}
                           className={cn(
-                            "text-white hover:bg-white/10 ml-4",
+                            "text-foreground hover:bg-accent ml-4",
                             watchedEpisodes.has(episode.episode_number) && "text-green-400"
                           )}
                         >
@@ -344,3 +344,4 @@ export default function SeasonDetailPage() {
     </div>
   );
 }
+
