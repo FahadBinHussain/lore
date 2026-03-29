@@ -115,8 +115,9 @@ export default function AnimePage() {
       case 'trending': return 'Trending';
       case 'popular': return 'Popular';
       case 'top_rated': return 'Top Rated';
-      case 'airing': return 'Airing Now';
+      case 'now_playing': return 'Now Playing';
       case 'upcoming': return 'Upcoming';
+      case 'discover': return 'Discover';
       default: return cat;
     }
   };
@@ -176,7 +177,7 @@ export default function AnimePage() {
           {!searchQuery && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
               <Tabs value={category} onValueChange={(value) => { setCategory(value); setPage(1); }}>
-                <TabsList className="grid grid-cols-3 lg:grid-cols-5">
+                <TabsList className="grid grid-cols-3 lg:grid-cols-6">
                   <TabsTrigger value="trending" className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4" />
                     <span className="hidden sm:inline">Trending</span>
@@ -189,13 +190,17 @@ export default function AnimePage() {
                     <Award className="w-4 h-4" />
                     <span className="hidden sm:inline">Top Rated</span>
                   </TabsTrigger>
-                  <TabsTrigger value="airing" className="flex items-center gap-2">
+                  <TabsTrigger value="now_playing" className="flex items-center gap-2">
                     <Play className="w-4 h-4" />
-                    <span className="hidden sm:inline">Airing</span>
+                    <span className="hidden sm:inline lg:hidden xl:inline">Now Playing</span>
                   </TabsTrigger>
                   <TabsTrigger value="upcoming" className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />
-                    <span className="hidden sm:inline">Upcoming</span>
+                    <span className="hidden sm:inline lg:hidden xl:inline">Upcoming</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="discover" className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="hidden sm:inline lg:hidden xl:inline">Discover</span>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
