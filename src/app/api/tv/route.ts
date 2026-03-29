@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
 
   try {
     let shows;
+    const today = new Date().toISOString().split('T')[0];
     
     if (category === 'discover') {
       shows = await discoverTVShows({
@@ -44,9 +45,21 @@ export async function GET(request: NextRequest) {
       shows = await getPopularTVShows(page);
     } else if (category === 'top_rated') {
       shows = await getTopRatedTVShows(page);
-    } else if (category === 'on_the_air') {
+    } else if (category === 'now_playing' || category === 'on_the_air') {
       shows = await getOnTheAirTVShows(page);
+    } else if (category === 'upcoming') {
+      shows = await discoverTVShows({
+        page,
+        genre,
+        year,
+        sortBy: 'first_air_date.asc',
+        minRating,
+        maxRating,
+        firstAirDateFrom: firstAirDateFrom || today,
+        firstAirDateTo,
+      });
     } else if (category === 'airing_today') {
+      // Backward compatibility for older clients.
       shows = await getAiringTodayTVShows(page);
     } else {
       shows = await getTrendingTVShows('week', page);

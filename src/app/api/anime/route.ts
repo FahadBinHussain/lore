@@ -39,11 +39,15 @@ export async function GET(request: NextRequest) {
       case 'top_rated':
         anime = await getTopRatedAnime(page);
         break;
+      case 'now_playing':
       case 'airing':
         anime = await getAiringAnime(page);
         break;
       case 'upcoming':
         anime = await getUpcomingAnime(page);
+        break;
+      case 'discover':
+        anime = await getPopularAnime(page);
         break;
       default:
         anime = await getTrendingAnime(page);
