@@ -289,10 +289,10 @@ export default function MovieDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full blur-xl opacity-50 animate-pulse" />
-          <Loader2 className="w-16 h-16 animate-spin text-white relative z-10" />
+          <Loader2 className="w-16 h-16 animate-spin text-foreground relative z-10" />
         </div>
       </div>
     );
@@ -300,14 +300,14 @@ export default function MovieDetailPage() {
 
   if (error || !movie) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex flex-col items-center justify-center gap-6">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex flex-col items-center justify-center gap-6">
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-full blur-xl opacity-50" />
           <Film className="w-20 h-20 text-white relative z-10" />
         </div>
-        <h1 className="text-3xl font-bold text-white">{error || 'Movie not found'}</h1>
+        <h1 className="text-3xl font-bold text-foreground">{error || 'Movie not found'}</h1>
         <Link href="/movies">
-          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+          <Button variant="outline" className="border-border text-foreground hover:bg-accent">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Back
           </Button>
@@ -317,7 +317,7 @@ export default function MovieDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
       {/* Video Modal */}
       {selectedTrailer && (
         <div 
@@ -334,7 +334,7 @@ export default function MovieDetailPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute -top-12 right-0 text-white hover:bg-white/20"
+              className="absolute -top-12 right-0 text-foreground hover:bg-background/80"
               onClick={() => setSelectedTrailer(null)}
             >
               ✕
@@ -358,8 +358,8 @@ export default function MovieDetailPage() {
         )}
         
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-slate-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-transparent to-background/45" />
         
         {/* Animated Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
@@ -371,7 +371,7 @@ export default function MovieDetailPage() {
         <div className="absolute top-6 left-6 z-20">
           <Button 
             variant="ghost" 
-            className="bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white transition-all duration-300"
+            className="bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300"
             onClick={() => router.back()}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -409,16 +409,16 @@ export default function MovieDetailPage() {
             <div className="flex-1 min-w-0">
               {/* Title and Tagline */}
               <div className="mb-3 sm:mb-4">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-1 sm:mb-2 tracking-tight">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-foreground mb-1 sm:mb-2 tracking-tight">
                   {movie.title}
                 </h1>
                 {movie.original_title && movie.original_title !== movie.title && (
-                  <p className="text-sm sm:text-base lg:text-lg text-white/50 mb-1 sm:mb-2">
+                  <p className="text-sm sm:text-base lg:text-lg text-muted-foreground/80 mb-1 sm:mb-2">
                     Original: {movie.original_title}
                   </p>
                 )}
                 {movie.tagline && (
-                  <p className="text-base sm:text-lg lg:text-xl text-white/70 italic font-light">
+                  <p className="text-base sm:text-lg lg:text-xl text-muted-foreground italic font-light">
                     "{movie.tagline}"
                   </p>
                 )}
@@ -427,18 +427,18 @@ export default function MovieDetailPage() {
               {/* Meta Info Row */}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
                 {movie.release_date && (
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
                     <Calendar className="w-4 h-4 text-cyan-400" />
-                    <span className="text-white font-medium">
+                    <span className="text-foreground font-medium">
                       {getYear(movie.release_date)}
                     </span>
                   </div>
                 )}
                 
                 {movie.runtime > 0 && (
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
                     <Clock className="w-4 h-4 text-violet-400" />
-                    <span className="text-white font-medium">{formatRuntime(movie.runtime)}</span>
+                    <span className="text-foreground font-medium">{formatRuntime(movie.runtime)}</span>
                   </div>
                 )}
 
@@ -446,7 +446,7 @@ export default function MovieDetailPage() {
                 <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-amber-500/30">
                   <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
                   <span className="font-bold text-amber-400">{movie.vote_average.toFixed(1)}</span>
-                  <span className="text-white/50 text-sm">({movie.vote_count.toLocaleString()})</span>
+                  <span className="text-muted-foreground/80 text-sm">({movie.vote_count.toLocaleString()})</span>
                 </div>
 
                 {/* Status Badge */}
@@ -500,7 +500,7 @@ export default function MovieDetailPage() {
                   onClick={handleMarkAsWatched}
                   disabled={updatingWatched}
                   className={cn(
-                    "border-white/20 text-white hover:bg-white/10 transition-all duration-300",
+                    "border-border text-foreground hover:bg-accent transition-all duration-300",
                     isWatched && "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
                   )}
                 >
@@ -517,14 +517,14 @@ export default function MovieDetailPage() {
                   size="icon"
                   onClick={() => setIsFavorite(!isFavorite)}
                   className={cn(
-                    "border-white/20 text-white hover:bg-white/10 transition-all duration-300",
+                    "border-border text-foreground hover:bg-accent transition-all duration-300",
                     isFavorite && "bg-red-500/20 border-red-500/50 text-red-400"
                   )}
                 >
                   <Heart className={cn("w-4 h-4", isFavorite && "fill-red-400")} />
                 </Button>
                 
-                <Button variant="outline" size="icon" className="border-white/20 text-white hover:bg-white/10">
+                <Button variant="outline" size="icon" className="border-border text-foreground hover:bg-accent">
                   <Share2 className="w-4 h-4" />
                 </Button>
               </div>
@@ -541,12 +541,12 @@ export default function MovieDetailPage() {
             {/* Overview */}
             <section className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-3xl blur-xl" />
-              <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
-                <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+              <div className="relative bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-8">
+                <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
                   <Sparkles className="w-6 h-6 text-violet-400" />
                   Overview
                 </h2>
-                <p className="text-white/80 leading-relaxed text-lg">
+                <p className="text-muted-foreground leading-relaxed text-lg">
                   {movie.overview || 'No overview available.'}
                 </p>
               </div>
@@ -555,7 +555,7 @@ export default function MovieDetailPage() {
             {/* Videos Section */}
             {(movie.videos?.trailers?.length > 0 || movie.videos?.teasers?.length > 0 || movie.videos?.clips?.length > 0) && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <PlayCircle className="w-6 h-6 text-fuchsia-400" />
                   Videos
                 </h2>
@@ -563,10 +563,10 @@ export default function MovieDetailPage() {
                   {movie.videos.trailers.map((video, idx) => (
                     <Card 
                       key={`trailer-${idx}`}
-                      className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-violet-500/50 transition-all duration-300 cursor-pointer"
+                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/50 transition-all duration-300 cursor-pointer"
                       onClick={() => setSelectedTrailer(video)}
                     >
-                      <div className="aspect-video relative bg-slate-800">
+                      <div className="aspect-video relative bg-muted">
                         <img 
                           src={`https://img.youtube.com/vi/${video.key}/mqdefault.jpg`}
                           alt={video.name}
@@ -577,18 +577,18 @@ export default function MovieDetailPage() {
                         </div>
                       </div>
                       <CardContent className="p-3">
-                        <p className="text-white text-sm font-medium truncate">{video.name}</p>
-                        <p className="text-white/50 text-xs">Trailer</p>
+                        <p className="text-foreground text-sm font-medium truncate">{video.name}</p>
+                        <p className="text-muted-foreground/80 text-xs">Trailer</p>
                       </CardContent>
                     </Card>
                   ))}
                   {movie.videos.teasers.slice(0, 3).map((video, idx) => (
                     <Card 
                       key={`teaser-${idx}`}
-                      className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-fuchsia-500/50 transition-all duration-300 cursor-pointer"
+                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-fuchsia-500/50 transition-all duration-300 cursor-pointer"
                       onClick={() => setSelectedTrailer(video)}
                     >
-                      <div className="aspect-video relative bg-slate-800">
+                      <div className="aspect-video relative bg-muted">
                         <img 
                           src={`https://img.youtube.com/vi/${video.key}/mqdefault.jpg`}
                           alt={video.name}
@@ -599,8 +599,8 @@ export default function MovieDetailPage() {
                         </div>
                       </div>
                       <CardContent className="p-3">
-                        <p className="text-white text-sm font-medium truncate">{video.name}</p>
-                        <p className="text-white/50 text-xs">Teaser</p>
+                        <p className="text-foreground text-sm font-medium truncate">{video.name}</p>
+                        <p className="text-muted-foreground/80 text-xs">Teaser</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -612,7 +612,7 @@ export default function MovieDetailPage() {
             {getCast().length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                     <Users className="w-6 h-6 text-cyan-400" />
                     Cast
                   </h2>
@@ -620,7 +620,7 @@ export default function MovieDetailPage() {
                     <Button
                       variant="ghost"
                       onClick={() => setShowAllCast(!showAllCast)}
-                      className="text-white/70 hover:text-white hover:bg-white/10"
+                      className="text-muted-foreground hover:text-foreground hover:bg-accent"
                     >
                       {showAllCast ? (
                         <>Show Less <ChevronUp className="w-4 h-4 ml-2" /></>
@@ -634,9 +634,9 @@ export default function MovieDetailPage() {
                   {getDisplayCast().map((actor) => (
                     <Card 
                       key={actor.id} 
-                      className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-cyan-500/50 transition-all duration-300 hover:transform hover:scale-105"
+                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/50 transition-all duration-300 hover:transform hover:scale-105"
                     >
-                      <div className="aspect-square relative overflow-hidden bg-slate-800">
+                      <div className="aspect-square relative overflow-hidden bg-muted">
                         {actor.profile_path ? (
                           <img 
                             src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
@@ -650,8 +650,8 @@ export default function MovieDetailPage() {
                         )}
                       </div>
                       <CardContent className="p-3">
-                        <p className="font-semibold text-sm text-white truncate">{actor.name}</p>
-                        <p className="text-xs text-white/50 truncate">{actor.character}</p>
+                        <p className="font-semibold text-sm text-foreground truncate">{actor.name}</p>
+                        <p className="text-xs text-muted-foreground/80 truncate">{actor.character}</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -662,71 +662,71 @@ export default function MovieDetailPage() {
             {/* Crew Section */}
             {(getDirector() || getWriters().length > 0 || getProducers().length > 0 || getCinematographer() || getComposer()) && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <Award className="w-6 h-6 text-amber-400" />
                   Key Crew
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {getDirector() && (
-                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-amber-500/30 transition-all duration-300">
+                    <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-amber-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
                           <Film className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="text-white font-semibold">{getDirector()?.name}</p>
+                          <p className="text-foreground font-semibold">{getDirector()?.name}</p>
                           <p className="text-amber-400 text-sm">Director</p>
                         </div>
                       </CardContent>
                     </Card>
                   )}
                   {getWriters().slice(0, 2).map((writer) => (
-                    <Card key={writer.id} className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-violet-500/30 transition-all duration-300">
+                    <Card key={writer.id} className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
                           <Users className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="text-white font-semibold">{writer.name}</p>
+                          <p className="text-foreground font-semibold">{writer.name}</p>
                           <p className="text-violet-400 text-sm">{writer.job}</p>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                   {getCinematographer() && (
-                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-300">
+                    <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
                           <Camera className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="text-white font-semibold">{getCinematographer()?.name}</p>
+                          <p className="text-foreground font-semibold">{getCinematographer()?.name}</p>
                           <p className="text-cyan-400 text-sm">Cinematography</p>
                         </div>
                       </CardContent>
                     </Card>
                   )}
                   {getComposer() && (
-                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-pink-500/30 transition-all duration-300">
+                    <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-pink-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
                           <Award className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="text-white font-semibold">{getComposer()?.name}</p>
+                          <p className="text-foreground font-semibold">{getComposer()?.name}</p>
                           <p className="text-pink-400 text-sm">Original Music</p>
                         </div>
                       </CardContent>
                     </Card>
                   )}
                   {getProducers().slice(0, 2).map((producer) => (
-                    <Card key={producer.id} className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-emerald-500/30 transition-all duration-300">
+                    <Card key={producer.id} className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
                           <TrendingUp className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="text-white font-semibold">{producer.name}</p>
+                          <p className="text-foreground font-semibold">{producer.name}</p>
                           <p className="text-emerald-400 text-sm">{producer.job}</p>
                         </div>
                       </CardContent>
@@ -739,7 +739,7 @@ export default function MovieDetailPage() {
             {/* Backdrops Gallery */}
             {movie.backdrops && movie.backdrops.length > 0 && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <ImageIcon className="w-6 h-6 text-pink-400" />
                   Gallery
                 </h2>
@@ -747,7 +747,7 @@ export default function MovieDetailPage() {
                   {movie.backdrops.map((backdrop, idx) => (
                     <div 
                       key={idx}
-                      className="aspect-video rounded-lg overflow-hidden bg-slate-800 hover:scale-105 transition-transform duration-300 cursor-pointer group"
+                      className="aspect-video rounded-lg overflow-hidden bg-muted hover:scale-105 transition-transform duration-300 cursor-pointer group"
                     >
                       <img 
                         src={`https://image.tmdb.org/t/p/w780${backdrop.file_path}`}
@@ -763,15 +763,15 @@ export default function MovieDetailPage() {
             {/* Similar Movies */}
             {movie.similar && movie.similar.length > 0 && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <ThumbsUp className="w-6 h-6 text-emerald-400" />
                   Similar Movies
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                   {movie.similar.map((similar) => (
                     <Link key={similar.id} href={`/movies/movie-${similar.id}`}>
-                      <Card className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-emerald-500/50 transition-all duration-300 hover:transform hover:scale-105">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-slate-800">
+                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/50 transition-all duration-300 hover:transform hover:scale-105">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {similar.poster_path ? (
                             <img 
                               src={`https://image.tmdb.org/t/p/w300${similar.poster_path}`}
@@ -785,12 +785,12 @@ export default function MovieDetailPage() {
                           )}
                           <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
                             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                            <span className="text-white text-xs font-semibold">{similar.vote_average.toFixed(1)}</span>
+                            <span className="text-foreground text-xs font-semibold">{similar.vote_average.toFixed(1)}</span>
                           </div>
                         </div>
                         <CardContent className="p-3">
-                          <p className="font-semibold text-sm text-white truncate">{similar.title}</p>
-                          <p className="text-xs text-white/50">{similar.release_date ? getYear(similar.release_date) : '—'}</p>
+                          <p className="font-semibold text-sm text-foreground truncate">{similar.title}</p>
+                          <p className="text-xs text-muted-foreground/80">{similar.release_date ? getYear(similar.release_date) : '—'}</p>
                         </CardContent>
                       </Card>
                     </Link>
@@ -802,15 +802,15 @@ export default function MovieDetailPage() {
             {/* Recommendations */}
             {movie.recommendations && movie.recommendations.length > 0 && (
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                   <Sparkles className="w-6 h-6 text-fuchsia-400" />
                   Recommendations
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                   {movie.recommendations.map((rec) => (
                     <Link key={rec.id} href={`/movies/movie-${rec.id}`}>
-                      <Card className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-fuchsia-500/50 transition-all duration-300 hover:transform hover:scale-105">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-slate-800">
+                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-fuchsia-500/50 transition-all duration-300 hover:transform hover:scale-105">
+                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {rec.poster_path ? (
                             <img 
                               src={`https://image.tmdb.org/t/p/w300${rec.poster_path}`}
@@ -824,12 +824,12 @@ export default function MovieDetailPage() {
                           )}
                           <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
                             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                            <span className="text-white text-xs font-semibold">{rec.vote_average.toFixed(1)}</span>
+                            <span className="text-foreground text-xs font-semibold">{rec.vote_average.toFixed(1)}</span>
                           </div>
                         </div>
                         <CardContent className="p-3">
-                          <p className="font-semibold text-sm text-white truncate">{rec.title}</p>
-                          <p className="text-xs text-white/50">{rec.release_date ? getYear(rec.release_date) : '—'}</p>
+                          <p className="font-semibold text-sm text-foreground truncate">{rec.title}</p>
+                          <p className="text-xs text-muted-foreground/80">{rec.release_date ? getYear(rec.release_date) : '—'}</p>
                         </CardContent>
                       </Card>
                     </Link>
@@ -843,7 +843,7 @@ export default function MovieDetailPage() {
           <div className="space-y-8">
             {/* External Links */}
             <section>
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <ExternalLink className="w-5 h-5 text-violet-400" />
                 External Links
               </h3>
@@ -853,13 +853,13 @@ export default function MovieDetailPage() {
                     href={`https://www.imdb.com/title/${movie.external_ids.imdb_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-amber-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-amber-500/50 transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-white font-bold text-sm">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-black font-bold text-sm">
                       IMDb
                     </div>
-                    <span className="text-white group-hover:text-amber-400 transition-colors">View on IMDb</span>
-                    <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-amber-400" />
+                    <span className="text-foreground group-hover:text-amber-400 transition-colors">View on IMDb</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-amber-400" />
                   </a>
                 )}
                 {movie.external_ids?.facebook_id && (
@@ -867,13 +867,13 @@ export default function MovieDetailPage() {
                     href={`https://www.facebook.com/${movie.external_ids.facebook_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-blue-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-blue-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
                       <MessageCircle className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-white group-hover:text-blue-400 transition-colors">Facebook</span>
-                    <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-blue-400" />
+                    <span className="text-foreground group-hover:text-blue-400 transition-colors">Facebook</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-blue-400" />
                   </a>
                 )}
                 {movie.external_ids?.instagram_id && (
@@ -881,13 +881,13 @@ export default function MovieDetailPage() {
                     href={`https://www.instagram.com/${movie.external_ids.instagram_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-pink-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-pink-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
                       <Camera className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-white group-hover:text-pink-400 transition-colors">Instagram</span>
-                    <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-pink-400" />
+                    <span className="text-foreground group-hover:text-pink-400 transition-colors">Instagram</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-pink-400" />
                   </a>
                 )}
                 {movie.external_ids?.twitter_id && (
@@ -895,13 +895,13 @@ export default function MovieDetailPage() {
                     href={`https://twitter.com/${movie.external_ids.twitter_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-sky-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-sky-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center">
                       <MessageCircle className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-white group-hover:text-sky-400 transition-colors">Twitter</span>
-                    <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-sky-400" />
+                    <span className="text-foreground group-hover:text-sky-400 transition-colors">Twitter</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-sky-400" />
                   </a>
                 )}
                 {movie.homepage && (
@@ -909,49 +909,49 @@ export default function MovieDetailPage() {
                     href={movie.homepage}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-green-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-green-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
                       <Globe className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-white group-hover:text-green-400 transition-colors">Official Website</span>
-                    <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-green-400" />
+                    <span className="text-foreground group-hover:text-green-400 transition-colors">Official Website</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-green-400" />
                   </a>
                 )}
               </div>
             </section>
 
             {/* Details Card */}
-            <section className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Details</h3>
+            <section className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Details</h3>
               <div className="space-y-4">
                 {movie.status && (
                   <div className="flex justify-between items-center">
-                    <span className="text-white/60 text-sm">Status</span>
-                    <span className="text-white font-medium">{movie.status}</span>
+                    <span className="text-muted-foreground text-sm">Status</span>
+                    <span className="text-foreground font-medium">{movie.status}</span>
                   </div>
                 )}
                 
                 {movie.original_language && (
                   <div className="flex justify-between items-center">
-                    <span className="text-white/60 text-sm">Original Language</span>
-                    <span className="text-white font-medium uppercase">{movie.original_language}</span>
+                    <span className="text-muted-foreground text-sm">Original Language</span>
+                    <span className="text-foreground font-medium uppercase">{movie.original_language}</span>
                   </div>
                 )}
 
                 {movie.production_countries && movie.production_countries.length > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-white/60 text-sm">Production Countries</span>
-                    <span className="text-white font-medium text-right">{movie.production_countries.map(c => c.name).join(', ')}</span>
+                    <span className="text-muted-foreground text-sm">Production Countries</span>
+                    <span className="text-foreground font-medium text-right">{movie.production_countries.map(c => c.name).join(', ')}</span>
                   </div>
                 )}
 
                 {movie.spoken_languages && movie.spoken_languages.length > 0 && (
                   <div>
-                    <span className="text-white/60 text-sm block mb-2">Spoken Languages</span>
+                    <span className="text-muted-foreground text-sm block mb-2">Spoken Languages</span>
                     <div className="flex flex-wrap gap-2">
                       {movie.spoken_languages.map((lang) => (
-                        <Badge key={lang.iso_639_1} variant="outline" className="border-white/20 text-white/80">
+                        <Badge key={lang.iso_639_1} variant="outline" className="border-border text-muted-foreground">
                           {lang.english_name}
                         </Badge>
                       ))}
@@ -960,24 +960,24 @@ export default function MovieDetailPage() {
                 )}
 
                 <div className="flex justify-between items-center">
-                  <span className="text-white/60 text-sm">Popularity</span>
+                  <span className="text-muted-foreground text-sm">Popularity</span>
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    <span className="text-white font-medium">{movie.popularity.toFixed(0)}</span>
+                    <span className="text-foreground font-medium">{movie.popularity.toFixed(0)}</span>
                   </div>
                 </div>
 
                 {movie.budget > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-white/60 text-sm">Budget</span>
-                    <span className="text-white font-medium">{formatCurrency(movie.budget)}</span>
+                    <span className="text-muted-foreground text-sm">Budget</span>
+                    <span className="text-foreground font-medium">{formatCurrency(movie.budget)}</span>
                   </div>
                 )}
 
                 {movie.revenue > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-white/60 text-sm">Revenue</span>
-                    <span className="text-white font-medium">{formatCurrency(movie.revenue)}</span>
+                    <span className="text-muted-foreground text-sm">Revenue</span>
+                    <span className="text-foreground font-medium">{formatCurrency(movie.revenue)}</span>
                   </div>
                 )}
               </div>
@@ -985,14 +985,14 @@ export default function MovieDetailPage() {
 
             {/* Production Companies */}
             {movie.production_companies && movie.production_companies.length > 0 && (
-              <section className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <section className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-6">
+                <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                   <Building2 className="w-5 h-5 text-cyan-400" />
                   Production Companies
                 </h3>
                 <div className="space-y-3">
                   {movie.production_companies.slice(0, 5).map((company) => (
-                    <div key={company.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                    <div key={company.id} className="flex items-center gap-3 p-3 bg-muted/70 rounded-xl border border-border">
                       {company.logo_path ? (
                         <img 
                           src={`https://image.tmdb.org/t/p/w92${company.logo_path}`}
@@ -1005,8 +1005,8 @@ export default function MovieDetailPage() {
                         </div>
                       )}
                       <div>
-                        <span className="text-white font-medium text-sm block">{company.name}</span>
-                        <span className="text-white/50 text-xs">{company.origin_country}</span>
+                        <span className="text-foreground font-medium text-sm block">{company.name}</span>
+                        <span className="text-muted-foreground/80 text-xs">{company.origin_country}</span>
                       </div>
                     </div>
                   ))}
@@ -1019,3 +1019,4 @@ export default function MovieDetailPage() {
     </div>
   );
 }
+
