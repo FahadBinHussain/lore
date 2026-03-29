@@ -175,18 +175,18 @@ export default function AnimeSeasonPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-pink-400 animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
 
   if (error || !anime) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Error</h1>
-          <p className="text-white/60">{error || 'Failed to load anime'}</p>
+          <h1 className="text-2xl font-bold text-foreground mb-4">Error</h1>
+          <p className="text-muted-foreground">{error || 'Failed to load anime'}</p>
         </div>
       </div>
     );
@@ -195,7 +195,7 @@ export default function AnimeSeasonPage() {
   const episodes = Array.from({ length: anime.episodes || 0 }, (_, i) => i + 1);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
       {/* Hero Section */}
       <div className="relative h-[50vh] min-h-[400px] overflow-hidden">
         {anime.image ? (
@@ -207,17 +207,17 @@ export default function AnimeSeasonPage() {
             suppressHydrationWarning
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-pink-600/30 via-purple-600/20 to-fuchsia-600/30" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-secondary/20 to-accent/25" />
         )}
 
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-slate-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-transparent to-background/45" />
 
         {/* Animated Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-pink-500/10 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-500/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/15 to-transparent rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-secondary/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
 
         {/* Back Button */}
@@ -225,7 +225,7 @@ export default function AnimeSeasonPage() {
           <Link href={`/anime/${params.id}`}>
             <Button
               variant="ghost"
-              className="bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white transition-all duration-300"
+              className="bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to {anime.title}
@@ -238,7 +238,7 @@ export default function AnimeSeasonPage() {
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
             {/* Poster */}
             <div className="flex-shrink-0 relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-fuchsia-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {anime.image ? (
                   <img
@@ -247,8 +247,8 @@ export default function AnimeSeasonPage() {
                     className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-pink-600 to-purple-600 flex items-center justify-center">
-                    <Zap className="w-16 h-16 text-white/80" />
+                  <div className="w-full h-full bg-gradient-to-br from-primary/70 to-secondary/70 flex items-center justify-center">
+                    <Zap className="w-16 h-16 text-primary-foreground/80" />
                   </div>
                 )}
               </div>
@@ -258,12 +258,12 @@ export default function AnimeSeasonPage() {
             <div className="flex-1 min-w-0">
               {/* Title and Season */}
               <div className="mb-4">
-                <Badge variant="outline" className="mb-2 bg-pink-500/20 text-pink-400 border-pink-500/30">
+                <Badge variant="outline" className="mb-2 bg-primary/15 text-primary border-primary/30">
                   <Zap className="w-3 h-3 mr-1" />
                   Anime Season
                 </Badge>
                 <div className="flex items-center gap-4 mb-2">
-                  <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight">
+                  <h1 className="text-4xl md:text-6xl font-bold text-foreground tracking-tight">
                     {anime.title}
                   </h1>
                   <Button
@@ -271,7 +271,7 @@ export default function AnimeSeasonPage() {
                     onClick={toggleSeasonWatched}
                     className={cn(
                       "mt-2",
-                      animeIsWatched ? "text-green-400 hover:text-green-300" : "text-white/60 hover:text-white"
+                      animeIsWatched ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {animeIsWatched ? (
@@ -282,7 +282,7 @@ export default function AnimeSeasonPage() {
                   </Button>
                 </div>
                 {anime.season && anime.seasonYear && (
-                  <Badge variant="outline" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                  <Badge variant="outline" className="bg-secondary/15 text-secondary border-secondary/30">
                     {anime.season} {anime.seasonYear}
                   </Badge>
                 )}
@@ -291,13 +291,13 @@ export default function AnimeSeasonPage() {
               {/* Meta Info */}
               <div className="flex flex-wrap items-center gap-6 mb-8">
                 {anime.episodes && (
-                  <div className="flex items-center gap-2 text-white/80">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Play className="w-5 h-5" />
                     <span className="text-lg">{anime.episodes} Episodes</span>
                   </div>
                 )}
                 {anime.duration && (
-                  <div className="flex items-center gap-2 text-white/80">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Clock className="w-5 h-5" />
                     <span className="text-lg">{anime.duration} min per episode</span>
                   </div>
@@ -311,9 +311,9 @@ export default function AnimeSeasonPage() {
       {/* Episodes */}
       <div className="px-6 md:px-12 pb-12">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
-              <Play className="w-5 h-5 text-white" />
+          <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+              <Play className="w-5 h-5 text-primary-foreground" />
             </div>
             Episodes
           </h2>
@@ -322,21 +322,21 @@ export default function AnimeSeasonPage() {
             {episodes.map((episodeNumber) => (
               <Card
                 key={episodeNumber}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-pink-500/50 transition-all duration-300 group cursor-pointer"
+                className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-primary/50 transition-all duration-300 group cursor-pointer"
                 onClick={() => router.push(`/anime/${params.id}/season/${params.season_number}/episode/${episodeNumber}`)}
               >
                 <CardContent className="p-4 text-center">
                   <div className="relative">
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Play className="w-6 h-6 text-white/70" />
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-primary/15 to-secondary/15 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <Play className="w-6 h-6 text-muted-foreground" />
                     </div>
                     {watchedEpisodes.has(episodeNumber) && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <Eye className="w-3 h-3 text-white" />
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                        <Eye className="w-3 h-3 text-primary-foreground" />
                       </div>
                     )}
                   </div>
-                  <h3 className="text-white font-semibold mb-2">Episode {episodeNumber}</h3>
+                  <h3 className="text-foreground font-semibold mb-2">Episode {episodeNumber}</h3>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -346,7 +346,7 @@ export default function AnimeSeasonPage() {
                     }}
                     className={cn(
                       "text-xs",
-                      watchedEpisodes.has(episodeNumber) ? "text-green-400" : "text-white/60 hover:text-white"
+                      watchedEpisodes.has(episodeNumber) ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {watchedEpisodes.has(episodeNumber) ? (
