@@ -358,8 +358,8 @@ export default function AnimeDetailPage() {
                 {/* Rating - API returns 0-100, divide by 10 for display */}
                 {anime.rating && (
                   <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-amber-500/30">
-                    <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
-                    <span className="font-bold text-amber-400">{anime.rating / 10}</span>
+                    <Star className="w-5 h-5 fill-amber-400 text-primary" />
+                    <span className="font-bold text-primary">{anime.rating / 10}</span>
                   </div>
                 )}
 
@@ -607,3 +607,4 @@ export default function AnimeDetailPage() {
     </div>
   );
 }
+
