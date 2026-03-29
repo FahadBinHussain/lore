@@ -189,17 +189,17 @@ export default function TVPage() {
                       <Award className="w-4 h-4" />
                       <span className="hidden sm:inline">Top Rated</span>
                     </TabsTrigger>
-                    <TabsTrigger value="on_the_air" className="flex items-center gap-2">
+                    <TabsTrigger value="now_playing" className="flex items-center gap-2">
                       <Play className="w-4 h-4" />
-                      <span className="hidden sm:inline">On Air</span>
+                      <span className="hidden sm:inline lg:hidden xl:inline">Now Playing</span>
                     </TabsTrigger>
-                    <TabsTrigger value="airing_today" className="flex items-center gap-2">
+                    <TabsTrigger value="upcoming" className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
-                      <span className="hidden sm:inline">Today</span>
+                      <span className="hidden sm:inline lg:hidden xl:inline">Upcoming</span>
                     </TabsTrigger>
                     <TabsTrigger value="discover" className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4" />
-                      <span className="hidden sm:inline">Discover</span>
+                      <span className="hidden sm:inline lg:hidden xl:inline">Discover</span>
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
