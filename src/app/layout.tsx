@@ -39,7 +39,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${epilogue.variable} ${manrope.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} ${epilogue.variable} ${manrope.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
