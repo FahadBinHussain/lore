@@ -10,12 +10,20 @@ import {
   ExternalLink, TrendingUp, Award, Building2,
   ChevronDown, ChevronUp,
   PlayCircle, Image as ImageIcon, Sparkles,
-  MessageCircle, Camera, ThumbsUp, Zap, 
+  ThumbsUp, Zap, 
   Video, FileText, MapPin, Clock, Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  FacebookBrandIcon,
+  InstagramBrandIcon,
+  RedditBrandIcon,
+  TwitchBrandIcon,
+  TwitterBrandIcon,
+  YouTubeBrandIcon,
+} from '@/components/icons/social-icons';
 import { cn } from '@/lib/utils';
 
 interface Platform {
@@ -319,6 +327,36 @@ export default function GameDetailPage() {
       17: 'GOG',
     };
     return categories[category] || 'Website';
+  };
+
+  const getWebsiteIcon = (category: number) => {
+    switch (category) {
+      case 4:
+        return FacebookBrandIcon;
+      case 5:
+        return TwitterBrandIcon;
+      case 6:
+        return TwitchBrandIcon;
+      case 8:
+        return InstagramBrandIcon;
+      case 9:
+        return YouTubeBrandIcon;
+      case 14:
+        return RedditBrandIcon;
+      default:
+        return ExternalLink;
+    }
+  };
+
+  const getExternalGameIcon = (category?: string) => {
+    const normalized = (category || '').toLowerCase();
+    if (normalized.includes('facebook')) return FacebookBrandIcon;
+    if (normalized.includes('instagram')) return InstagramBrandIcon;
+    if (normalized.includes('twitter')) return TwitterBrandIcon;
+    if (normalized.includes('youtube')) return YouTubeBrandIcon;
+    if (normalized.includes('twitch')) return TwitchBrandIcon;
+    if (normalized.includes('reddit')) return RedditBrandIcon;
+    return ExternalLink;
   };
 
   if (loading) {
@@ -802,24 +840,27 @@ export default function GameDetailPage() {
                   Where to Buy
                 </h3>
                 <div className="space-y-3">
-                  {game.external_games.filter(eg => eg.url).slice(0, 8).map((extGame, idx) => (
-                    <a 
-                      key={idx}
-                      href={extGame.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-emerald-500/50 transition-all duration-300 group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                        <ExternalLink className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-white group-hover:text-emerald-400 transition-colors font-medium text-sm block">{extGame.name || extGame.category}</span>
-                        <span className="text-white/50 text-xs">{extGame.category}</span>
-                      </div>
-                      <ExternalLink className="w-4 h-4 text-white/50 group-hover:text-emerald-400" />
-                    </a>
-                  ))}
+                  {game.external_games.filter(eg => eg.url).slice(0, 8).map((extGame, idx) => {
+                    const StoreIcon = getExternalGameIcon(extGame.category);
+                    return (
+                      <a 
+                        key={idx}
+                        href={extGame.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-emerald-500/50 transition-all duration-300 group"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                          <StoreIcon className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <span className="text-white group-hover:text-emerald-400 transition-colors font-medium text-sm block">{extGame.name || extGame.category}</span>
+                          <span className="text-white/50 text-xs">{extGame.category}</span>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-white/50 group-hover:text-emerald-400" />
+                      </a>
+                    );
+                  })}
                 </div>
               </section>
             )}
@@ -1035,21 +1076,24 @@ export default function GameDetailPage() {
                   Links
                 </h3>
                 <div className="space-y-3">
-                  {game.websites.slice(0, 6).map((website, idx) => (
-                    <a 
-                      key={idx}
-                      href={website.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-blue-500/50 transition-all duration-300 group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-                        <ExternalLink className="w-5 h-5 text-white" />
-                      </div>
-                      <span className="text-white group-hover:text-blue-400 transition-colors font-medium text-sm">{getWebsiteCategory(website.category)}</span>
-                      <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-blue-400" />
-                    </a>
-                  ))}
+                  {game.websites.slice(0, 6).map((website, idx) => {
+                    const WebsiteIcon = getWebsiteIcon(website.category);
+                    return (
+                      <a 
+                        key={idx}
+                        href={website.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:border-blue-500/50 transition-all duration-300 group"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+                          <WebsiteIcon className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="text-white group-hover:text-blue-400 transition-colors font-medium text-sm">{getWebsiteCategory(website.category)}</span>
+                        <ExternalLink className="w-4 h-4 text-white/50 ml-auto group-hover:text-blue-400" />
+                      </a>
+                    );
+                  })}
                 </div>
               </section>
             )}

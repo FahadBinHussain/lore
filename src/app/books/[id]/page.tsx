@@ -10,11 +10,19 @@ import {
   ExternalLink, TrendingUp, Award, Building2,
   ChevronDown, ChevronUp,
   PlayCircle, Image as ImageIcon, Sparkles,
-  MessageCircle, Camera, ThumbsUp, MapPin, Clock
+  MapPin, Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  FacebookBrandIcon,
+  InstagramBrandIcon,
+  RedditBrandIcon,
+  TwitchBrandIcon,
+  TwitterBrandIcon,
+  YouTubeBrandIcon,
+} from '@/components/icons/social-icons';
 import { cn } from '@/lib/utils';
 
 // Raw OpenLibrary response interface
@@ -214,6 +222,17 @@ export default function BookDetailPage() {
     const dateStr = book.last_modified.value;
     const match = dateStr.match(/^(\d{4})/);
     return match ? match[1] : null;
+  };
+
+  const getLinkIcon = (url?: string) => {
+    const normalized = (url || '').toLowerCase();
+    if (normalized.includes('facebook.com')) return FacebookBrandIcon;
+    if (normalized.includes('instagram.com')) return InstagramBrandIcon;
+    if (normalized.includes('twitter.com') || normalized.includes('x.com')) return TwitterBrandIcon;
+    if (normalized.includes('youtube.com') || normalized.includes('youtu.be')) return YouTubeBrandIcon;
+    if (normalized.includes('twitch.tv')) return TwitchBrandIcon;
+    if (normalized.includes('reddit.com')) return RedditBrandIcon;
+    return ExternalLink;
   };
 
   if (loading) {
@@ -820,18 +839,21 @@ export default function BookDetailPage() {
                     </h2>
                     <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
                       <CardContent className="p-6 space-y-3">
-                        {book.links.slice(0, 10).map((link, idx) => (
-                          <a
-                            key={idx}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 text-white hover:text-amber-400 transition-colors"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                            <span>{link.title || link.url}</span>
-                          </a>
-                        ))}
+                        {book.links.slice(0, 10).map((link, idx) => {
+                          const LinkIcon = getLinkIcon(link.url);
+                          return (
+                            <a
+                              key={idx}
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-3 text-white hover:text-amber-400 transition-colors"
+                            >
+                              <LinkIcon className="w-4 h-4" />
+                              <span>{link.title || link.url}</span>
+                            </a>
+                          );
+                        })}
                       </CardContent>
                     </Card>
                   </section>
