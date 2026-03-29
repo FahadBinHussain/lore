@@ -122,7 +122,7 @@ export default function SeasonDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -200,7 +200,7 @@ export default function SeasonDetailPage() {
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
-                    <Monitor className="w-16 h-16 text-white/80" />
+                    <Monitor className="w-16 h-16 text-primary-foreground/80" />
                   </div>
                 )}
               </div>
@@ -214,7 +214,7 @@ export default function SeasonDetailPage() {
                   {season.name}
                 </h1>
                 <div className="flex items-center gap-4 mb-4">
-                  <Badge variant="secondary" className="bg-violet-500/20 text-violet-300 text-lg px-4 py-2">
+                  <Badge variant="secondary" className="bg-violet-500/20 text-primary text-lg px-4 py-2">
                     Season {season.season_number}
                   </Badge>
                 </div>
@@ -248,7 +248,7 @@ export default function SeasonDetailPage() {
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-              <PlayCircle className="w-5 h-5 text-white" />
+              <PlayCircle className="w-5 h-5 text-primary-foreground" />
             </div>
             Episodes
           </h2>
@@ -272,7 +272,7 @@ export default function SeasonDetailPage() {
                           />
                         ) : (
                           <div className="w-full aspect-video rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center hover:scale-105 transition-transform duration-300">
-                            <PlayCircle className="w-8 h-8 text-white/30" />
+                            <PlayCircle className="w-8 h-8 text-muted-foreground/70" />
                           </div>
                         )}
                       </Link>
@@ -298,7 +298,7 @@ export default function SeasonDetailPage() {
                               )}
                               {episode.vote_average > 0 && (
                                 <div className="flex items-center gap-1">
-                                  <Star className="w-4 h-4 text-yellow-400" />
+                                  <Star className="w-4 h-4 text-primary" />
                                   <span>{episode.vote_average.toFixed(1)}</span>
                                 </div>
                               )}
@@ -322,7 +322,7 @@ export default function SeasonDetailPage() {
                           }}
                           className={cn(
                             "text-foreground hover:bg-accent ml-4",
-                            watchedEpisodes.has(episode.episode_number) && "text-green-400"
+                            watchedEpisodes.has(episode.episode_number) && "text-primary"
                           )}
                         >
                           {watchedEpisodes.has(episode.episode_number) ? (
@@ -344,4 +344,6 @@ export default function SeasonDetailPage() {
     </div>
   );
 }
+
+
 

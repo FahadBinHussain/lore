@@ -354,7 +354,7 @@ export default function TVShowDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex flex-col items-center justify-center gap-6">
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-full blur-xl opacity-50" />
-          <Tv className="w-20 h-20 text-white relative z-10" />
+          <Tv className="w-20 h-20 text-primary relative z-10" />
         </div>
         <h1 className="text-3xl font-bold text-foreground">{error || 'TV show not found'}</h1>
         <Link href="/tv">
@@ -374,7 +374,7 @@ export default function TVShowDetailPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 backdrop-blur-sm" />
         <div className="relative z-10 flex flex-col items-center text-center p-8 max-w-md">
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mb-6">
-            <Sparkles className="w-12 h-12 text-white" />
+            <Sparkles className="w-12 h-12 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-4">Japanese Animation</h1>
           <p className="text-muted-foreground mb-6">
@@ -389,14 +389,14 @@ export default function TVShowDetailPage() {
             ) : anilistLink ? (
               <Button 
                 onClick={() => router.push(anilistLink)}
-                className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white"
+                className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-primary-foreground"
               >
                 <Tv className="w-4 h-4 mr-2" />
                 View on Anime Page
               </Button>
             ) : (
               <Link href="/anime">
-                <Button className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white">
+                <Button className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-primary-foreground">
                   <Tv className="w-4 h-4 mr-2" />
                   Go to Anime
                 </Button>
@@ -492,12 +492,12 @@ export default function TVShowDetailPage() {
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
-                    <Tv className="w-16 h-16 text-white/80" />
+                    <Tv className="w-16 h-16 text-primary-foreground/80" />
                   </div>
                 )}
               </div>
               {show.content_rating && (
-                <div className="absolute -top-3 -right-3 bg-amber-500 text-black font-bold px-3 py-1 rounded-lg shadow-lg text-sm">
+                <div className="absolute -top-3 -right-3 bg-amber-500 text-foreground font-bold px-3 py-1 rounded-lg shadow-lg text-sm">
                   {show.content_rating}
                 </div>
               )}
@@ -526,7 +526,7 @@ export default function TVShowDetailPage() {
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 {show.first_air_date && (
                   <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
-                    <Calendar className="w-4 h-4 text-cyan-400" />
+                    <Calendar className="w-4 h-4 text-accent" />
                     <span className="text-foreground font-medium">
                       {getYear(show.first_air_date)}
                       {show.last_air_date && show.status === 'Ended' && ` - ${getYear(show.last_air_date)}`}
@@ -536,7 +536,7 @@ export default function TVShowDetailPage() {
                 
                 {show.number_of_seasons > 0 && (
                   <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
-                    <Monitor className="w-4 h-4 text-violet-400" />
+                    <Monitor className="w-4 h-4 text-primary" />
                     <span className="text-foreground font-medium">
                       {show.number_of_seasons} Season{show.number_of_seasons !== 1 ? 's' : ''}
                     </span>
@@ -545,25 +545,25 @@ export default function TVShowDetailPage() {
                 
                 {show.number_of_episodes > 0 && (
                   <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
-                    <Clock className="w-4 h-4 text-fuchsia-400" />
+                    <Clock className="w-4 h-4 text-secondary" />
                     <span className="text-foreground font-medium">{show.number_of_episodes} Episodes</span>
                   </div>
                 )}
 
                 {/* Rating */}
                 <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-amber-500/30">
-                  <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-amber-400">{show.vote_average.toFixed(1)}</span>
+                  <Star className="w-5 h-5 fill-amber-400 text-primary" />
+                  <span className="font-bold text-primary">{show.vote_average.toFixed(1)}</span>
                   <span className="text-muted-foreground/80 text-sm">({show.vote_count.toLocaleString()})</span>
                 </div>
 
                 {/* Status Badge */}
                 <Badge className={cn(
                   "font-semibold",
-                  show.status === 'Returning Series' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
-                  show.status === 'Ended' ? 'bg-slate-500/20 text-slate-400 border-slate-500/30' :
-                  show.status === 'Canceled' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-                  'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                  show.status === 'Returning Series' ? 'bg-emerald-500/20 text-primary border-emerald-500/30' :
+                  show.status === 'Ended' ? 'bg-slate-500/20 text-muted-foreground border-slate-500/30' :
+                  show.status === 'Canceled' ? 'bg-red-500/20 text-destructive border-red-500/30' :
+                  'bg-blue-500/20 text-secondary border-blue-500/30'
                 )}>
                   {show.status}
                 </Badge>
@@ -575,7 +575,7 @@ export default function TVShowDetailPage() {
                   {show.genres.map((genre) => (
                     <span 
                       key={genre.id} 
-                      className="px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 border border-violet-500/30 text-violet-300 font-medium text-sm hover:from-violet-500/30 hover:to-fuchsia-500/30 transition-all duration-300 cursor-pointer"
+                      className="px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 border border-violet-500/30 text-primary font-medium text-sm hover:from-violet-500/30 hover:to-fuchsia-500/30 transition-all duration-300 cursor-pointer"
                     >
                       {genre.name}
                     </span>
@@ -587,7 +587,7 @@ export default function TVShowDetailPage() {
               <div className="flex flex-wrap gap-3">
                 {selectedTrailer || show.videos?.trailers?.length > 0 ? (
                   <Button 
-                    className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/25 transition-all duration-300"
+                    className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-primary-foreground shadow-lg shadow-violet-500/25 transition-all duration-300"
                     onClick={() => {
                       if (show.videos?.trailers?.length > 0) {
                         setSelectedTrailer(show.videos.trailers[0]);
@@ -598,7 +598,7 @@ export default function TVShowDetailPage() {
                     Watch Trailer
                   </Button>
                 ) : (
-                  <Button className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/25 transition-all duration-300">
+                  <Button className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-primary-foreground shadow-lg shadow-violet-500/25 transition-all duration-300">
                     <Play className="w-5 h-5 mr-2" />
                     Watch Now
                   </Button>
@@ -610,7 +610,7 @@ export default function TVShowDetailPage() {
                   disabled={updatingWatched}
                   className={cn(
                     "border-border text-foreground hover:bg-accent transition-all duration-300",
-                    isWatched && "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
+                    isWatched && "bg-emerald-500/20 border-emerald-500/50 text-primary"
                   )}
                 >
                   {updatingWatched ? (
@@ -627,7 +627,7 @@ export default function TVShowDetailPage() {
                   onClick={() => setIsFavorite(!isFavorite)}
                   className={cn(
                     "border-border text-foreground hover:bg-accent transition-all duration-300",
-                    isFavorite && "bg-red-500/20 border-red-500/50 text-red-400"
+                    isFavorite && "bg-red-500/20 border-red-500/50 text-destructive"
                   )}
                 >
                   <Heart className={cn("w-4 h-4", isFavorite && "fill-red-400")} />
@@ -666,7 +666,7 @@ export default function TVShowDetailPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-3xl blur-xl" />
               <div className="relative bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-8">
                 <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                  <Sparkles className="w-6 h-6 text-violet-400" />
+                  <Sparkles className="w-6 h-6 text-primary" />
                   Overview
                 </h2>
                 <p className="text-muted-foreground leading-relaxed text-lg">
@@ -679,7 +679,7 @@ export default function TVShowDetailPage() {
             {(show.videos?.trailers?.length > 0 || show.videos?.teasers?.length > 0 || show.videos?.clips?.length > 0) && (
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
-                  <PlayCircle className="w-6 h-6 text-fuchsia-400" />
+                  <PlayCircle className="w-6 h-6 text-secondary" />
                   Videos
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -696,7 +696,7 @@ export default function TVShowDetailPage() {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <PlayCircle className="w-12 h-12 text-white" />
+                          <PlayCircle className="w-12 h-12 text-primary-foreground" />
                         </div>
                       </div>
                       <CardContent className="p-3">
@@ -718,7 +718,7 @@ export default function TVShowDetailPage() {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <PlayCircle className="w-12 h-12 text-white" />
+                          <PlayCircle className="w-12 h-12 text-primary-foreground" />
                         </div>
                       </div>
                       <CardContent className="p-3">
@@ -736,7 +736,7 @@ export default function TVShowDetailPage() {
               <section>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                    <Users className="w-6 h-6 text-cyan-400" />
+                    <Users className="w-6 h-6 text-accent" />
                     Cast
                   </h2>
                   {getCast().length > 8 && (
@@ -768,7 +768,7 @@ export default function TVShowDetailPage() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
-                            <Users className="w-12 h-12 text-white/30" />
+                            <Users className="w-12 h-12 text-muted-foreground/70" />
                           </div>
                         )}
                       </div>
@@ -786,7 +786,7 @@ export default function TVShowDetailPage() {
             {(getCreator() || getDirectors().length > 0 || getWriters().length > 0 || getProducers().length > 0) && (
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
-                  <Award className="w-6 h-6 text-amber-400" />
+                  <Award className="w-6 h-6 text-primary" />
                   Key Crew
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -794,11 +794,11 @@ export default function TVShowDetailPage() {
                     <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-amber-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                          <Sparkles className="w-6 h-6 text-white" />
+                          <Sparkles className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <div>
                           <p className="text-foreground font-semibold">{getCreator()?.name}</p>
-                          <p className="text-amber-400 text-sm">Creator</p>
+                          <p className="text-primary text-sm">Creator</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -807,11 +807,11 @@ export default function TVShowDetailPage() {
                     <Card key={director.id} className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-                          <Film className="w-6 h-6 text-white" />
+                          <Film className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <div>
                           <p className="text-foreground font-semibold">{director.name}</p>
-                          <p className="text-violet-400 text-sm">{director.job}</p>
+                          <p className="text-primary text-sm">{director.job}</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -820,11 +820,11 @@ export default function TVShowDetailPage() {
                     <Card key={writer.id} className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                          <Users className="w-6 h-6 text-white" />
+                          <Users className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <div>
                           <p className="text-foreground font-semibold">{writer.name}</p>
-                          <p className="text-cyan-400 text-sm">{writer.job}</p>
+                          <p className="text-accent text-sm">{writer.job}</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -833,11 +833,11 @@ export default function TVShowDetailPage() {
                     <Card key={producer.id} className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/30 transition-all duration-300">
                       <CardContent className="p-4 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                          <TrendingUp className="w-6 h-6 text-white" />
+                          <TrendingUp className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <div>
                           <p className="text-foreground font-semibold">{producer.name}</p>
-                          <p className="text-emerald-400 text-sm">{producer.job}</p>
+                          <p className="text-primary text-sm">{producer.job}</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -850,7 +850,7 @@ export default function TVShowDetailPage() {
             {show.seasons && show.seasons.length > 0 && (
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
-                  <Monitor className="w-6 h-6 text-violet-400" />
+                  <Monitor className="w-6 h-6 text-primary" />
                   Seasons
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -868,7 +868,7 @@ export default function TVShowDetailPage() {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20">
-                              <Monitor className="w-12 h-12 text-white/30" />
+                              <Monitor className="w-12 h-12 text-muted-foreground/70" />
                             </div>
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -895,7 +895,7 @@ export default function TVShowDetailPage() {
             {show.backdrops && show.backdrops.length > 0 && (
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
-                  <ImageIcon className="w-6 h-6 text-pink-400" />
+                  <ImageIcon className="w-6 h-6 text-secondary" />
                   Gallery
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -919,7 +919,7 @@ export default function TVShowDetailPage() {
             {show.similar && show.similar.length > 0 && (
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
-                  <ThumbsUp className="w-6 h-6 text-emerald-400" />
+                  <ThumbsUp className="w-6 h-6 text-primary" />
                   Similar Shows
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -935,11 +935,11 @@ export default function TVShowDetailPage() {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
-                              <Tv className="w-10 h-10 text-white/30" />
+                              <Tv className="w-10 h-10 text-muted-foreground/70" />
                             </div>
                           )}
                           <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            <Star className="w-3 h-3 fill-amber-400 text-primary" />
                             <span className="text-foreground text-xs font-semibold">{similar.vote_average.toFixed(1)}</span>
                           </div>
                         </div>
@@ -958,7 +958,7 @@ export default function TVShowDetailPage() {
             {show.recommendations && show.recommendations.length > 0 && (
               <section>
                 <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
-                  <Sparkles className="w-6 h-6 text-fuchsia-400" />
+                  <Sparkles className="w-6 h-6 text-secondary" />
                   Recommendations
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -974,11 +974,11 @@ export default function TVShowDetailPage() {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20">
-                              <Tv className="w-10 h-10 text-white/30" />
+                              <Tv className="w-10 h-10 text-muted-foreground/70" />
                             </div>
                           )}
                           <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            <Star className="w-3 h-3 fill-amber-400 text-primary" />
                             <span className="text-foreground text-xs font-semibold">{rec.vote_average.toFixed(1)}</span>
                           </div>
                         </div>
@@ -999,7 +999,7 @@ export default function TVShowDetailPage() {
             {/* External Links */}
             <section>
               <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                <ExternalLink className="w-5 h-5 text-violet-400" />
+                <ExternalLink className="w-5 h-5 text-primary" />
                 External Links
               </h3>
               <div className="space-y-3">
@@ -1010,11 +1010,11 @@ export default function TVShowDetailPage() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-amber-500/50 transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-black font-bold text-sm">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-foreground font-bold text-sm">
                       IMDb
                     </div>
-                    <span className="text-foreground group-hover:text-amber-400 transition-colors">View on IMDb</span>
-                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-amber-400" />
+                    <span className="text-foreground group-hover:text-primary transition-colors">View on IMDb</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-primary" />
                   </a>
                 )}
                 {show.external_ids?.facebook_id && (
@@ -1025,10 +1025,10 @@ export default function TVShowDetailPage() {
                     className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-blue-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5 text-white" />
+                      <MessageCircle className="w-5 h-5 text-primary-foreground" />
                     </div>
-                    <span className="text-foreground group-hover:text-blue-400 transition-colors">Facebook</span>
-                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-blue-400" />
+                    <span className="text-foreground group-hover:text-secondary transition-colors">Facebook</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-secondary" />
                   </a>
                 )}
                 {show.external_ids?.instagram_id && (
@@ -1039,10 +1039,10 @@ export default function TVShowDetailPage() {
                     className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-pink-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
-                      <Camera className="w-5 h-5 text-white" />
+                      <Camera className="w-5 h-5 text-primary-foreground" />
                     </div>
-                    <span className="text-foreground group-hover:text-pink-400 transition-colors">Instagram</span>
-                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-pink-400" />
+                    <span className="text-foreground group-hover:text-secondary transition-colors">Instagram</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-secondary" />
                   </a>
                 )}
                 {show.external_ids?.twitter_id && (
@@ -1053,10 +1053,10 @@ export default function TVShowDetailPage() {
                     className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-sky-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5 text-white" />
+                      <MessageCircle className="w-5 h-5 text-primary-foreground" />
                     </div>
-                    <span className="text-foreground group-hover:text-sky-400 transition-colors">Twitter</span>
-                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-sky-400" />
+                    <span className="text-foreground group-hover:text-secondary transition-colors">Twitter</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-secondary" />
                   </a>
                 )}
                 {show.homepage && (
@@ -1067,10 +1067,10 @@ export default function TVShowDetailPage() {
                     className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-green-500/50 transition-all duration-300 group"
                   >
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                      <Globe className="w-5 h-5 text-white" />
+                      <Globe className="w-5 h-5 text-primary-foreground" />
                     </div>
-                    <span className="text-foreground group-hover:text-green-400 transition-colors">Official Website</span>
-                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-green-400" />
+                    <span className="text-foreground group-hover:text-primary transition-colors">Official Website</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-primary" />
                   </a>
                 )}
               </div>
@@ -1117,14 +1117,14 @@ export default function TVShowDetailPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground text-sm">Popularity</span>
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                    <TrendingUp className="w-4 h-4 text-primary" />
                     <span className="text-foreground font-medium">{show.popularity.toFixed(0)}</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground text-sm">In Production</span>
-                  <Badge className={show.in_production ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}>
+                  <Badge className={show.in_production ? 'bg-emerald-500/20 text-primary' : 'bg-slate-500/20 text-muted-foreground'}>
                     {show.in_production ? 'Yes' : 'No'}
                   </Badge>
                 </div>
@@ -1135,7 +1135,7 @@ export default function TVShowDetailPage() {
             {show.networks && show.networks.length > 0 && (
               <section className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-6">
                 <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Monitor className="w-5 h-5 text-fuchsia-400" />
+                  <Monitor className="w-5 h-5 text-secondary" />
                   Networks
                 </h3>
                 <div className="space-y-3">
@@ -1149,7 +1149,7 @@ export default function TVShowDetailPage() {
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center">
-                          <Tv className="w-5 h-5 text-white" />
+                          <Tv className="w-5 h-5 text-primary-foreground" />
                         </div>
                       )}
                       <span className="text-foreground font-medium text-sm">{network.name}</span>
@@ -1163,7 +1163,7 @@ export default function TVShowDetailPage() {
             {show.production_companies && show.production_companies.length > 0 && (
               <section className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-6">
                 <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-cyan-400" />
+                  <Building2 className="w-5 h-5 text-accent" />
                   Production Companies
                 </h3>
                 <div className="space-y-3">
@@ -1177,7 +1177,7 @@ export default function TVShowDetailPage() {
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                          <Building2 className="w-5 h-5 text-white" />
+                          <Building2 className="w-5 h-5 text-primary-foreground" />
                         </div>
                       )}
                       <div>
@@ -1195,4 +1195,7 @@ export default function TVShowDetailPage() {
     </div>
   );
 }
+
+
+
 

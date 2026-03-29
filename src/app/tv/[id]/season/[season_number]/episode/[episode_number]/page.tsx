@@ -135,7 +135,7 @@ export default function EpisodeDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -214,7 +214,7 @@ export default function EpisodeDetailPage() {
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
-                    <PlayCircle className="w-16 h-16 text-white/80" />
+                    <PlayCircle className="w-16 h-16 text-primary-foreground/80" />
                   </div>
                 )}
               </div>
@@ -234,11 +234,11 @@ export default function EpisodeDetailPage() {
                   {episode.name}
                 </h1>
                 <div className="flex items-center gap-4 mb-4">
-                  <Badge variant="secondary" className="bg-violet-500/20 text-violet-300 text-lg px-4 py-2">
+                  <Badge variant="secondary" className="bg-violet-500/20 text-primary text-lg px-4 py-2">
                     S{episode.season_number}E{episode.episode_number.toString().padStart(2, '0')}
                   </Badge>
                   {episode.is_watched && (
-                    <Badge variant="secondary" className="bg-green-500/20 text-green-300">
+                    <Badge variant="secondary" className="bg-green-500/20 text-primary">
                       <Eye className="w-4 h-4 mr-1" />
                       Watched
                     </Badge>
@@ -271,7 +271,7 @@ export default function EpisodeDetailPage() {
                 )}
                 {episode.vote_average > 0 && (
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <Star className="w-5 h-5 text-yellow-400" />
+                    <Star className="w-5 h-5 text-primary" />
                     <span className="text-lg">{episode.vote_average.toFixed(1)} ({episode.vote_count} votes)</span>
                   </div>
                 )}
@@ -283,7 +283,7 @@ export default function EpisodeDetailPage() {
                   onClick={toggleWatched}
                   disabled={updatingWatched}
                   className={cn(
-                    "bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-8 py-3 text-lg",
+                    "bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-primary-foreground px-8 py-3 text-lg",
                     episode.is_watched && "from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500"
                   )}
                 >
@@ -331,7 +331,7 @@ export default function EpisodeDetailPage() {
               <section className="mb-12">
                 <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-white" />
+                    <Users className="w-5 h-5 text-primary-foreground" />
                   </div>
                   Guest Stars
                 </h2>
@@ -347,7 +347,7 @@ export default function EpisodeDetailPage() {
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
-                            <Users className="w-8 h-8 text-white/30" />
+                            <Users className="w-8 h-8 text-muted-foreground/70" />
                           </div>
                         )}
                       </div>
@@ -366,7 +366,7 @@ export default function EpisodeDetailPage() {
               <section>
                 <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-white" />
+                    <Users className="w-5 h-5 text-primary-foreground" />
                   </div>
                   Crew
                 </h2>
@@ -382,7 +382,7 @@ export default function EpisodeDetailPage() {
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
-                            <Users className="w-8 h-8 text-white/30" />
+                            <Users className="w-8 h-8 text-muted-foreground/70" />
                           </div>
                         )}
                       </div>
@@ -401,4 +401,7 @@ export default function EpisodeDetailPage() {
     </div>
   );
 }
+
+
+
 
