@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard/layout';
 import { CreateUniverseForm } from '@/components/universes/create-form';
+import { isAdminRole } from '@/lib/auth/roles';
 
 export default async function CreateUniversePage() {
   const session = await auth();
@@ -11,7 +12,7 @@ export default async function CreateUniversePage() {
   }
 
   // Check if user is admin
-  if (session.user.role !== 'admin') {
+  if (!isAdminRole(session.user.role)) {
     redirect('/dashboard');
   }
 

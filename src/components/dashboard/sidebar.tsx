@@ -59,8 +59,17 @@ export function DashboardSidebar() {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-4 sm:p-6 border-b">
-            <h1 className="text-lg sm:text-xl font-bold">Media Dashboard</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">Track your favorites</p>
+            <Link href="/" className="flex items-center gap-3 mb-2">
+              <img
+                src="/logo.png?v=3"
+                alt="Lore logo"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-contain bg-transparent shadow-md shadow-primary/15"
+              />
+              <div>
+                <h1 className="text-lg sm:text-xl font-bold">Media Dashboard</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">Track your favorites</p>
+              </div>
+            </Link>
           </div>
 
           {/* Navigation */}
@@ -99,3 +108,4 @@ export function DashboardSidebar() {
     </>
   );
 }
+

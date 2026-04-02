@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { 
   ArrowLeft, Star, Clock, Calendar, Globe, 
   Users, Loader2, Play, Plus, 
@@ -22,6 +23,7 @@ import {
   TwitterBrandIcon,
 } from '@/components/icons/social-icons';
 import { cn } from '@/lib/utils';
+import { isAdminRole } from '@/lib/auth/roles';
 
 interface Genre {
   id: number;
@@ -147,6 +149,7 @@ interface TVShowDetails {
 export default function TVShowDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
   const [show, setShow] = useState<TVShowDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -342,6 +345,7 @@ export default function TVShowDetailPage() {
   // Check if this is Japanese animation - should redirect to anime tab
   const isJapaneseAnimation = show?.genres?.some(g => g.name === 'Animation') && 
     show?.origin_country?.some(c => c === 'JP');
+  const isAdminView = isAdminRole(session?.user?.role);
 
   if (loading) {
     return (
@@ -372,8 +376,20 @@ export default function TVShowDetailPage() {
     );
   }
 
-  // Show overlay for Japanese animation - redirect to anime tab
-  if (isJapaneseAnimation) {
+  if (isJapaneseAnimation && sessionStatus === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
+        <div className="relative text-center">
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full blur-xl opacity-40 animate-pulse" />
+          <Loader2 className="w-12 h-12 animate-spin text-foreground relative z-10 mx-auto mb-3" />
+          <p className="text-muted-foreground relative z-10">Checking access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show overlay for Japanese animation for standard users
+  if (isJapaneseAnimation && !isAdminView) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex flex-col items-center justify-center gap-6 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 backdrop-blur-sm" />
@@ -663,6 +679,38 @@ export default function TVShowDetailPage() {
 
       {/* Content Section */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
+        {isJapaneseAnimation && isAdminView && (
+          <section className="mb-8 rounded-2xl border border-violet-500/40 bg-violet-500/10 p-5">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-foreground">Japanese Animation</h2>
+                <p className="text-sm text-muted-foreground">
+                  This title is categorized as Japanese animation. Please use the Anime section for the full experience.
+                </p>
+              </div>
+              {anilistLink ? (
+                <Button
+                  onClick={() => router.push(anilistLink)}
+                  className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-primary-foreground"
+                >
+                  <Tv className="w-4 h-4 mr-2" />
+                  View on Anime Page
+                </Button>
+              ) : (
+                <Link href="/anime">
+                  <Button
+                    variant="outline"
+                    className="border-violet-500/50 text-foreground hover:bg-violet-500/10"
+                  >
+                    <Tv className="w-4 h-4 mr-2" />
+                    Go to Anime
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </section>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-12">

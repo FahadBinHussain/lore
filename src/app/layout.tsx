@@ -7,6 +7,11 @@ import { Navbar } from "@/components/navbar";
 export const metadata: Metadata = {
   title: "Lore - Media Tracker",
   description: "Track movies, TV shows, games, and books across interconnected universes",
+  icons: {
+    icon: "/logo.png?v=3",
+    shortcut: "/logo.png?v=3",
+    apple: "/logo.png?v=3",
+  },
 };
 
 const geistSans = Geist({
@@ -39,10 +44,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${epilogue.variable} ${manrope.variable} h-full antialiased`}
+      data-theme="dark"
+      className={`${geistSans.variable} ${geistMono.variable} ${epilogue.variable} ${manrope.variable} h-full antialiased dark`}
       suppressHydrationWarning
     >
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var themes=["light","dark","cupcake","bumblebee","emerald","corporate","synthwave","retro","cyberpunk","valentine","halloween","garden","forest","aqua","lofi","pastel","fantasy","wireframe","black","luxury","dracula","cmyk","autumn","business","acid","lemonade","night","coffee","winter","dim","nord","sunset","caramellatte","abyss","silk"];var darkThemes=["dark","synthwave","halloween","forest","black","luxury","dracula","business","night","coffee","dim","sunset","abyss"];var saved=localStorage.getItem("theme");var theme=themes.indexOf(saved||"")>-1?saved:"light";document.documentElement.setAttribute("data-theme",theme);document.documentElement.classList.toggle("dark",darkThemes.indexOf(theme)>-1);}catch(e){}})();`,
+          }}
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=Italianno&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
           rel="stylesheet"
@@ -62,3 +73,4 @@ export default function RootLayout({
     </html>
   );
 }
+

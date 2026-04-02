@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  Sparkles, ArrowRight, Mail, Phone, MapPin, Clock,
+  ArrowRight, Mail, Phone, MapPin, Clock,
   MessageCircle, Send, Globe, Heart, Zap, CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -111,12 +111,11 @@ export default function ContactPage() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:scale-105">
-                  <Sparkles className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full animate-pulse" />
-              </div>
+              <img
+                src="/logo.png?v=3"
+                alt="Lore logo"
+                className="w-10 h-10 rounded-2xl object-contain bg-transparent shadow-lg shadow-primary/20 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:scale-105"
+              />
               <div className="flex flex-col">
                 <span className="font-bold text-xl bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
                   Lore
@@ -388,9 +387,11 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <Link href="/" className="flex items-center gap-3 mb-4 md:mb-0">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img
+                src="/logo.png?v=3"
+                alt="Lore logo"
+                className="w-10 h-10 rounded-2xl object-contain bg-transparent shadow-lg shadow-primary/20"
+              />
               <span className="font-bold text-xl">Lore</span>
             </Link>
             
@@ -415,3 +416,4 @@ export default function ContactPage() {
     </div>
   );
 }
+

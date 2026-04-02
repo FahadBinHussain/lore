@@ -41,8 +41,12 @@ export default function SignInPage() {
           <div className="surface-container rounded-2xl p-10 lg:p-14 flex flex-col items-center text-center shadow-[0_32px_64px_rgba(0,0,0,0.6)] border border-outline-variant/10 glass-panel">
             {/* Branding Section */}
             <div className="mb-10">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-surface-container-high mb-8 border border-outline-variant/20 shadow-inner">
-                <span className="material-symbols-outlined text-primary text-3xl">star</span>
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-8">
+                <img
+                  src="/logo.png?v=3"
+                  alt="Lore logo"
+                  className="w-10 h-10 rounded-xl object-contain bg-transparent"
+                />
               </div>
               <h1 className="font-headline text-4xl font-bold tracking-tight text-gradient mb-4">
                 Sign In
@@ -109,3 +113,4 @@ export default function SignInPage() {
     </div>
   );
 }
+

@@ -115,10 +115,14 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { is_watched } = body;
+    const { is_watched, watched_at } = body;
 
     try {
       const userId = parseInt(session.user.id);
+      const watchedAtDate =
+        typeof watched_at === 'string' && !Number.isNaN(Date.parse(watched_at))
+          ? new Date(watched_at)
+          : new Date();
 
       // First, try to find the episode in our database
       let dbEpisode = await db
@@ -303,7 +307,7 @@ export async function POST(
           .update(userEpisodeProgress)
           .set({
             isWatched: is_watched,
-            watchedAt: is_watched ? new Date() : null,
+            watchedAt: is_watched ? watchedAtDate : null,
             updatedAt: new Date(),
           })
           .where(eq(userEpisodeProgress.id, existingProgress[0].id));
@@ -315,7 +319,7 @@ export async function POST(
             userId: userId,
             episodeId: episodeId,
             isWatched: is_watched,
-            watchedAt: is_watched ? new Date() : null,
+            watchedAt: is_watched ? watchedAtDate : null,
           });
       }
 
@@ -369,8 +373,8 @@ export async function POST(
               .set({
                 status: 'completed',
                 currentProgress: watchedCount,
-                completedAt: new Date(),
-                lastActivityAt: new Date(),
+                completedAt: watchedAtDate,
+                lastActivityAt: watchedAtDate,
                 updatedAt: new Date(),
               })
               .where(eq(userMediaProgress.id, existingMediaProgress[0].id));
@@ -380,8 +384,8 @@ export async function POST(
               mediaItemId,
               status: 'completed',
               currentProgress: watchedCount,
-              completedAt: new Date(),
-              lastActivityAt: new Date(),
+              completedAt: watchedAtDate,
+              lastActivityAt: watchedAtDate,
             });
           }
         } else if (watchedCount > 0) {
@@ -391,7 +395,7 @@ export async function POST(
                 status: 'in_progress',
                 currentProgress: watchedCount,
                 completedAt: null,
-                lastActivityAt: new Date(),
+                lastActivityAt: watchedAtDate,
                 updatedAt: new Date(),
               })
               .where(eq(userMediaProgress.id, existingMediaProgress[0].id));
@@ -401,7 +405,7 @@ export async function POST(
               mediaItemId,
               status: 'in_progress',
               currentProgress: watchedCount,
-              lastActivityAt: new Date(),
+              lastActivityAt: watchedAtDate,
             });
           }
         } else if (existingMediaProgress.length > 0) {

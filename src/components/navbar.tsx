@@ -3,8 +3,9 @@
 import { useEffect, useSyncExternalStore, useState } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
+import { isAdminRole, normalizeUserRole } from '@/lib/auth/roles';
 import {
-  Sparkles, ArrowRight, LayoutDashboard, Search, Plus,
+  ArrowRight, LayoutDashboard, Search, Plus,
   User, Settings, Bell, LogOut, Menu, X, Palette, Check
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -78,7 +79,7 @@ function isValidTheme(theme: string | null): theme is (typeof DAISYUI_THEMES)[nu
 }
 
 function getServerTheme() {
-  return 'light';
+  return 'dark';
 }
 
 function getClientTheme() {
@@ -96,7 +97,7 @@ function getClientTheme() {
     return htmlTheme;
   }
 
-  return 'light';
+  return 'dark';
 }
 
 function subscribeTheme(callback: () => void) {
@@ -138,12 +139,11 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group flex-shrink-0">
-            <div className="relative">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:scale-105">
-                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full animate-pulse" />
-            </div>
+            <img
+              src="/logo.png?v=3"
+              alt="Lore logo"
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain bg-transparent transform-none rotate-0 scale-100"
+            />
             <div className="flex flex-col">
               <span className="font-bold text-lg sm:text-xl bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
                 Lore
@@ -339,7 +339,7 @@ export function Navbar() {
                             {session.user.email || 'user@example.com'}
                           </p>
                           <p className="text-xs text-primary font-medium capitalize">
-                            {session.user.role || 'user'}
+                            {normalizeUserRole(session.user.role)}
                           </p>
                         </div>
                       </div>
@@ -366,7 +366,7 @@ export function Navbar() {
                         </Link>
                       </DropdownMenuItem>
 
-                      {session?.user?.role === 'admin' && (
+                      {isAdminRole(session?.user?.role) && (
                         <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
                           <Link href="/universes/create" className="flex items-center w-full">
                             <Plus className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
@@ -544,3 +544,4 @@ export function Navbar() {
     </header>
   );
 }
+

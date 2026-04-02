@@ -48,11 +48,13 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [imageLoadErrors, setImageLoadErrors] = useState<Record<number, boolean>>({});
   const Icon = iconMap[icon];
   const router = useRouter();
 
   useEffect(() => {
     console.log('Initial load for type:', type);
+    setImageLoadErrors({});
     fetchItems();
   }, [type]);
 
@@ -84,6 +86,7 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
       console.log('Fetched items:', data.items?.length, 'items for type:', type);
       console.log('Setting items state with:', data.items?.map((item: any) => ({ id: item.id, status: item.status, title: item.mediaItem.title })));
       setItems(data.items || []);
+      setImageLoadErrors({});
     } catch (error) {
       console.error('Failed to fetch items:', error);
     } finally {
@@ -189,11 +192,17 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
             <Link key={item.id} href={getDetailUrl(item.mediaItem.mediaType, item.mediaItem.externalId)}>
               <Card className="overflow-hidden group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer border-0 shadow-md">
                 <div className="aspect-[2/3] relative overflow-hidden bg-muted rounded-t-lg">
-                  {item.mediaItem.posterPath ? (
+                  {item.mediaItem.posterPath && !imageLoadErrors[item.mediaItem.id] ? (
                     <img 
                       src={item.mediaItem.posterPath} 
                       alt={item.mediaItem.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={() =>
+                        setImageLoadErrors((prev) => ({
+                          ...prev,
+                          [item.mediaItem.id]: true,
+                        }))
+                      }
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
