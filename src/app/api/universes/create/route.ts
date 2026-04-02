@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { collections, collectionItems } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { slugify } from '@/lib/utils';
+import { isAdminRole } from '@/lib/auth/roles';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is admin
-    if (session.user.role !== 'admin') {
+    if (!isAdminRole(session.user.role)) {
       return NextResponse.json(
         { error: 'Forbidden: Admin access required' },
         { status: 403 }

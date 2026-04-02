@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import {
-  Film, Tv, Gamepad2, BookOpen, Sparkles,
+  Film, Tv, Gamepad2, BookOpen,
   ArrowRight, Play, Star, Zap, Globe,
   ChevronRight, Flame, Crown, Rocket,
   TrendingUp, Users, Award, Shield,
@@ -983,9 +983,11 @@ export default function HomePage() {
             {/* Brand */}
             <div className="space-y-4">
               <Link href="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25">
-                  <Sparkles className="w-5 h-5 text-primary-foreground" />
-                </div>
+                <img
+                  src="/logo.png?v=3"
+                  alt="Lore logo"
+                  className="w-10 h-10 rounded-2xl object-contain bg-transparent shadow-lg shadow-primary/20"
+                />
                 <span className="font-bold text-xl">Lore</span>
               </Link>
               <p className="text-sm text-muted-foreground">
@@ -1071,3 +1073,4 @@ export default function HomePage() {
     </div>
   );
 }
+

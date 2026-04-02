@@ -3,6 +3,7 @@ import Google from 'next-auth/providers/google';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { normalizeUserRole } from '@/lib/auth/roles';
 
 function getPreferredAuthBaseUrl(baseUrl: string): string {
   const explicitAuthUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL;
@@ -52,6 +53,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return `${preferredBaseUrl}/dashboard`;
     },
     async session({ session, token }) {
+      if (session.user) {
+        session.user.role = normalizeUserRole(token.role);
+      }
+
       if (session.user?.email) {
         const dbUser = await db.query.users.findFirst({
           where: eq(users.email, session.user.email),
@@ -59,13 +64,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         
         if (dbUser) {
           session.user.id = dbUser.id.toString();
-          session.user.role = dbUser.role;
+          session.user.role = normalizeUserRole(dbUser.role);
           session.user.username = dbUser.username;
           // Use database image if available, otherwise use token picture
           session.user.image = dbUser.image || token.picture || session.user.image;
         } else {
           // If no db user, use token picture
           session.user.image = token.picture || session.user.image;
+          session.user.role = normalizeUserRole(token.role);
         }
       }
       return session;
@@ -79,6 +85,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.picture = profile?.picture || profile?.image || user.image;
         }
       }
+      token.role = normalizeUserRole(token.role ?? user?.role);
       // Ensure picture persists in token
       if (!token.picture && user?.image) {
         token.picture = user.image;
