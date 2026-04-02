@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { LogoScrollSequence } from '@/components/home/logo-scroll-sequence';
 
 interface MediaItem {
   id: number;
@@ -200,93 +201,96 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
 
       {/* Hero Section */}
-      <section className="relative h-screen overflow-hidden z-0">
-        {/* Animated Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-2xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl opacity-50" />
-        
-        <div className="relative w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-32 pb-20 sm:pb-24 lg:pb-32">
-          <div className="text-center space-y-4 sm:space-y-6 lg:space-y-8 w-full max-w-4xl">
-            {/* Badge */}
-            <div className={cn(
-              "inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20 transition-all duration-1000",
-              mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-            )}>
-              <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-              <span className="text-xs sm:text-sm font-medium text-primary">Introducing Lore 2.0</span>
-              <Badge variant="secondary" className="text-xs">New</Badge>
-            </div>
-
-            {/* Main Headline */}
-            <div className={cn(
-              "space-y-3 sm:space-y-4 transition-all duration-1000 delay-200",
-              mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-            )}>
-              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-                <span className="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
-                  Track Your
-                </span>
-                <br />
-                <span className="bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent">
-                  Media Universe
-                </span>
-              </h1>
-              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
-                Discover, track, and organize your entire media universe - from movies and TV shows to games, books, comics, podcasts, soundtracks, and theme parks. 
-                Join thousands of enthusiasts who&apos;ve transformed their media experience.
-              </p>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className={cn(
-              "flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-1000 delay-300",
-              mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-            )}>
-              <Link href={isAuthenticated ? "/dashboard" : "/auth/signin"}>
-                <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
-                  <Rocket className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                  {isAuthenticated ? 'Go to Dashboard' : 'Start Tracking Free'}
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Button variant="outline" size="lg" className="group border-2 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300">
-                <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                Watch Demo
-              </Button>
-            </div>
-
-            {/* Social Proof */}
-            <div className={cn(
-              "flex flex-col items-center gap-6 pt-8 transition-all duration-1000 delay-500",
-              mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-            )}>
-                <div className="flex -space-x-2">
-                {[
-                  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50',
-                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
-                  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50',
-                  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
-                  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50'
-                ].map((avatar, i) => (
-                  <div
-                    key={i}
-                    className="w-10 h-10 rounded-full border-2 border-background bg-cover bg-center shadow-lg"
-                    style={{ backgroundImage: `url("${avatar}")` }}
-                    suppressHydrationWarning
-                  />
-                ))}
+      <section className="relative z-0 min-h-[240vh]">
+        <div className="sticky top-0 h-screen overflow-hidden">
+          {/* Animated Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-2xl animate-pulse delay-1000" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl opacity-50" />
+          <LogoScrollSequence />
+          
+          <div className="relative z-10 w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-32 pb-20 sm:pb-24 lg:pb-32">
+            <div className="text-center space-y-4 sm:space-y-6 lg:space-y-8 w-full max-w-4xl">
+              {/* Badge */}
+              <div className={cn(
+                "inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20 transition-all duration-1000",
+                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              )}>
+                <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                <span className="text-xs sm:text-sm font-medium text-primary">Introducing Lore 2.0</span>
+                <Badge variant="secondary" className="text-xs">New</Badge>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Trusted by <span className="font-semibold text-foreground">50,000+</span> users worldwide
+
+              {/* Main Headline */}
+              <div className={cn(
+                "space-y-3 sm:space-y-4 transition-all duration-1000 delay-200",
+                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              )}>
+                <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+                  <span className="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
+                    Track Your
+                  </span>
+                  <br />
+                  <span className="bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent">
+                    Media Universe
+                  </span>
+                </h1>
+                <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
+                  Discover, track, and organize your entire media universe - from movies and TV shows to games, books, comics, podcasts, soundtracks, and theme parks. 
+                  Join thousands of enthusiasts who&apos;ve transformed their media experience.
                 </p>
-                <div className="flex items-center justify-center gap-1 mt-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+              </div>
+
+              {/* CTA Buttons */}
+              <div className={cn(
+                "flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-1000 delay-300",
+                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              )}>
+                <Link href={isAuthenticated ? "/dashboard" : "/auth/signin"}>
+                  <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
+                    <Rocket className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                    {isAuthenticated ? 'Go to Dashboard' : 'Start Tracking Free'}
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Button variant="outline" size="lg" className="group border-2 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300">
+                  <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                  Watch Demo
+                </Button>
+              </div>
+
+              {/* Social Proof */}
+              <div className={cn(
+                "flex flex-col items-center gap-6 pt-8 transition-all duration-1000 delay-500",
+                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              )}>
+                  <div className="flex -space-x-2">
+                  {[
+                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50',
+                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
+                    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50',
+                    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
+                    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50'
+                  ].map((avatar, i) => (
+                    <div
+                      key={i}
+                      className="w-10 h-10 rounded-full border-2 border-background bg-cover bg-center shadow-lg"
+                      style={{ backgroundImage: `url("${avatar}")` }}
+                      suppressHydrationWarning
+                    />
                   ))}
-                  <span className="text-sm font-medium ml-1">4.9/5 rating</span>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Trusted by <span className="font-semibold text-foreground">50,000+</span> users worldwide
+                  </p>
+                  <div className="flex items-center justify-center gap-1 mt-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    ))}
+                    <span className="text-sm font-medium ml-1">4.9/5 rating</span>
+                  </div>
                 </div>
               </div>
             </div>
