@@ -5,24 +5,50 @@ import { userMediaProgress, mediaItems, userEpisodeProgress, episodes, seasons }
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { getTMDBImageUrl } from '@/lib/api/tmdb';
 
-const ANILIST_IMAGE_BASE = 'https://s4.anilist.co/file/anilist/viz';
+const ANILIST_IMAGE_BASE = 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large';
 
 function getImageUrl(path: string | null, source: string | null): string | null {
   if (!path) return null;
-  
-  // If it's already a full URL, return as is
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
+
+  const normalizedPath = path.trim();
+
+  if (
+    normalizedPath.startsWith('http://') ||
+    normalizedPath.startsWith('https://') ||
+    normalizedPath.startsWith('data:')
+  ) {
+    return normalizedPath;
   }
-  
-  // Handle different sources
+
+  // Protocol-relative URLs: //cdn.example.com/image.jpg
+  if (normalizedPath.startsWith('//')) {
+    return `https:${normalizedPath}`;
+  }
+
   switch (source) {
-    case 'anilist':
-      // AniList images are typically stored as just the filename
-      return `${ANILIST_IMAGE_BASE}/${path}`;
+    case 'anilist': {
+      // Some imported anime rows may still carry TMDB-style relative paths.
+      if (normalizedPath.startsWith('/t/p/')) {
+        return `https://image.tmdb.org${normalizedPath}`;
+      }
+
+      if (/^\/[a-zA-Z0-9._-]+\.(jpg|jpeg|png|webp)$/i.test(normalizedPath)) {
+        return getTMDBImageUrl(normalizedPath);
+      }
+
+      if (normalizedPath.startsWith('/file/')) {
+        return `https://s4.anilist.co${normalizedPath}`;
+      }
+
+      if (normalizedPath.startsWith('file/')) {
+        return `https://s4.anilist.co/${normalizedPath}`;
+      }
+
+      return `${ANILIST_IMAGE_BASE}/${normalizedPath.replace(/^\/+/, '')}`;
+    }
     case 'tmdb':
     default:
-      return getTMDBImageUrl(path);
+      return getTMDBImageUrl(normalizedPath);
   }
 }
 

@@ -24,10 +24,14 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { is_watched, title, posterPath, releaseDate, totalEpisodes } = body;
+    const { is_watched, watched_at, title, posterPath, releaseDate, totalEpisodes } = body;
 
     try {
       const userId = parseInt(session.user.id);
+      const watchedAtDate =
+        typeof watched_at === 'string' && !Number.isNaN(Date.parse(watched_at))
+          ? new Date(watched_at)
+          : new Date();
 
       // For anime, we need to ensure the media item exists
       let mediaItem = await db.query.mediaItems.findFirst({
@@ -112,7 +116,7 @@ export async function POST(
           await db.update(userEpisodeProgress)
             .set({
               isWatched: true,
-              watchedAt: new Date(),
+              watchedAt: watchedAtDate,
               updatedAt: new Date(),
             })
             .where(eq(userEpisodeProgress.id, existingEpisodeProgress.id));
@@ -121,7 +125,7 @@ export async function POST(
             userId,
             episodeId: episode.id,
             isWatched: true,
-            watchedAt: new Date(),
+            watchedAt: watchedAtDate,
           });
         }
       } else if (existingEpisodeProgress) {
@@ -166,8 +170,8 @@ export async function POST(
             .set({
               status: 'completed',
               currentProgress: watchedEpisodes.length,
-              completedAt: new Date(),
-              lastActivityAt: new Date(),
+              completedAt: watchedAtDate,
+              lastActivityAt: watchedAtDate,
               updatedAt: new Date(),
             })
             .where(eq(userMediaProgress.id, existingProgress.id));
@@ -177,8 +181,8 @@ export async function POST(
             mediaItemId: mediaItem.id,
             status: 'completed',
             currentProgress: watchedEpisodes.length,
-            completedAt: new Date(),
-            lastActivityAt: new Date(),
+            completedAt: watchedAtDate,
+            lastActivityAt: watchedAtDate,
           });
         }
       } else if (watchedEpisodes.length > 0) {
@@ -188,7 +192,7 @@ export async function POST(
               status: 'in_progress',
               currentProgress: watchedEpisodes.length,
               completedAt: null,
-              lastActivityAt: new Date(),
+              lastActivityAt: watchedAtDate,
               updatedAt: new Date(),
             })
             .where(eq(userMediaProgress.id, existingProgress.id));
@@ -198,7 +202,7 @@ export async function POST(
             mediaItemId: mediaItem.id,
             status: 'in_progress',
             currentProgress: watchedEpisodes.length,
-            lastActivityAt: new Date(),
+            lastActivityAt: watchedAtDate,
           });
         }
       } else if (existingProgress) {

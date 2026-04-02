@@ -14,6 +14,8 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const mediaId = searchParams.get('mediaId');
   const mediaType = searchParams.get('mediaType');
+  const seasonNumberParam = searchParams.get('seasonNumber');
+  const episodeNumberParam = searchParams.get('episodeNumber');
 
   if (!mediaId || !mediaType) {
     return NextResponse.json({ error: 'mediaId and mediaType required' }, { status: 400 });
@@ -56,8 +58,55 @@ export async function GET(request: NextRequest) {
 
     let isWatchedResult = false;
     let watchedEpisodesResult: number[] = [];
+    const requestedSeasonNumber = seasonNumberParam ? parseInt(seasonNumberParam, 10) : null;
+    const requestedEpisodeNumber = episodeNumberParam ? parseInt(episodeNumberParam, 10) : null;
 
     if (mediaItem) {
+      if (
+        (mediaType === 'tv' || mediaType === 'anime') &&
+        requestedSeasonNumber !== null &&
+        requestedEpisodeNumber !== null &&
+        !Number.isNaN(requestedSeasonNumber) &&
+        !Number.isNaN(requestedEpisodeNumber)
+      ) {
+        const episodeSource = mediaType === 'anime' ? 'anilist' : 'tmdb';
+        const episodeProgress = await db
+          .select({ id: userEpisodeProgress.id })
+          .from(userEpisodeProgress)
+          .innerJoin(episodes, eq(userEpisodeProgress.episodeId, episodes.id))
+          .innerJoin(seasons, eq(episodes.seasonId, seasons.id))
+          .where(and(
+            eq(userEpisodeProgress.userId, userId),
+            eq(userEpisodeProgress.isWatched, true),
+            eq(seasons.mediaItemId, mediaItem.id),
+            eq(seasons.seasonNumber, requestedSeasonNumber),
+            eq(episodes.episodeNumber, requestedEpisodeNumber),
+            eq(episodes.source, episodeSource)
+          ))
+          .limit(1);
+
+        isWatchedResult = episodeProgress.length > 0;
+        console.log('GET episode status result:', {
+          mediaId,
+          mediaType,
+          mediaItemId: mediaItem.id,
+          seasonNumber: requestedSeasonNumber,
+          episodeNumber: requestedEpisodeNumber,
+          isWatched: isWatchedResult,
+        });
+
+        return NextResponse.json({
+          isWatched: isWatchedResult,
+          watchedEpisodes: [],
+        }, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        });
+      }
+
       // Check user's progress
       const progress = await db.query.userMediaProgress.findFirst({
         where: and(
