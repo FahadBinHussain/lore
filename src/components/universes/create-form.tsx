@@ -1,123 +1,258 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, Upload, X } from 'lucide-react';
+import Link from 'next/link';
+import { AlertTriangle, Check, FileJson, Loader2, Sparkles } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+
+interface UniversePasteItem {
+  title: string;
+  year?: number;
+  type: string;
+  source: string;
+}
+
+type UniverseMediaType = 'movie' | 'tv' | 'anime' | 'game';
+
+interface UniverseResolvedItemData {
+  title: string;
+  externalId: string;
+  source: string;
+  mediaType: UniverseMediaType;
+  posterPath: string | null;
+  backdropPath: string | null;
+  releaseDate: string | null;
+  rating: number | null;
+  description: string | null;
+  genres: string[];
+  runtime: number | null;
+  developer: string | null;
+  publisher: string | null;
+  platforms: string[];
+  networks: string[];
+  seasons: number | null;
+  totalEpisodes: number | null;
+  status: string | null;
+  tagline: string | null;
+  popularity: number | null;
+  previewImage: string | null;
+}
+
+interface UniversePreviewItem {
+  index: number;
+  input: UniversePasteItem;
+  status: 'resolved' | 'unresolved';
+  selected: boolean;
+  reason?: string;
+  isJapaneseAnimation?: boolean;
+  reroutedToAnime?: boolean;
+  resolved?: UniverseResolvedItemData;
+}
+
+interface UniversePreviewSummary {
+  total: number;
+  resolved: number;
+  unresolved: number;
+  animeRerouted: number;
+}
+
+interface UniversePreviewResponse {
+  items: UniversePreviewItem[];
+  summary: UniversePreviewSummary;
+}
 
 interface CreateUniverseFormData {
   name: string;
   description: string;
-  coverImage: File | null;
-  bannerImage: File | null;
-  selectedItems: MediaItem[];
+  jsonPayload: string;
 }
 
-interface MediaItem {
-  id: number;
-  title: string;
-  type: string;
-  image?: string;
+const JSON_SAMPLE = `[
+  {
+    "title": "Despicable Me",
+    "year": 2010,
+    "type": "movie",
+    "source": "tmdb"
+  }
+]`;
+
+function formatReleaseDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function getPreviewHref(item: UniversePreviewItem): string | null {
+  if (item.status !== 'resolved' || !item.resolved) {
+    return null;
+  }
+
+  const externalId = item.resolved.externalId;
+  if (!externalId) {
+    return null;
+  }
+
+  switch (item.resolved.mediaType) {
+    case 'movie':
+      return `/movies/${externalId}`;
+    case 'tv':
+      return `/tv/${externalId}`;
+    case 'anime':
+      return `/anime/${externalId}`;
+    case 'game':
+      return `/games/${externalId}`;
+    default:
+      return null;
+  }
 }
 
 export function CreateUniverseForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<MediaItem[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [previewSummary, setPreviewSummary] = useState<UniversePreviewSummary | null>(null);
+  const [previewItems, setPreviewItems] = useState<UniversePreviewItem[]>([]);
   const [formData, setFormData] = useState<CreateUniverseFormData>({
     name: '',
     description: '',
-    coverImage: null,
-    bannerImage: null,
-    selectedItems: [],
+    jsonPayload: '',
   });
 
+  const selectedResolvedItems = useMemo(
+    () => previewItems.filter((item) => item.status === 'resolved' && item.selected && item.resolved),
+    [previewItems]
+  );
+
   const handleInputChange = (field: keyof CreateUniverseFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFileChange = (field: 'coverImage' | 'bannerImage', file: File | null) => {
-    setFormData(prev => ({ ...prev, [field]: file }));
-  };
+  const handlePreview = async () => {
+    setPreviewError(null);
+    setSubmitError(null);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-
-    setIsSearching(true);
+    let parsedPayload: unknown;
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
-      const data = await response.json();
-      setSearchResults(data.results || []);
+      parsedPayload = JSON.parse(formData.jsonPayload);
+    } catch {
+      setPreviewItems([]);
+      setPreviewSummary(null);
+      setPreviewError('Invalid JSON. Please fix the payload format and try again.');
+      return;
+    }
+
+    if (!Array.isArray(parsedPayload)) {
+      setPreviewItems([]);
+      setPreviewSummary(null);
+      setPreviewError('Payload must be a JSON array of items.');
+      return;
+    }
+
+    setIsPreviewLoading(true);
+    try {
+      const response = await fetch('/api/universes/create/preview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: parsedPayload,
+        }),
+      });
+
+      const data = (await response.json()) as UniversePreviewResponse & { error?: string };
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to preview items');
+      }
+
+      setPreviewItems(data.items || []);
+      setPreviewSummary(data.summary || null);
     } catch (error) {
-      console.error('Search failed:', error);
+      setPreviewItems([]);
+      setPreviewSummary(null);
+      setPreviewError(error instanceof Error ? error.message : 'Failed to preview items');
     } finally {
-      setIsSearching(false);
+      setIsPreviewLoading(false);
     }
   };
 
-  const addItem = (item: MediaItem) => {
-    if (!formData.selectedItems.find(i => i.id === item.id)) {
-      setFormData(prev => ({
-        ...prev,
-        selectedItems: [...prev.selectedItems, item]
-      }));
-    }
+  const toggleItemSelection = (index: number) => {
+    setPreviewItems((prev) =>
+      prev.map((item, itemIndex) => {
+        if (itemIndex !== index || item.status !== 'resolved') return item;
+        return { ...item, selected: !item.selected };
+      })
+    );
   };
 
-  const removeItem = (itemId: number) => {
-    setFormData(prev => ({
-      ...prev,
-      selectedItems: prev.selectedItems.filter(i => i.id !== itemId)
-    }));
+  const selectAll = () => {
+    setPreviewItems((prev) =>
+      prev.map((item) => (item.status === 'resolved' ? { ...item, selected: true } : item))
+    );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const deselectAll = () => {
+    setPreviewItems((prev) =>
+      prev.map((item) => (item.status === 'resolved' ? { ...item, selected: false } : item))
+    );
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitError(null);
 
     if (!formData.name.trim()) {
-      alert('Universe name is required');
+      setSubmitError('Universe name is required.');
+      return;
+    }
+
+    if (selectedResolvedItems.length === 0) {
+      setSubmitError('Select at least one resolved item before creating the universe.');
       return;
     }
 
     setIsLoading(true);
-
     try {
-      const submitData = new FormData();
-      submitData.append('name', formData.name);
-      submitData.append('description', formData.description);
-      submitData.append('selectedItems', JSON.stringify(formData.selectedItems));
-
-      if (formData.coverImage) {
-        submitData.append('coverImage', formData.coverImage);
-      }
-
-      if (formData.bannerImage) {
-        submitData.append('bannerImage', formData.bannerImage);
-      }
-
       const response = await fetch('/api/universes/create', {
         method: 'POST',
-        body: submitData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          selectedItems: selectedResolvedItems.map((item) => item.resolved),
+        }),
       });
 
+      const data = (await response.json()) as { error?: string };
+
       if (!response.ok) {
-        throw new Error('Failed to create universe');
+        throw new Error(data.error || 'Failed to create universe');
       }
 
-      const result = await response.json();
-
-      alert('Universe created successfully!');
-      router.push(`/universes/${result.slug}`);
+      router.push('/universes');
+      router.refresh();
     } catch (error) {
-      console.error('Error creating universe:', error);
-      alert('Failed to create universe. Please try again.');
+      setSubmitError(error instanceof Error ? error.message : 'Failed to create universe');
     } finally {
       setIsLoading(false);
     }
@@ -127,185 +262,222 @@ export function CreateUniverseForm() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-purple-500" />
+          <Sparkles className="w-5 h-5 text-primary" />
           Universe Details
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Name */}
           <div className="space-y-2">
             <Label htmlFor="name">Universe Name *</Label>
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
+              onChange={(event) => handleInputChange('name', event.target.value)}
               placeholder="Enter universe name"
               required
             />
           </div>
 
-          {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              onChange={(event) => handleInputChange('description', event.target.value)}
               placeholder="Describe this universe collection..."
-              rows={4}
+              rows={3}
             />
           </div>
 
-          {/* Cover Image */}
           <div className="space-y-2">
-            <Label htmlFor="coverImage">Cover Image</Label>
-            <div className="flex items-center gap-4">
-              <Input
-                id="coverImage"
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileChange('coverImage', e.target.files?.[0] || null)}
-                className="hidden"
-              />
-              <Label htmlFor="coverImage" className="cursor-pointer">
-                <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-muted-foreground/25 rounded-lg hover:border-primary/50 transition-colors">
-                  <Upload className="w-4 h-4" />
-                  <span>{formData.coverImage ? formData.coverImage.name : 'Choose cover image'}</span>
-                </div>
-              </Label>
-              {formData.coverImage && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleFileChange('coverImage', null)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+            <Label htmlFor="jsonPayload">Universe JSON *</Label>
+            <Textarea
+              id="jsonPayload"
+              value={formData.jsonPayload}
+              onChange={(event) => handleInputChange('jsonPayload', event.target.value)}
+              placeholder={JSON_SAMPLE}
+              className="min-h-56 font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              Paste an array of objects with `title`, `year`, `type`, and `source`.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" onClick={handlePreview} disabled={isPreviewLoading}>
+              {isPreviewLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Parsing & Previewing...
+                </>
+              ) : (
+                <>
+                  <FileJson className="w-4 h-4 mr-2" />
+                  Parse JSON
+                </>
               )}
-            </div>
-          </div>
-
-          {/* Banner Image */}
-          <div className="space-y-2">
-            <Label htmlFor="bannerImage">Banner Image</Label>
-            <div className="flex items-center gap-4">
-              <Input
-                id="bannerImage"
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileChange('bannerImage', e.target.files?.[0] || null)}
-                className="hidden"
-              />
-              <Label htmlFor="bannerImage" className="cursor-pointer">
-                <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-muted-foreground/25 rounded-lg hover:border-primary/50 transition-colors">
-                  <Upload className="w-4 h-4" />
-                  <span>{formData.bannerImage ? formData.bannerImage.name : 'Choose banner image'}</span>
-                </div>
-              </Label>
-              {formData.bannerImage && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleFileChange('bannerImage', null)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Media Items */}
-          <div className="space-y-4">
-            <Label>Media Items</Label>
-            
-            {/* Search */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Search for movies, TV shows, games, books..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              />
-              <Button type="button" onClick={handleSearch} disabled={isSearching}>
-                {isSearching ? 'Searching...' : 'Search'}
-              </Button>
-            </div>
-
-            {/* Search Results */}
-            {searchResults.length > 0 && (
-              <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
-                <h4 className="font-medium mb-2">Search Results</h4>
-                <div className="space-y-2">
-                  {searchResults.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-2 border rounded">
-                      <div className="flex items-center gap-2">
-                        {item.image && (
-                          <img src={item.image} alt={item.title} className="w-8 h-8 object-cover rounded" />
-                        )}
-                        <div>
-                          <p className="font-medium text-sm">{item.title}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{item.type}</p>
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => addItem(item)}
-                        disabled={formData.selectedItems.some(i => i.id === item.id)}
-                      >
-                        {formData.selectedItems.some(i => i.id === item.id) ? 'Added' : 'Add'}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Selected Items */}
-            {formData.selectedItems.length > 0 && (
-              <div className="border rounded-lg p-4">
-                <h4 className="font-medium mb-2">Selected Items ({formData.selectedItems.length})</h4>
-                <div className="space-y-2">
-                  {formData.selectedItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-2 border rounded">
-                      <div className="flex items-center gap-2">
-                        {item.image && (
-                          <img src={item.image} alt={item.title} className="w-8 h-8 object-cover rounded" />
-                        )}
-                        <div>
-                          <p className="font-medium text-sm">{item.title}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{item.type}</p>
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeItem(item.id)}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Submit */}
-          <div className="flex gap-4 pt-6">
-            <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? 'Creating...' : 'Create Universe'}
             </Button>
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.back()}
-              disabled={isLoading}
+              onClick={() => handleInputChange('jsonPayload', JSON_SAMPLE)}
             >
+              Fill Sample
+            </Button>
+          </div>
+
+          {previewError && (
+            <div className="p-3 rounded-md border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+              {previewError}
+            </div>
+          )}
+
+          {previewSummary && (
+            <div className="p-4 rounded-lg border bg-muted/30 space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary">Total: {previewSummary.total}</Badge>
+                <Badge variant="secondary">Resolved: {previewSummary.resolved}</Badge>
+                <Badge variant="secondary">Unresolved: {previewSummary.unresolved}</Badge>
+                <Badge variant="secondary" className="bg-violet-500/10 text-violet-700">
+                  JP Animation {'->'} Anime: {previewSummary.animeRerouted}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" size="sm" variant="outline" onClick={selectAll}>
+                  Select All
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={deselectAll}>
+                  Deselect All
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {selectedResolvedItems.length} item(s) selected
+                </span>
+              </div>
+            </div>
+          )}
+
+          {previewItems.length > 0 && (
+            <div className="border rounded-lg overflow-hidden">
+              <div className="max-h-[28rem] overflow-y-auto divide-y">
+                {previewItems.map((item, index) => {
+                  const canSelect = item.status === 'resolved';
+                  const displayTitle = item.resolved?.title || item.input.title;
+                  const previewImage = item.resolved?.previewImage;
+                  const fullReleaseDate = formatReleaseDate(item.resolved?.releaseDate);
+                  const previewHref = getPreviewHref(item);
+
+                  return (
+                    <div key={`${item.index}-${item.input.title}-${item.input.year ?? 'na'}`} className="p-3">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          className="mt-1 w-4 h-4"
+                          checked={canSelect ? item.selected : false}
+                          disabled={!canSelect}
+                          onChange={() => toggleItemSelection(index)}
+                        />
+
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          {previewImage ? (
+                            previewHref ? (
+                              <Link href={previewHref} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                                <img
+                                  src={previewImage}
+                                  alt={displayTitle}
+                                  className="w-12 h-16 object-cover rounded border hover:opacity-90 transition-opacity"
+                                />
+                              </Link>
+                            ) : (
+                              <img
+                                src={previewImage}
+                                alt={displayTitle}
+                                className="w-12 h-16 object-cover rounded border"
+                              />
+                            )
+                          ) : (
+                            <div className="w-12 h-16 rounded border bg-muted/60 flex items-center justify-center text-muted-foreground">
+                              {item.status === 'resolved' ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                            </div>
+                          )}
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {previewHref ? (
+                                <Link
+                                  href={previewHref}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-medium truncate underline-offset-2 hover:underline"
+                                >
+                                  {displayTitle}
+                                </Link>
+                              ) : (
+                                <p className="font-medium truncate">{displayTitle}</p>
+                              )}
+                              <Badge variant={item.status === 'resolved' ? 'secondary' : 'destructive'}>
+                                {item.status}
+                              </Badge>
+                              {item.reroutedToAnime && (
+                                <Badge variant="secondary" className="bg-violet-500/10 text-violet-700">
+                                  Import to Anime
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                              <Badge variant="outline" className="capitalize">
+                                Input: {item.input.type}
+                              </Badge>
+                              <Badge variant="outline" className="uppercase">
+                                {item.input.source}
+                              </Badge>
+                              {item.resolved && (
+                                <Badge variant="outline" className="capitalize">
+                                  Saved as: {item.resolved.mediaType}
+                                </Badge>
+                              )}
+                              {fullReleaseDate && (
+                                <Badge variant="outline">
+                                  Release: {fullReleaseDate}
+                                </Badge>
+                              )}
+                              {typeof item.input.year === 'number' && (
+                                <Badge variant="outline">{item.input.year}</Badge>
+                              )}
+                            </div>
+
+                            {item.reason && (
+                              <p className="text-xs text-destructive mt-2">{item.reason}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {submitError && (
+            <div className="p-3 rounded-md border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+              {submitError}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <Button type="submit" disabled={isLoading || selectedResolvedItems.length === 0}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                `Create Universe (${selectedResolvedItems.length})`
+              )}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>
               Cancel
             </Button>
           </div>

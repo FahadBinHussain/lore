@@ -24,6 +24,14 @@ function getPreferredAuthBaseUrl(baseUrl: string): string {
   return baseUrl;
 }
 
+function normalizeImageValue(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  return trimmed;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Google({
@@ -53,25 +61,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return `${preferredBaseUrl}/dashboard`;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.role = normalizeUserRole(token.role);
-      }
+      try {
+        const tokenPicture = normalizeImageValue(token.picture);
 
-      if (session.user?.email) {
-        const dbUser = await db.query.users.findFirst({
-          where: eq(users.email, session.user.email),
-        });
-        
-        if (dbUser) {
-          session.user.id = dbUser.id.toString();
-          session.user.role = normalizeUserRole(dbUser.role);
-          session.user.username = dbUser.username;
-          // Use database image if available, otherwise use token picture
-          session.user.image = dbUser.image || token.picture || session.user.image;
-        } else {
-          // If no db user, use token picture
-          session.user.image = token.picture || session.user.image;
+        if (session.user) {
           session.user.role = normalizeUserRole(token.role);
+        }
+
+        if (session.user?.email) {
+          const dbUser = await db.query.users.findFirst({
+            where: eq(users.email, session.user.email),
+          });
+          
+          if (dbUser) {
+            session.user.id = dbUser.id.toString();
+            session.user.role = normalizeUserRole(dbUser.role);
+            session.user.username = dbUser.username;
+            // Use database image if available, otherwise use token picture
+            session.user.image = normalizeImageValue(dbUser.image) || tokenPicture || normalizeImageValue(session.user.image);
+
+            // Backfill missing DB image from token so future sessions keep the avatar.
+            if (!dbUser.image && tokenPicture) {
+              await db.update(users)
+                .set({ image: tokenPicture })
+                .where(eq(users.id, dbUser.id));
+            }
+          } else {
+            // If no db user, use token picture
+            session.user.image = tokenPicture || normalizeImageValue(session.user.image);
+            session.user.role = normalizeUserRole(token.role);
+          }
+        }
+      } catch (error) {
+        console.error('Session callback error:', error);
+        if (session.user) {
+          const tokenPicture = normalizeImageValue(token.picture);
+          session.user.role = normalizeUserRole(token.role);
+          session.user.image = tokenPicture || normalizeImageValue(session.user.image);
         }
       }
       return session;
@@ -82,19 +108,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Preserve image from Google profile
         if (account.provider === 'google') {
           // Google profile picture can be in different places
-          token.picture = profile?.picture || profile?.image || user.image;
+          token.picture = normalizeImageValue(profile?.picture) || normalizeImageValue(profile?.image) || normalizeImageValue(user.image);
         }
       }
       token.role = normalizeUserRole(token.role ?? user?.role);
       // Ensure picture persists in token
-      if (!token.picture && user?.image) {
-        token.picture = user.image;
+      if (!normalizeImageValue(token.picture) && user?.image) {
+        token.picture = normalizeImageValue(user.image);
+      }
+      // Last-resort recovery from DB (helps older sessions where token.picture was never set)
+      if (!normalizeImageValue(token.picture) && typeof token.email === 'string' && token.email) {
+        const dbUser = await db.query.users.findFirst({
+          where: eq(users.email, token.email),
+          columns: { image: true },
+        });
+        token.picture = normalizeImageValue(dbUser?.image);
       }
       return token;
     },
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       try {
         if (account?.provider === 'google' && user.email) {
+          const googleProfileImage =
+            normalizeImageValue(profile?.picture) ||
+            normalizeImageValue(profile?.image) ||
+            normalizeImageValue(user.image) ||
+            null;
+
           const existingUser = await db.query.users.findFirst({
             where: eq(users.email, user.email),
           });
@@ -103,7 +143,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             await db.insert(users).values({
               email: user.email,
               name: user.name || null,
-              image: user.image || null,
+              image: googleProfileImage,
               role: 'user',
               emailVerified: new Date(),
             });
@@ -112,7 +152,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               .set({ 
                 lastLoginAt: new Date(),
                 name: user.name || existingUser.name,
-                image: user.image || existingUser.image,
+                image: googleProfileImage || existingUser.image,
               })
               .where(eq(users.email, user.email));
           }

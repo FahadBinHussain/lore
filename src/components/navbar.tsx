@@ -122,10 +122,19 @@ function applyTheme(theme: string) {
   window.dispatchEvent(new Event('theme-change'));
 }
 
+function normalizeAvatarUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  return trimmed;
+}
+
 export function Navbar() {
   const { data: session, status } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const theme = useSyncExternalStore(subscribeTheme, getClientTheme, getServerTheme);
+  const avatarUrl = normalizeAvatarUrl(session?.user?.image);
 
   useEffect(() => {
     applyTheme(theme);
@@ -225,6 +234,13 @@ export function Navbar() {
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
+              href="/universes"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            >
+              Universes
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+            </Link>
+            <Link
               href="/search"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
             >
@@ -254,6 +270,13 @@ export function Navbar() {
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
             >
               Games
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+            </Link>
+            <Link
+              href="/universes"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            >
+              Universes
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
@@ -302,15 +325,13 @@ export function Navbar() {
 
             {/* CTA Buttons */}
             <div className="flex items-center gap-3">
-              {status === 'loading' ? (
-                <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              ) : session?.user ? (
+              {session?.user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger>
                     <div className="relative h-10 w-10 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all duration-200 cursor-pointer">
                       <Avatar className="h-10 w-10 ring-2 ring-background/50">
-                        {session.user.image && (session.user.image.startsWith('http://') || session.user.image.startsWith('https://')) ? (
-                          <AvatarImage src={session.user.image} alt={session.user.name || ''} />
+                        {avatarUrl ? (
+                          <AvatarImage src={avatarUrl} alt={session.user.name || ''} referrerPolicy="no-referrer" />
                         ) : null}
                         <AvatarFallback className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground font-semibold text-sm">
                           {session.user.name?.[0]?.toUpperCase() || 'U'}
@@ -324,8 +345,8 @@ export function Navbar() {
                     <div className="px-4 py-4 bg-gradient-to-r from-primary/5 via-primary/3 to-secondary/5 border-b border-border/50">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-                          {session.user.image && (session.user.image.startsWith('http://') || session.user.image.startsWith('https://')) ? (
-                            <AvatarImage src={session.user.image} alt={session.user.name || ''} />
+                          {avatarUrl ? (
+                            <AvatarImage src={avatarUrl} alt={session.user.name || ''} referrerPolicy="no-referrer" />
                           ) : null}
                           <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
                             {session.user.name?.[0]?.toUpperCase() || 'U'}
@@ -422,6 +443,8 @@ export function Navbar() {
                     </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              ) : status === 'loading' ? (
+                <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
               ) : (
                 <>
                   <Link href="/auth/signin">
@@ -524,6 +547,13 @@ export function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Theme Parks
+              </Link>
+              <Link
+                href="/universes"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Universes
               </Link>
               <Link
                 href="/search"
