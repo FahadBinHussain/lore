@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { collections, collectionItems, users, mediaItems } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { collections, collectionItems, users, userMediaProgress } from '@/db/schema';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -12,6 +12,17 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    let userId = Number.parseInt(session.user.id || '', 10);
+    if (!Number.isFinite(userId) && session.user.email) {
+      const dbUser = await db.query.users.findFirst({
+        where: eq(users.email, session.user.email),
+        columns: { id: true },
+      });
+      if (dbUser) {
+        userId = dbUser.id;
+      }
+    }
+
     const allCollections = await db.query.collections.findMany({
       where: eq(collections.visibility, 'public'),
       orderBy: desc(collections.createdAt),
@@ -31,7 +42,48 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ collections: allCollections });
+    const mediaItemIds = Array.from(
+      new Set(
+        allCollections.flatMap((collection) => collection.items.map((item) => item.mediaItem.id))
+      )
+    );
+
+    const progressRows =
+      Number.isFinite(userId) && mediaItemIds.length > 0
+        ? await db.query.userMediaProgress.findMany({
+            where: and(
+              eq(userMediaProgress.userId, userId),
+              inArray(userMediaProgress.mediaItemId, mediaItemIds)
+            ),
+            columns: {
+              mediaItemId: true,
+              status: true,
+            },
+          })
+        : [];
+
+    const watchedIds = new Set(
+      progressRows
+        .filter((row) => row.status !== 'not_started')
+        .map((row) => row.mediaItemId)
+    );
+
+    const collectionsWithProgress = allCollections.map((collection) => {
+      const itemsTotal = collection.items.length;
+      const itemsCompleted = collection.items.reduce((count, item) => (
+        watchedIds.has(item.mediaItem.id) ? count + 1 : count
+      ), 0);
+      const progress = itemsTotal > 0 ? Math.round((itemsCompleted / itemsTotal) * 100) : 0;
+
+      return {
+        ...collection,
+        itemsTotal,
+        itemsCompleted,
+        progress,
+      };
+    });
+
+    return NextResponse.json({ collections: collectionsWithProgress });
   } catch (error) {
     console.error('Failed to fetch collections:', error);
     return NextResponse.json({ error: 'Failed to fetch collections' }, { status: 500 });

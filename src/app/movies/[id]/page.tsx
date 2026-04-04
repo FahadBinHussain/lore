@@ -388,7 +388,7 @@ export default function MovieDetailPage() {
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12 z-10">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-4 sm:gap-6 lg:gap-8">
             {/* Poster */}
-            <div className="flex-shrink-0 relative group mx-auto sm:mx-0">
+            <div className="flex-shrink-0 relative group mx-auto sm:mx-0 self-end translate-y-3 sm:translate-y-2 lg:translate-y-4">
               <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-32 sm:w-40 md:w-48 lg:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {movie.poster_path ? (
