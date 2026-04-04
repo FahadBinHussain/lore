@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -193,7 +193,7 @@ interface GameDetails {
 }
 
 export default function GameDetailPage() {
-  const params = useParams();
+  const params = useParams<{ id?: string | string[] }>();
   const router = useRouter();
   const [game, setGame] = useState<GameDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -203,63 +203,31 @@ export default function GameDetailPage() {
   const [updatingPlayed, setUpdatingPlayed] = useState(false);
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const gameRef = useRef<GameDetails | null>(null);
 
-  const fetchGameDetails = async () => {
-    try {
-      const idParam = params.id as string;
-      const numericIdMatch = idParam.match(/(\d+)$/);
-      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
-      
-      const response = await fetch(`/api/games/${numericId}`);
-      if (!response.ok) {
-        throw new Error('Game not found');
-      }
-      const data = await response.json();
-      setGame(data);
-      
-      // Set first video if available
-      if (data.videos?.length > 0) {
-        setSelectedVideo(data.videos[0]);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load game');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const rawId = params?.id;
+  const idParam = Array.isArray(rawId) ? rawId[0] : rawId;
+  const gameId =
+    typeof idParam === 'string' && idParam.length > 0
+      ? (idParam.match(/(\d+)$/)?.[1] ?? idParam)
+      : null;
 
-  const fetchPlayedStatus = async () => {
-    try {
-      const idParam = params.id as string;
-      const numericIdMatch = idParam.match(/(\d+)$/);
-      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
-      
-      const response = await fetch(`/api/media/status?mediaId=${numericId}&mediaType=game`);
-      if (response.ok) {
-        const data = await response.json();
-        setIsPlayed(data.isWatched);
-      }
-    } catch (err) {
-      console.error('Failed to fetch played status:', err);
-    }
-  };
+  useEffect(() => {
+    gameRef.current = game;
+  }, [game]);
 
   const handleMarkAsPlayed = async () => {
-    if (!game) return;
+    if (!game || !gameId) return;
     
     setUpdatingPlayed(true);
     try {
-      const idParam = params.id as string;
-      const numericIdMatch = idParam.match(/(\d+)$/);
-      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
-      
       const response = await fetch('/api/media/status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          mediaId: numericId,
+          mediaId: gameId,
           mediaType: 'game',
           isWatched: !isPlayed,
           title: game.name,
@@ -279,14 +247,89 @@ export default function GameDetailPage() {
   };
 
   useEffect(() => {
+    if (!gameId) {
+      setLoading(false);
+      if (!gameRef.current) {
+        setError('Game not found');
+      }
+      return;
+    }
+
+    const controller = new AbortController();
+    let isActive = true;
+    const hasGameForThisId = gameRef.current && String(gameRef.current.id) === gameId;
+    setLoading(!hasGameForThisId);
+    setError(null);
+
+    const fetchGameDetails = async () => {
+      try {
+        const response = await fetch(`/api/games/${gameId}`, { signal: controller.signal });
+        if (!response.ok) {
+          let message = response.status === 404 ? 'Game not found' : 'Failed to load game';
+          try {
+            const payload = await response.json();
+            if (payload?.error) {
+              message = payload.error;
+            }
+          } catch {
+            // ignore JSON parse failure and keep fallback message
+          }
+          throw new Error(message);
+        }
+
+        const data = await response.json();
+        setGame(data);
+        setError(null);
+      } catch (err) {
+        if (!isActive) {
+          return;
+        }
+
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
+
+        const stillHasGameForThisId = gameRef.current && String(gameRef.current.id) === gameId;
+        if (stillHasGameForThisId) {
+          console.warn(`[games/${gameId}] transient fetch error after data load`, err);
+          setError(null);
+          return;
+        }
+
+        setGame(null);
+        setError(err instanceof Error ? err.message : 'Failed to load game');
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchGameDetails();
-  }, [params.id]);
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [gameId]);
 
   useEffect(() => {
-    if (game) {
-      fetchPlayedStatus();
-    }
-  }, [game]);
+    if (!game || !gameId) return;
+
+    const fetchPlayedStatus = async () => {
+      try {
+        const response = await fetch(`/api/media/status?mediaId=${gameId}&mediaType=game`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsPlayed(data.isWatched);
+        }
+      } catch (err) {
+        console.error('Failed to fetch played status:', err);
+      }
+    };
+
+    fetchPlayedStatus();
+  }, [game, gameId]);
 
   const getYear = (timestamp: number) => {
     if (!timestamp) return '—';
@@ -396,9 +439,9 @@ export default function GameDetailPage() {
         >
           <div className="relative w-full max-w-5xl aspect-video">
             <iframe
-              src={`https://www.youtube.com/embed/${selectedVideo.video_id}?autoplay=1`}
+              src={`https://www.youtube.com/embed/${selectedVideo.video_id}`}
               className="w-full h-full rounded-xl"
-              allow="autoplay; encrypted-media"
+              allow="encrypted-media"
               allowFullScreen
             />
             <Button

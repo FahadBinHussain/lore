@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Epilogue, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/navbar";
+import { ScrollNavigationTracker } from "@/components/scroll-navigation-tracker";
 
 export const metadata: Metadata = {
   title: "Lore - Media Tracker",
@@ -66,6 +67,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-background pt-16">
         <Providers>
+          <ScrollNavigationTracker />
           <Navbar />
           {children}
         </Providers>
