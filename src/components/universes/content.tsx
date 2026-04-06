@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Loader2, Trash2 } from 'lucide-react';
 
 interface Universe {
   id: number;
@@ -15,17 +16,23 @@ interface Universe {
   items: Array<{
     mediaItem: {
       id: number;
+      mediaType?: string | null;
       source: string | null;
       backdropPath: string | null;
+      posterPath?: string | null;
     };
   }>;
   progress?: number;
   itemsCompleted?: number;
   itemsTotal?: number;
+  totalItems?: number;
+  untrackableCount?: number;
+  canDelete?: boolean;
 }
 
 interface UniversesContentProps {
   initialUniverses?: Universe[];
+  initialCanCreateUniverse?: boolean;
 }
 
 function toImageUrl(path: string | null, source: string | null, size: 'w780' | 'w1280' = 'w780'): string | null {
@@ -40,12 +47,75 @@ function toImageUrl(path: string | null, source: string | null, size: 'w780' | '
   return trimmed;
 }
 
+function getDominantMediaType(items: Universe['items']): string | null {
+  const counts = new Map<string, number>();
+
+  for (const item of items) {
+    const mediaType = item.mediaItem.mediaType?.trim();
+    if (!mediaType) continue;
+    if (item.mediaItem.source === 'manual') continue;
+    counts.set(mediaType, (counts.get(mediaType) || 0) + 1);
+  }
+
+  let dominantType: string | null = null;
+  let dominantCount = 0;
+  for (const [type, count] of counts.entries()) {
+    if (count > dominantCount) {
+      dominantType = type;
+      dominantCount = count;
+    }
+  }
+
+  return dominantType;
+}
+
+function selectHeroImageCandidate(universe: Universe): { path: string | null; source: string | null } {
+  const dominantType = getDominantMediaType(universe.items);
+  const dominantItems = dominantType
+    ? universe.items.filter((item) => item.mediaItem.mediaType === dominantType)
+    : universe.items;
+
+  const dominantBackdrop = dominantItems.find((item) => item.mediaItem.backdropPath);
+  if (dominantBackdrop) {
+    return {
+      path: dominantBackdrop.mediaItem.backdropPath,
+      source: dominantBackdrop.mediaItem.source,
+    };
+  }
+
+  const dominantPoster = dominantItems.find((item) => item.mediaItem.posterPath);
+  if (dominantPoster) {
+    return {
+      path: dominantPoster.mediaItem.posterPath || null,
+      source: dominantPoster.mediaItem.source,
+    };
+  }
+
+  const fallbackBackdrop = universe.items.find((item) => item.mediaItem.backdropPath);
+  if (fallbackBackdrop) {
+    return {
+      path: fallbackBackdrop.mediaItem.backdropPath,
+      source: fallbackBackdrop.mediaItem.source,
+    };
+  }
+
+  const fallbackPoster = universe.items.find((item) => item.mediaItem.posterPath);
+  if (fallbackPoster) {
+    return {
+      path: fallbackPoster.mediaItem.posterPath || null,
+      source: fallbackPoster.mediaItem.source,
+    };
+  }
+
+  return { path: null, source: null };
+}
+
 function getUniverseHeroImage(universe: Universe, size: 'w780' | 'w1280' = 'w780'): string | null {
-  const firstBackdropItem = universe.items.find((item) => item.mediaItem.backdropPath);
+  const heroCandidate = selectHeroImageCandidate(universe);
   return (
     toImageUrl(universe.bannerImage, 'tmdb', size) ||
     toImageUrl(universe.coverImage, 'tmdb', size) ||
-    toImageUrl(firstBackdropItem?.mediaItem.backdropPath ?? null, firstBackdropItem?.mediaItem.source ?? null, size)
+    toImageUrl(heroCandidate.path, heroCandidate.source, size)
   );
 }
 
@@ -60,11 +130,16 @@ function variantTextClass(variant: 'primary' | 'secondary' | 'tertiary'): string
   return 'text-primary';
 }
 
-export function UniversesContent({ initialUniverses = [] }: UniversesContentProps) {
+export function UniversesContent({
+  initialUniverses = [],
+  initialCanCreateUniverse = false,
+}: UniversesContentProps) {
   const router = useRouter();
   const [universes, setUniverses] = useState<Universe[]>(initialUniverses);
   const [loading, setLoading] = useState(initialUniverses.length === 0);
   const [error, setError] = useState<string | null>(null);
+  const [deletingUniverseId, setDeletingUniverseId] = useState<number | null>(null);
+  const [canCreateUniverse, setCanCreateUniverse] = useState<boolean>(initialCanCreateUniverse);
 
   const fetchUniverses = useCallback(async () => {
     try {
@@ -75,6 +150,9 @@ export function UniversesContent({ initialUniverses = [] }: UniversesContentProp
         throw new Error(data?.error || 'Failed to fetch universes');
       }
       setUniverses(data.collections || []);
+      if (typeof data.canCreateUniverse === 'boolean') {
+        setCanCreateUniverse(data.canCreateUniverse);
+      }
     } catch (err) {
       console.error('Failed to fetch universes:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch universes');
@@ -86,6 +164,30 @@ export function UniversesContent({ initialUniverses = [] }: UniversesContentProp
   useEffect(() => {
     fetchUniverses();
   }, [fetchUniverses]);
+
+  const handleDeleteUniverse = useCallback(async (universe: Universe) => {
+    const confirmed = window.confirm(`Delete "${universe.name}"?\n\nThis cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      setError(null);
+      setDeletingUniverseId(universe.id);
+
+      const response = await fetch(`/api/universes/${universe.id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete universe');
+      }
+
+      setUniverses((prev) => prev.filter((item) => item.id !== universe.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete universe');
+    } finally {
+      setDeletingUniverseId(null);
+    }
+  }, []);
 
   const heroImage = universes.length > 0 ? getUniverseHeroImage(universes[0], 'w1280') : null;
 
@@ -142,11 +244,20 @@ export function UniversesContent({ initialUniverses = [] }: UniversesContentProp
         </section>
 
         <section className="px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {error && (
+            <div className="col-span-full rounded-2xl border border-error/30 bg-error/10 p-4">
+              <p className="text-sm text-error">{error}</p>
+            </div>
+          )}
+
           {!loading && universes.map((universe, index) => {
             const variant = getVariant(index);
             const progress = universe.progress || 0;
             const image = getUniverseHeroImage(universe, 'w780');
-            const total = universe.itemsTotal || universe.items.length;
+            const trackableTotal = universe.itemsTotal || 0;
+            const totalTitles = universe.totalItems || universe.items.length;
+            const untrackableCount = universe.untrackableCount || 0;
+            const isDeleting = deletingUniverseId === universe.id;
             return (
               <div
                 key={universe.id}
@@ -167,6 +278,21 @@ export function UniversesContent({ initialUniverses = [] }: UniversesContentProp
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/20 via-transparent to-secondary/20" />
                   )}
+                  {universe.canDelete && (
+                    <button
+                      type="button"
+                      className="absolute top-4 left-4 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1 text-error hover:bg-error/20 transition-colors"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleDeleteUniverse(universe);
+                      }}
+                      disabled={isDeleting}
+                      aria-label={`Delete ${universe.name}`}
+                    >
+                      {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                      <span className="text-xs font-bold">{isDeleting ? 'Deleting' : 'Delete'}</span>
+                    </button>
+                  )}
                   <div className="absolute top-4 right-4 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1">
                     <span className="text-xs font-bold">{progress}% completed</span>
                   </div>
@@ -180,7 +306,11 @@ export function UniversesContent({ initialUniverses = [] }: UniversesContentProp
                   <div className="mb-4">
                     <div className="flex items-center justify-between text-xs font-bold uppercase tracking-tighter text-on-surface-variant mb-2">
                       <span>Progress</span>
-                      <span>{universe.itemsCompleted || 0} / {total} Completed</span>
+                      <span>
+                        {trackableTotal > 0
+                          ? `${universe.itemsCompleted || 0} / ${trackableTotal} Done`
+                          : 'Archive-only'}
+                      </span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-primary/15 overflow-hidden">
                       <div
@@ -188,10 +318,15 @@ export function UniversesContent({ initialUniverses = [] }: UniversesContentProp
                         style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
                       />
                     </div>
+                    {untrackableCount > 0 && (
+                      <p className="mt-2 text-xs text-on-surface-variant">
+                        +{untrackableCount} archive-only item{untrackableCount === 1 ? '' : 's'}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex justify-between items-center pt-4 border-t border-outline-variant/10">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-tighter">{total} TITLES</span>
+                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-tighter">{totalTitles} TITLES</span>
                     <button
                       type="button"
                       onClick={(event) => {
@@ -208,18 +343,20 @@ export function UniversesContent({ initialUniverses = [] }: UniversesContentProp
             );
           })}
 
-          <Link href="/universes/create" className="group border-2 border-dashed border-outline-variant/30 rounded-3xl flex flex-col items-center justify-center p-12 hover:border-primary/50 transition-colors bg-surface-container-low/20">
-            <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-              <span className="material-symbols-outlined text-3xl text-primary">add</span>
-            </div>
-            <h3 className="text-xl font-bold font-headline mb-2">Forge New Realm</h3>
-            <p className="text-on-surface-variant text-center text-sm font-body">Contribute a new universe to the archive and begin its legacy.</p>
-          </Link>
+          {canCreateUniverse ? (
+            <Link href="/universes/create" className="group border-2 border-dashed border-outline-variant/30 rounded-3xl flex flex-col items-center justify-center p-12 hover:border-primary/50 transition-colors bg-surface-container-low/20">
+              <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <span className="material-symbols-outlined text-3xl text-primary">add</span>
+              </div>
+              <h3 className="text-xl font-bold font-headline mb-2">Forge New Realm</h3>
+              <p className="text-on-surface-variant text-center text-sm font-body">Contribute a new universe to the archive and begin its legacy.</p>
+            </Link>
+          ) : null}
 
-          {!loading && universes.length === 0 && (
+          {!loading && universes.length === 0 && !error && (
             <div className="col-span-full rounded-2xl border border-outline-variant/20 bg-surface-container p-8 text-center">
               <p className="text-on-surface-variant text-sm">
-                {error || 'No universes found right now.'}
+                No universes found right now.
               </p>
             </div>
           )}

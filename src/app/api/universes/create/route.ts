@@ -31,6 +31,8 @@ interface UniverseResolvedItemPayload {
   status?: string | null;
   tagline?: string | null;
   popularity?: number | null;
+  isPlaceholder?: boolean;
+  additionalData?: Record<string, unknown> | null;
 }
 
 interface UniverseCreateJsonBody {
@@ -72,6 +74,21 @@ function normalizeOptionalNumber(value: unknown): number | null {
   }
 
   return null;
+}
+
+function normalizeOptionalBoolean(value: unknown): boolean | null {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true') return true;
+    if (normalized === 'false') return false;
+  }
+  return null;
+}
+
+function normalizeOptionalObject(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  return value as Record<string, unknown>;
 }
 
 function normalizeStringArray(value: unknown): string[] {
@@ -169,6 +186,8 @@ function parseSelectedItems(value: unknown): UniverseResolvedItemPayload[] {
       status: normalizeOptionalString(entry.status),
       tagline: normalizeOptionalString(entry.tagline),
       popularity: normalizeOptionalNumber(entry.popularity),
+      isPlaceholder: normalizeOptionalBoolean(entry.isPlaceholder) ?? undefined,
+      additionalData: normalizeOptionalObject(entry.additionalData),
     }));
 }
 
@@ -230,9 +249,24 @@ async function ensureMediaItem(item: UniverseResolvedItemPayload): Promise<Ensur
     };
   }
 
-  const externalId = normalizeOptionalString(item.externalId);
-  const source = normalizeOptionalString(item.source);
   const mediaType = normalizeMediaType(item.mediaType);
+  const title = normalizeOptionalString(item.title);
+  const releaseDate = normalizeOptionalString(item.releaseDate);
+  const isPlaceholder = item.isPlaceholder === true;
+  const source =
+    normalizeOptionalString(item.source) ||
+    (isPlaceholder ? 'manual' : null);
+  let externalId = normalizeOptionalString(item.externalId);
+
+  if (!externalId && mediaType && source === 'manual' && title) {
+    const normalizedTitle = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 120);
+    const yearToken = releaseDate && /^\d{4}/.test(releaseDate) ? releaseDate.slice(0, 4) : 'na';
+    externalId = `archive-${mediaType}-${yearToken}-${normalizedTitle || 'untitled'}`;
+  }
 
   if (!externalId || !source || !mediaType) {
     return null;
@@ -253,11 +287,10 @@ async function ensureMediaItem(item: UniverseResolvedItemPayload): Promise<Ensur
     };
   }
 
-  const title = normalizeOptionalString(item.title) || `Untitled ${mediaType}`;
+  const safeTitle = title || `Untitled ${mediaType}`;
   const genres = normalizeStringArray(item.genres);
   const platforms = normalizeStringArray(item.platforms);
   const networks = normalizeStringArray(item.networks);
-  const releaseDate = normalizeOptionalString(item.releaseDate);
   const rating = normalizeOptionalNumber(item.rating);
   const popularity = normalizeOptionalNumber(item.popularity);
   const runtime = normalizeOptionalNumber(item.runtime);
@@ -268,8 +301,8 @@ async function ensureMediaItem(item: UniverseResolvedItemPayload): Promise<Ensur
     externalId,
     source,
     mediaType,
-    title,
-    originalTitle: title,
+    title: safeTitle,
+    originalTitle: safeTitle,
     description: normalizeOptionalString(item.description),
     posterPath: normalizeOptionalString(item.posterPath),
     backdropPath: normalizeOptionalString(item.backdropPath),
@@ -284,8 +317,10 @@ async function ensureMediaItem(item: UniverseResolvedItemPayload): Promise<Ensur
     seasons: seasons !== null ? Math.trunc(seasons) : null,
     totalEpisodes: totalEpisodes !== null ? Math.trunc(totalEpisodes) : null,
     status: normalizeOptionalString(item.status),
+    isPlaceholder: isPlaceholder || source === 'manual',
     tagline: normalizeOptionalString(item.tagline),
     popularity: popularity !== null ? popularity.toString() : null,
+    additionalData: item.additionalData ?? null,
   }).returning();
 
   return {
@@ -359,6 +394,7 @@ export async function POST(request: NextRequest) {
     });
 
     const orderedMediaItemIds = orderedMediaItems.map((item) => item.mediaItemId);
+    const mergedDuplicates = Math.max(0, payload.selectedItems.length - orderedMediaItemIds.length);
 
     if (orderedMediaItemIds.length === 0) {
       return NextResponse.json({ error: 'No valid media items selected for this universe' }, { status: 400 });
@@ -400,7 +436,9 @@ export async function POST(request: NextRequest) {
       slug: newUniverse.slug,
       description: newUniverse.description,
       visibility: newUniverse.visibility,
+      selectedCount: payload.selectedItems.length,
       itemCount: orderedMediaItemIds.length,
+      mergedDuplicates,
     });
   } catch (error) {
     console.error('Error creating universe:', error);

@@ -8,6 +8,8 @@ interface HeroDebugItem {
   mediaType: string;
   source: string;
   backdropPath: string | null;
+  posterPath?: string | null;
+  imageKind?: 'backdrop' | 'poster' | null;
 }
 
 interface HeroDebugLogProps {
@@ -34,15 +36,17 @@ export function HeroDebugLog({
       ? 'collections.bannerImage'
       : coverImage
         ? 'collections.coverImage'
-        : firstBackdropItem?.backdropPath
-          ? `items.backdropPath (${firstBackdropItem.mediaType})`
+        : firstBackdropItem?.imageKind === 'poster'
+          ? `items.posterPath (${firstBackdropItem.mediaType})`
+          : firstBackdropItem?.backdropPath
+            ? `items.backdropPath (${firstBackdropItem.mediaType})`
           : 'none';
 
     console.groupCollapsed(`[Universe Hero Debug] ${universeSlug}`);
     console.log('Universe:', { name: universeName, slug: universeSlug });
     console.log('Candidate bannerImage:', bannerImage);
     console.log('Candidate coverImage:', coverImage);
-    console.log('First item with backdrop:', firstBackdropItem);
+    console.log('Selected fallback media item:', firstBackdropItem);
     console.log('Chosen source:', chosenSource);
     console.log('Resolved hero image URL:', resolvedHeroImage);
     console.groupEnd();
@@ -50,4 +54,3 @@ export function HeroDebugLog({
 
   return null;
 }
-

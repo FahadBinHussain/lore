@@ -3,8 +3,13 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { collections, collectionItems, users, userMediaProgress } from '@/db/schema';
 import { and, desc, eq, inArray } from 'drizzle-orm';
+import { isAdminRole } from '@/lib/auth/roles';
 
-export async function GET(request: NextRequest) {
+function isTrackableMediaItem(mediaItem: { source: string | null; isPlaceholder?: boolean | null }) {
+  return mediaItem.source !== 'manual' && !mediaItem.isPlaceholder;
+}
+
+export async function GET() {
   const session = await auth();
   
   if (!session?.user) {
@@ -22,6 +27,7 @@ export async function GET(request: NextRequest) {
         userId = dbUser.id;
       }
     }
+    const viewerIsAdmin = isAdminRole(session.user.role);
 
     const allCollections = await db.query.collections.findMany({
       where: eq(collections.visibility, 'public'),
@@ -44,7 +50,12 @@ export async function GET(request: NextRequest) {
 
     const mediaItemIds = Array.from(
       new Set(
-        allCollections.flatMap((collection) => collection.items.map((item) => item.mediaItem.id))
+        allCollections.flatMap((collection) =>
+          collection.items
+            .map((item) => item.mediaItem)
+            .filter((mediaItem) => isTrackableMediaItem(mediaItem))
+            .map((mediaItem) => mediaItem.id)
+        )
       )
     );
 
@@ -69,21 +80,31 @@ export async function GET(request: NextRequest) {
     );
 
     const collectionsWithProgress = allCollections.map((collection) => {
-      const itemsTotal = collection.items.length;
-      const itemsCompleted = collection.items.reduce((count, item) => (
-        watchedIds.has(item.mediaItem.id) ? count + 1 : count
-      ), 0);
+      const trackableItems = collection.items.filter((item) => isTrackableMediaItem(item.mediaItem));
+      const itemsTotal = trackableItems.length;
+      const itemsCompleted = trackableItems.reduce(
+        (count, item) => (watchedIds.has(item.mediaItem.id) ? count + 1 : count),
+        0
+      );
       const progress = itemsTotal > 0 ? Math.round((itemsCompleted / itemsTotal) * 100) : 0;
+      const totalItems = collection.items.length;
+      const untrackableCount = Math.max(0, totalItems - itemsTotal);
 
       return {
         ...collection,
         itemsTotal,
         itemsCompleted,
         progress,
+        totalItems,
+        untrackableCount,
+        canDelete: viewerIsAdmin,
       };
     });
 
-    return NextResponse.json({ collections: collectionsWithProgress });
+    return NextResponse.json({
+      collections: collectionsWithProgress,
+      canCreateUniverse: viewerIsAdmin,
+    });
   } catch (error) {
     console.error('Failed to fetch collections:', error);
     return NextResponse.json({ error: 'Failed to fetch collections' }, { status: 500 });
