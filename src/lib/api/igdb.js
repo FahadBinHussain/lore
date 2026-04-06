@@ -27,11 +27,11 @@ async function searchGames(query, accessToken) {
     let body;
     if (query.trim()) {
         // Search for specific games
-        body = `search "${query}"; fields id, name, summary, cover.url, first_release_date, rating, genres.name, involved_companies.company.name, involved_companies.developer, platforms.name, storyline; limit 20;`;
+        body = `search "${query}"; fields id, name, summary, cover.url, first_release_date, rating, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, platforms.name, storyline; limit 50;`;
     }
     else {
         // Get popular games when no search query
-        body = `fields id, name, summary, cover.url, first_release_date, rating, genres.name, involved_companies.company.name, involved_companies.developer, platforms.name, storyline; sort rating desc; where rating > 80 & cover != null; limit 20;`;
+        body = `fields id, name, summary, cover.url, first_release_date, rating, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, platforms.name, storyline; sort rating desc; where rating > 80 & cover != null; limit 20;`;
     }
     const response = await fetch(`${IGDB_BASE_URL}/games`, {
         method: 'POST',
@@ -56,7 +56,7 @@ async function getGameDetails(id, accessToken) {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
         },
-        body: `where id = ${id}; fields id, name, summary, cover.url, first_release_date, rating, genres.name, involved_companies.company.name, involved_companies.developer, platforms.name, storyline;`,
+        body: `where id = ${id}; fields id, name, summary, cover.url, first_release_date, rating, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, platforms.name, storyline;`,
         next: { revalidate: 3600 },
     });
     if (!response.ok) {

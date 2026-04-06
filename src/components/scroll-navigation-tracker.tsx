@@ -114,10 +114,10 @@ export function ScrollNavigationTracker() {
   }, []);
 
   useEffect(() => {
-    let intervalId: ReturnType<typeof window.setInterval> | null = null;
-    let stopTimeoutId: ReturnType<typeof window.setTimeout> | null = null;
+    let intervalId: number | null = null;
+    let stopTimeoutId: number | null = null;
     let rafId: number | null = null;
-    let fallbackTimeoutId: ReturnType<typeof window.setTimeout> | null = null;
+    let fallbackTimeoutId: number | null = null;
 
     const stopRestore = () => {
       isRestoringRef.current = false;

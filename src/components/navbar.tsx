@@ -79,7 +79,7 @@ function isValidTheme(theme: string | null): theme is (typeof DAISYUI_THEMES)[nu
 }
 
 function getServerTheme() {
-  return 'dark';
+  return 'light';
 }
 
 function getClientTheme() {
@@ -115,11 +115,17 @@ function subscribeTheme(callback: () => void) {
   };
 }
 
-function applyTheme(theme: string) {
+function applyTheme(theme: string, options?: { persist?: boolean; dispatch?: boolean }) {
+  const persist = options?.persist ?? true;
+  const dispatch = options?.dispatch ?? true;
   document.documentElement.setAttribute('data-theme', theme);
   document.documentElement.classList.toggle('dark', DARK_THEMES.has(theme));
-  localStorage.setItem('theme', theme);
-  window.dispatchEvent(new Event('theme-change'));
+  if (persist) {
+    localStorage.setItem('theme', theme);
+  }
+  if (dispatch) {
+    window.dispatchEvent(new Event('theme-change'));
+  }
 }
 
 function normalizeAvatarUrl(value: string | null | undefined): string | null {
@@ -137,6 +143,14 @@ export function Navbar() {
   const avatarUrl = normalizeAvatarUrl(session?.user?.image);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const savedTheme = localStorage.getItem('theme');
+    if (isValidTheme(savedTheme) && savedTheme !== theme) {
+      // First hydration can carry the server fallback snapshot.
+      // Respect persisted user theme instead of overwriting it.
+      applyTheme(savedTheme, { persist: false, dispatch: true });
+      return;
+    }
     applyTheme(theme);
   }, [theme]);
 
@@ -247,6 +261,13 @@ export function Navbar() {
               Search
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
             </Link>
+            <Link
+              href="/ai"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            >
+              AI
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+            </Link>
           </nav>
 
           {/* Medium Screen Navigation */}
@@ -284,6 +305,13 @@ export function Navbar() {
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
             >
               Search
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+            </Link>
+            <Link
+              href="/ai"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            >
+              AI
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
             </Link>
           </nav>
@@ -561,6 +589,13 @@ export function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Search
+              </Link>
+              <Link
+                href="/ai"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                AI
               </Link>
               <div className="pt-4 border-t border-border/50">
                 <p className="text-xs text-muted-foreground text-center">
