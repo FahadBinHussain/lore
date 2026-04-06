@@ -32,6 +32,44 @@ function normalizeImageValue(value: unknown): string | null {
   return trimmed;
 }
 
+async function findAuthUserByEmail(email: string) {
+  try {
+    return await db.query.users.findFirst({
+      where: eq(users.email, email),
+      columns: {
+        id: true,
+        role: true,
+        username: true,
+        image: true,
+      },
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function findUserImageByEmail(email: string): Promise<string | null> {
+  try {
+    const dbUser = await db.query.users.findFirst({
+      where: eq(users.email, email),
+      columns: { image: true },
+    });
+    return normalizeImageValue(dbUser?.image);
+  } catch {
+    return null;
+  }
+}
+
+async function backfillUserImage(userId: number, image: string): Promise<void> {
+  try {
+    await db.update(users)
+      .set({ image })
+      .where(eq(users.id, userId));
+  } catch {
+    // Non-blocking best-effort write.
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Google({
@@ -61,43 +99,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return `${preferredBaseUrl}/dashboard`;
     },
     async session({ session, token }) {
-      try {
-        const tokenPicture = normalizeImageValue(token.picture);
+      const tokenPicture = normalizeImageValue(token.picture);
 
-        if (session.user) {
-          session.user.role = normalizeUserRole(token.role);
-        }
+      if (session.user) {
+        session.user.role = normalizeUserRole(token.role);
+      }
 
-        if (session.user?.email) {
-          const dbUser = await db.query.users.findFirst({
-            where: eq(users.email, session.user.email),
-          });
-          
-          if (dbUser) {
-            session.user.id = dbUser.id.toString();
-            session.user.role = normalizeUserRole(dbUser.role);
-            session.user.username = dbUser.username;
-            // Use database image if available, otherwise use token picture
-            session.user.image = normalizeImageValue(dbUser.image) || tokenPicture || normalizeImageValue(session.user.image);
+      if (session.user?.email) {
+        const dbUser = await findAuthUserByEmail(session.user.email);
 
-            // Backfill missing DB image from token so future sessions keep the avatar.
-            if (!dbUser.image && tokenPicture) {
-              await db.update(users)
-                .set({ image: tokenPicture })
-                .where(eq(users.id, dbUser.id));
-            }
-          } else {
-            // If no db user, use token picture
-            session.user.image = tokenPicture || normalizeImageValue(session.user.image);
-            session.user.role = normalizeUserRole(token.role);
+        if (dbUser) {
+          session.user.id = dbUser.id.toString();
+          session.user.role = normalizeUserRole(dbUser.role);
+          session.user.username = dbUser.username;
+          // Use database image if available, otherwise use token picture
+          session.user.image = normalizeImageValue(dbUser.image) || tokenPicture || normalizeImageValue(session.user.image);
+
+          // Backfill missing DB image from token so future sessions keep the avatar.
+          if (!dbUser.image && tokenPicture) {
+            await backfillUserImage(dbUser.id, tokenPicture);
           }
-        }
-      } catch (error) {
-        console.error('Session callback error:', error);
-        if (session.user) {
-          const tokenPicture = normalizeImageValue(token.picture);
-          session.user.role = normalizeUserRole(token.role);
+        } else {
+          // If no DB user (or lookup failed), keep session usable from token/session payload.
+          if (typeof token.sub === 'string' && token.sub.trim().length > 0) {
+            session.user.id = token.sub;
+          }
+          if (typeof token.username === 'string') {
+            session.user.username = token.username;
+          }
           session.user.image = tokenPicture || normalizeImageValue(session.user.image);
+          session.user.role = normalizeUserRole(token.role);
         }
       }
       return session;
@@ -118,11 +149,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       // Last-resort recovery from DB (helps older sessions where token.picture was never set)
       if (!normalizeImageValue(token.picture) && typeof token.email === 'string' && token.email) {
-        const dbUser = await db.query.users.findFirst({
-          where: eq(users.email, token.email),
-          columns: { image: true },
-        });
-        token.picture = normalizeImageValue(dbUser?.image);
+        token.picture = await findUserImageByEmail(token.email);
       }
       return token;
     },
