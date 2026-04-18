@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono, Epilogue, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
@@ -62,7 +63,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-background pt-16">
         <Providers>
-          <ScrollNavigationTracker />
+          <Suspense fallback={null}>
+            <ScrollNavigationTracker />
+          </Suspense>
           <Navbar />
           {children}
         </Providers>
