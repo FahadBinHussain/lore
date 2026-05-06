@@ -195,3 +195,66 @@
 }
 
 /* Script font for decorative text - loaded via Google Fonts link in layout */
+
+/* Dashboard premium animations */
+@keyframes dashboard-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dashboard-glow-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes dashboard-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.dashboard-fade-up {
+  animation: dashboard-fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dashboard-glow-pulse {
+  animation: dashboard-glow-pulse 4s ease-in-out infinite;
+}
+
+/* Dashboard canvas container */
+.dashboard-three-canvas canvas {
+  touch-action: none;
+}
+
+/* Premium scrollbar for dashboard */
+.dashboard-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dashboard-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-scroll::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 10px;
+}
+
+.dashboard-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.3);
+}
