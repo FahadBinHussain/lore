@@ -14,6 +14,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLinkItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
@@ -400,28 +401,34 @@ export function Navbar() {
                         Navigation
                       </DropdownMenuLabel>
 
-                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                        <Link href="/dashboard" className="group flex items-center w-full">
-                          <LayoutDashboard className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
-                          <span className="font-medium">Dashboard</span>
-                          <ArrowRight className="ml-auto h-3 w-3 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
-                        </Link>
-                      </DropdownMenuItem>
+                      <DropdownMenuLinkItem
+                        render={<Link href="/dashboard" />}
+                        closeOnClick
+                        className="group px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150"
+                      >
+                        <LayoutDashboard className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="font-medium">Dashboard</span>
+                        <ArrowRight className="ml-auto h-3 w-3 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                      </DropdownMenuLinkItem>
 
-                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                        <Link href="/search" className="flex items-center w-full">
-                          <Search className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
-                          <span className="font-medium">Search Media</span>
-                        </Link>
-                      </DropdownMenuItem>
+                      <DropdownMenuLinkItem
+                        render={<Link href="/search" />}
+                        closeOnClick
+                        className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150"
+                      >
+                        <Search className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="font-medium">Search Media</span>
+                      </DropdownMenuLinkItem>
 
                       {isAdminRole(session?.user?.role) && (
-                        <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                          <Link href="/universes/create" className="flex items-center w-full">
-                            <Plus className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
-                            <span className="font-medium">Create Universe</span>
-                          </Link>
-                        </DropdownMenuItem>
+                        <DropdownMenuLinkItem
+                          render={<Link href="/universes/create" />}
+                          closeOnClick
+                          className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150"
+                        >
+                          <Plus className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
+                          <span className="font-medium">Create Universe</span>
+                        </DropdownMenuLinkItem>
                       )}
                     </DropdownMenuGroup>
 
@@ -433,12 +440,14 @@ export function Navbar() {
                         Account
                       </DropdownMenuLabel>
 
-                      <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
-                        <div className="flex items-center w-full">
-                          <User className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
-                          <span className="font-medium">Profile</span>
-                        </div>
-                      </DropdownMenuItem>
+                      <DropdownMenuLinkItem
+                        render={<Link href="/profile" />}
+                        closeOnClick
+                        className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150"
+                      >
+                        <User className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="font-medium">Profile</span>
+                      </DropdownMenuLinkItem>
 
                       <DropdownMenuItem className="px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150">
                         <div className="flex items-center w-full">
