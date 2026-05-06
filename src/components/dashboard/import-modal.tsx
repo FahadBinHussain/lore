@@ -498,11 +498,11 @@ export function ImportModal({ isOpen, onClose, importType, onImport }: ImportMod
   const copy = IMPORT_COPY[importType];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-background rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">{copy.title}</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(6, 6, 10, 0.8)', backdropFilter: 'blur(12px)' }}>
+      <div className="rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden" style={{ background: '#111118', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+        <div className="flex items-center justify-between p-6" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+          <h2 className="text-xl font-semibold" style={{ color: '#f0eef5', fontFamily: 'var(--font-epilogue), Epilogue, sans-serif' }}>{copy.title}</h2>
+          <Button variant="ghost" size="icon" onClick={onClose} style={{ color: '#7a7880' }}>
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -510,9 +510,9 @@ export function ImportModal({ isOpen, onClose, importType, onImport }: ImportMod
         <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(80vh-120px)]">
           {items.length === 0 && !isLoading && (
             <div className="text-center py-8">
-              <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">{copy.description}</p>
-              <label className="cursor-pointer inline-block bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md font-medium transition-colors">
+              <Upload className="w-12 h-12 mx-auto mb-4" style={{ color: '#5a5860' }} />
+              <p className="mb-4" style={{ color: '#6a6870', fontFamily: 'var(--font-manrope), Manrope, sans-serif' }}>{copy.description}</p>
+              <label className="cursor-pointer inline-block px-5 py-2.5 rounded-xl font-medium transition-all duration-200" style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', color: '#fff', boxShadow: '0 4px 20px rgba(139, 92, 246, 0.25)' }}>
                 Choose File
                 <input type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
               </label>
@@ -521,8 +521,8 @@ export function ImportModal({ isOpen, onClose, importType, onImport }: ImportMod
 
           {isLoading && (
             <div className="text-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-              <p>
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" style={{ color: '#8b5cf6' }} />
+              <p style={{ color: '#7a7880' }}>
                 {isCheckingStatuses
                   ? 'Loading, fetching item details, and checking your DB watched status...'
                   : 'Loading and fetching item details...'}
@@ -531,8 +531,8 @@ export function ImportModal({ isOpen, onClose, importType, onImport }: ImportMod
           )}
 
           {error && (
-            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <p className="text-destructive">{error}</p>
+            <div className="p-4 rounded-xl" style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+              <p style={{ color: '#ef4444' }}>{error}</p>
             </div>
           )}
 
@@ -540,32 +540,32 @@ export function ImportModal({ isOpen, onClose, importType, onImport }: ImportMod
             <>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={selectAll}>
+                  <Button variant="outline" size="sm" onClick={selectAll} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: '#a0a0a8' }}>
                     Select All
                   </Button>
-                  <Button variant="outline" size="sm" onClick={deselectAll}>
+                  <Button variant="outline" size="sm" onClick={deselectAll} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: '#a0a0a8' }}>
                     Deselect All
                   </Button>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm" style={{ color: '#5a5860' }}>
                     {selectedCount} of {importableItems.length} importable selected
                   </span>
                   {alreadyWatchedItems.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs" style={{ background: 'rgba(255,255,255,0.05)', color: '#7a7880' }}>
                       {alreadyWatchedItems.length} already watched in DB
                     </Badge>
                   )}
                   {japaneseAnimationEpisodeItems.length > 0 && (
-                    <Badge variant="secondary" className="text-xs bg-violet-500/10 text-violet-600">
+                    <Badge variant="secondary" className="text-xs" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#a78bfa' }}>
                       {japaneseAnimationEpisodeItems.length} JP animation episode(s) import to Anime
                     </Badge>
                   )}
                   {unresolvedAnimeItems.length > 0 && (
-                    <Badge variant="secondary" className="text-xs bg-amber-500/10 text-amber-600">
+                    <Badge variant="secondary" className="text-xs" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24' }}>
                       {unresolvedAnimeItems.length} AniList match pending
                     </Badge>
                   )}
                 </div>
-                <Button onClick={handleImport} disabled={selectedCount === 0 || isImporting}>
+                <Button onClick={handleImport} disabled={selectedCount === 0 || isImporting} style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', border: 'none', boxShadow: '0 4px 20px rgba(139, 92, 246, 0.25)' }}>
                   {isImporting ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -596,39 +596,39 @@ export function ImportModal({ isOpen, onClose, importType, onImport }: ImportMod
                         : 'TV Show';
 
                   return (
-                    <div key={`${item.id}-${item.watched_at}`} className="flex items-center gap-3 p-3 border rounded-lg">
+                    <div key={`${item.id}-${item.watched_at}`} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
                       <input
                         type="checkbox"
                         checked={item.selected}
                         onChange={() => toggleItemSelection(itemIndex)}
-                        className="w-4 h-4"
+                        className="w-4 h-4 accent-violet-500"
                       />
                       <div className="flex items-center gap-3 flex-1">
                         {posterUrl && (
-                          <img src={posterUrl} alt={title ?? 'Poster'} className="w-12 h-16 object-cover rounded" />
+                          <img src={posterUrl} alt={title ?? 'Poster'} className="w-12 h-16 object-cover rounded-lg" />
                         )}
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="font-semibold">{title}</h4>
+                            <h4 className="font-semibold text-sm" style={{ color: '#e0dee5' }}>{title}</h4>
                             {item.importTarget === 'anime' && (
-                              <Badge variant="secondary" className="text-xs bg-violet-500/10 text-violet-600">
+                              <Badge variant="secondary" className="text-xs" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#a78bfa' }}>
                                 Import to Anime
                               </Badge>
                             )}
                             {item.importTarget === 'anime' && typeof item.animeId === 'number' && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className="text-xs" style={{ background: 'rgba(255,255,255,0.05)', color: '#7a7880' }}>
                                 AniList #{item.animeId}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs mt-1" style={{ color: '#5a5860' }}>
                             {year} - {typeLabel}
                             {item.tmdbData?.vote_average && <> - {item.tmdbData.vote_average.toFixed(1)}</>}
                           </p>
                           {item.tmdbData?.genres && (
                             <div className="flex gap-1 mt-1">
                               {item.tmdbData.genres.slice(0, 3).map((genre) => (
-                                <Badge key={genre.id} variant="secondary" className="text-xs">
+                                <Badge key={genre.id} variant="secondary" className="text-[10px]" style={{ background: 'rgba(255,255,255,0.04)', color: '#6a6870' }}>
                                   {genre.name}
                                 </Badge>
                               ))}
@@ -642,8 +642,8 @@ export function ImportModal({ isOpen, onClose, importType, onImport }: ImportMod
 
                 {alreadyWatchedItems.length > 0 && (
                   <>
-                    <div className="pt-4 mt-4 border-t">
-                      <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    <div className="pt-4 mt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#4a4850' }}>
                         Already watched in your DB (excluded from import)
                       </h4>
                     </div>
@@ -662,26 +662,27 @@ export function ImportModal({ isOpen, onClose, importType, onImport }: ImportMod
                       return (
                         <div
                           key={`already-${item.id}-${item.watched_at}`}
-                          className="flex items-center gap-3 p-3 border rounded-lg opacity-70 bg-muted/30"
+                          className="flex items-center gap-3 p-3 rounded-xl opacity-60"
+                          style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)' }}
                         >
                           <input type="checkbox" checked={false} disabled className="w-4 h-4" />
                           <div className="flex items-center gap-3 flex-1">
                             {posterUrl && (
-                              <img src={posterUrl} alt={title ?? 'Poster'} className="w-12 h-16 object-cover rounded" />
+                              <img src={posterUrl} alt={title ?? 'Poster'} className="w-12 h-16 object-cover rounded-lg" />
                             )}
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <h4 className="font-semibold">{title}</h4>
-                                <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600">
+                                <h4 className="font-semibold text-sm" style={{ color: '#8a8890' }}>{title}</h4>
+                                <Badge variant="secondary" className="text-[10px]" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#34d399' }}>
                                   Already Watched
                                 </Badge>
                                 {item.importTarget === 'anime' && (
-                                  <Badge variant="secondary" className="text-xs bg-violet-500/10 text-violet-600">
+                                  <Badge variant="secondary" className="text-[10px]" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#a78bfa' }}>
                                     Anime
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-xs mt-1" style={{ color: '#4a4850' }}>
                                 {year} - {typeLabel}
                                 {item.tmdbData?.vote_average && <> - {item.tmdbData.vote_average.toFixed(1)}</>}
                               </p>
