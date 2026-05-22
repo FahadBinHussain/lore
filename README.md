@@ -175,3 +175,9 @@ src/
 ## License
 
 MIT. See `LICENSE`.
+
+## Contributors
+
+<a href="https://github.com/FahadBinHussain/lore/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=FahadBinHussain/lore" alt="Contributors" />
+</a>
