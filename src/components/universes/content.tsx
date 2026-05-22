@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, Trash2 } from 'lucide-react';
+import { isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 interface Universe {
   id: number;
@@ -18,6 +19,8 @@ interface Universe {
       id: number;
       mediaType?: string | null;
       source: string | null;
+      externalId?: string | null;
+      isPlaceholder?: boolean | null;
       backdropPath: string | null;
       posterPath?: string | null;
     };
@@ -53,7 +56,7 @@ function getDominantMediaType(items: Universe['items']): string | null {
   for (const item of items) {
     const mediaType = item.mediaItem.mediaType?.trim();
     if (!mediaType) continue;
-    if (item.mediaItem.source === 'manual') continue;
+    if (!isApiBackedMediaItem(item.mediaItem)) continue;
     counts.set(mediaType, (counts.get(mediaType) || 0) + 1);
   }
 
@@ -261,7 +264,7 @@ export function UniversesContent({
             return (
               <div
                 key={universe.id}
-                className="group glass-card rounded-3xl overflow-hidden glow-hover transition-all duration-500 cursor-pointer"
+                className="group glass-card flex h-full min-h-[604px] flex-col overflow-hidden rounded-3xl glow-hover transition-all duration-500 cursor-pointer"
                 role="button"
                 tabIndex={0}
                 onClick={() => router.push(`/universes/${universe.slug || universe.id}`)}
@@ -272,7 +275,7 @@ export function UniversesContent({
                   }
                 }}
               >
-                <div className="relative h-64 overflow-hidden">
+                <div className="relative h-64 shrink-0 overflow-hidden">
                   {image ? (
                     <Image className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={universe.name} src={image} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
                   ) : (
@@ -297,19 +300,19 @@ export function UniversesContent({
                     <span className="text-xs font-bold">{progress}% completed</span>
                   </div>
                 </div>
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className={`text-2xl font-headline font-bold text-on-surface ${variant === 'primary' ? 'group-hover:text-primary' : variant === 'secondary' ? 'group-hover:text-secondary' : 'group-hover:text-tertiary'} transition-colors`}>{universe.name}</h3>
+                <div className="flex flex-1 flex-col p-6">
+                  <div className="mb-2 flex min-h-[72px] items-start justify-between">
+                    <h3 className={`line-clamp-2 text-2xl font-headline font-bold leading-tight text-on-surface ${variant === 'primary' ? 'group-hover:text-primary' : variant === 'secondary' ? 'group-hover:text-secondary' : 'group-hover:text-tertiary'} transition-colors`}>{universe.name}</h3>
                   </div>
-                  <p className="text-on-surface-variant text-sm line-clamp-2 mb-6 font-body">{universe.description || 'No description available yet.'}</p>
+                  <p className="mb-6 min-h-[40px] text-on-surface-variant text-sm line-clamp-2 font-body">{universe.description || 'No description available yet.'}</p>
 
-                  <div className="mb-4">
+                  <div className="mb-4 min-h-[76px]">
                     <div className="flex items-center justify-between text-xs font-bold uppercase tracking-tighter text-on-surface-variant mb-2">
                       <span>Progress</span>
                       <span>
                         {trackableTotal > 0
                           ? `${universe.itemsCompleted || 0} / ${trackableTotal} Done`
-                          : 'Archive-only'}
+                          : 'Curated only'}
                       </span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-primary/15 overflow-hidden">
@@ -320,12 +323,12 @@ export function UniversesContent({
                     </div>
                     {untrackableCount > 0 && (
                       <p className="mt-2 text-xs text-on-surface-variant">
-                        +{untrackableCount} archive-only item{untrackableCount === 1 ? '' : 's'}
+                        +{untrackableCount} curated item{untrackableCount === 1 ? '' : 's'}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex justify-between items-center pt-4 border-t border-outline-variant/10">
+                  <div className="mt-auto flex items-center justify-between border-t border-outline-variant/10 pt-4">
                     <span className="text-xs font-bold text-on-surface-variant uppercase tracking-tighter">{totalTitles} TITLES</span>
                     <button
                       type="button"

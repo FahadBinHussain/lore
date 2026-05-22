@@ -4,10 +4,7 @@ import { db } from '@/db';
 import { collections, collectionItems, users, userMediaProgress } from '@/db/schema';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import { isAdminRole } from '@/lib/auth/roles';
-
-function isTrackableMediaItem(mediaItem: { source: string | null; isPlaceholder?: boolean | null }) {
-  return mediaItem.source !== 'manual' && !mediaItem.isPlaceholder;
-}
+import { isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 export async function GET() {
   const session = await auth();
@@ -53,7 +50,7 @@ export async function GET() {
         allCollections.flatMap((collection) =>
           collection.items
             .map((item) => item.mediaItem)
-            .filter((mediaItem) => isTrackableMediaItem(mediaItem))
+            .filter((mediaItem) => isApiBackedMediaItem(mediaItem))
             .map((mediaItem) => mediaItem.id)
         )
       )
@@ -80,7 +77,7 @@ export async function GET() {
     );
 
     const collectionsWithProgress = allCollections.map((collection) => {
-      const trackableItems = collection.items.filter((item) => isTrackableMediaItem(item.mediaItem));
+      const trackableItems = collection.items.filter((item) => isApiBackedMediaItem(item.mediaItem));
       const itemsTotal = trackableItems.length;
       const itemsCompleted = trackableItems.reduce(
         (count, item) => (watchedIds.has(item.mediaItem.id) ? count + 1 : count),

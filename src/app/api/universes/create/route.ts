@@ -265,7 +265,7 @@ async function ensureMediaItem(item: UniverseResolvedItemPayload): Promise<Ensur
       .replace(/^-+|-+$/g, '')
       .slice(0, 120);
     const yearToken = releaseDate && /^\d{4}/.test(releaseDate) ? releaseDate.slice(0, 4) : 'na';
-    externalId = `archive-${mediaType}-${yearToken}-${normalizedTitle || 'untitled'}`;
+    externalId = `curated-${mediaType}-${yearToken}-${normalizedTitle || 'untitled'}`;
   }
 
   if (!externalId || !source || !mediaType) {
@@ -317,7 +317,7 @@ async function ensureMediaItem(item: UniverseResolvedItemPayload): Promise<Ensur
     seasons: seasons !== null ? Math.trunc(seasons) : null,
     totalEpisodes: totalEpisodes !== null ? Math.trunc(totalEpisodes) : null,
     status: normalizeOptionalString(item.status),
-    isPlaceholder: isPlaceholder || source === 'manual',
+    isPlaceholder,
     tagline: normalizeOptionalString(item.tagline),
     popularity: popularity !== null ? popularity.toString() : null,
     additionalData: item.additionalData ?? null,

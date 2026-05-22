@@ -238,25 +238,25 @@ function toIdToken(value: string): string {
     .slice(0, 120);
 }
 
-function buildArchiveExternalId(item: UniversePreviewItem): string {
+function buildCuratedExternalId(item: UniversePreviewItem): string {
   const yearToken = typeof item.input.year === 'number' ? String(item.input.year) : 'na';
   const titleToken = toIdToken(item.input.title) || 'untitled';
-  return `archive-${item.input.source}-${item.input.type}-${yearToken}-${titleToken}`;
+  return `curated-${item.input.source}-${item.input.type}-${yearToken}-${titleToken}`;
 }
 
-function buildArchivePayload(item: UniversePreviewItem): UniverseCreateSelectedItemPayload {
+function buildCuratedPayload(item: UniversePreviewItem): UniverseCreateSelectedItemPayload {
   const mediaType = normalizeMediaType(item.input.type);
   const releaseDate = typeof item.input.year === 'number' ? `${item.input.year}-01-01` : null;
   return {
     title: item.input.title,
-    externalId: buildArchiveExternalId(item),
+    externalId: buildCuratedExternalId(item),
     source: 'manual',
     mediaType,
     posterPath: null,
     backdropPath: null,
     releaseDate,
     rating: null,
-    description: `${item.input.title} is kept as an archive-only entry.`,
+    description: `${item.input.title} is kept as a curated entry because it is not connected to one of the site's provider APIs.`,
     genres: [],
     runtime: null,
     developer: null,
@@ -268,9 +268,9 @@ function buildArchivePayload(item: UniversePreviewItem): UniverseCreateSelectedI
     status: null,
     tagline: null,
     popularity: null,
-    isPlaceholder: true,
+    isPlaceholder: false,
     additionalData: {
-      unresolved: {
+      curated: {
         inputSource: item.input.source,
         inputType: item.input.type,
         inputYear: typeof item.input.year === 'number' ? item.input.year : null,
@@ -285,7 +285,7 @@ function toSelectedPayload(item: UniversePreviewItem): UniverseCreateSelectedIte
     return item.resolved;
   }
   if (item.status === 'unresolved') {
-    return buildArchivePayload(item);
+    return buildCuratedPayload(item);
   }
   return null;
 }
@@ -762,7 +762,7 @@ export function CreateUniverseForm() {
               className="min-h-56 font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              Paste objects with `title`, `year`, `type`, and `source`. Unsupported or custom types are kept as archive-only entries.
+              Paste objects with `title`, `year`, `type`, and `source`. Unsupported or custom types are kept as curated entries.
             </p>
           </div>
 
@@ -803,12 +803,12 @@ export function CreateUniverseForm() {
                   <p className="text-lg font-semibold">{previewSummary.total}</p>
                 </div>
                 <div className="rounded-md border bg-background p-3">
-                  <p className="text-xs text-muted-foreground">Resolved</p>
+                  <p className="text-xs text-muted-foreground">API matched</p>
                   <p className="text-lg font-semibold text-emerald-600">{previewSummary.resolved}</p>
                 </div>
                 <div className="rounded-md border bg-background p-3">
-                  <p className="text-xs text-muted-foreground">Unresolved</p>
-                  <p className="text-lg font-semibold text-destructive">{previewSummary.unresolved}</p>
+                  <p className="text-xs text-muted-foreground">Curated</p>
+                  <p className="text-lg font-semibold text-amber-600">{previewSummary.unresolved}</p>
                 </div>
                 <div className="rounded-md border bg-background p-3">
                   <p className="text-xs text-muted-foreground">JP {'->'} Anime</p>
@@ -858,11 +858,11 @@ export function CreateUniverseForm() {
           )}
 
           {unresolvedPreviewItems.length > 0 && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-2">
-              <p className="text-sm font-medium text-destructive">Unresolved Items ({unresolvedPreviewItems.length})</p>
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-2">
+              <p className="text-sm font-medium text-amber-600">Curated Fallbacks ({unresolvedPreviewItems.length})</p>
               <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
                 {unresolvedPreviewItems.map((item) => (
-                  <div key={`unresolved-${item.index}-${item.input.title}`} className="text-xs text-destructive/90">
+                  <div key={`unresolved-${item.index}-${item.input.title}`} className="text-xs text-amber-700">
                     <span className="font-medium">{item.input.title}</span>
                     {typeof item.input.year === 'number' ? ` (${item.input.year})` : ''}
                     {' - '}
@@ -881,7 +881,7 @@ export function CreateUniverseForm() {
                   const previewImage = item.resolved?.previewImage;
                   const fullReleaseDate = formatReleaseDate(item.resolved?.releaseDate);
                   const previewHref = getPreviewHref(item);
-                  const archivePayload = item.status === 'unresolved' ? toSelectedPayload(item) : null;
+                  const curatedPayload = item.status === 'unresolved' ? toSelectedPayload(item) : null;
                   const duplicateMeta = duplicateRowMeta.get(item.index);
                   const statusVariant =
                     item.status === 'resolved'
@@ -970,7 +970,7 @@ export function CreateUniverseForm() {
                               )}
                               {item.status === 'unresolved' && (
                                 <Badge variant="outline" className="border-amber-500/50 text-amber-600">
-                                  Archive-only
+                                  Curated
                                 </Badge>
                               )}
                             </div>
@@ -1048,17 +1048,17 @@ export function CreateUniverseForm() {
                               </div>
                             )}
 
-                            {item.status === 'unresolved' && archivePayload && (
+                            {item.status === 'unresolved' && curatedPayload && (
                               <div className="mt-2 rounded-md border bg-background/50 p-2 space-y-2">
                                 <p className="text-xs text-muted-foreground">
-                                  This item will be saved as an archive-only placeholder.
+                                  This item will be saved as a curated entry because it is not connected to one of the site provider APIs.
                                 </p>
                                 <details className="text-xs">
                                   <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
                                     View extracted JSON
                                   </summary>
                                   <pre className="mt-2 max-h-40 overflow-auto rounded border bg-muted p-2 text-[11px] leading-relaxed">
-{JSON.stringify(archivePayload, null, 2)}
+{JSON.stringify(curatedPayload, null, 2)}
                                   </pre>
                                 </details>
                               </div>

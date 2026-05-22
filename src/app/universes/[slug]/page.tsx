@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { and, eq, inArray, or } from 'drizzle-orm';
-import { Star, BookOpen, Users, Gem } from 'lucide-react';
+import { Star, BookOpen, Users, Gem, ChevronDown, ListTree } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { collectionItems, collections, userMediaProgress, users } from '@/db/schema';
+import { collectionItems, collections, episodes as episodesTable, seasons, userMediaProgress, users } from '@/db/schema';
 import { HeroDebugLog } from '@/components/universes/hero-debug-log';
+import { getMediaDetailHref, getTimelineItemState, isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 interface UniversePageProps {
   params: Promise<{ slug: string }>;
@@ -20,6 +21,49 @@ interface HeroCandidateItem {
   posterPath: string | null;
 }
 
+interface TimelineMediaItem {
+  id: number;
+  title: string;
+  mediaType: string;
+  source: string;
+  externalId: string;
+  releaseDate: Date | string | null;
+  isPlaceholder?: boolean | null;
+}
+
+type ExpandedEpisodeEntry = {
+  kind: 'episode';
+  id: number;
+  dateKey: string;
+  sortOrder: number;
+  episodeNumber: number;
+  title: string;
+  airDate: Date | string | null;
+  runtime: number | null;
+};
+
+type ExpandedReleaseEntry = {
+  kind: 'release';
+  id: number;
+  dateKey: string;
+  sortOrder: number;
+  title: string;
+  mediaType: string;
+  href: string | null;
+  releaseDate: Date | string | null;
+  groupName: string | null;
+};
+
+type ExpandedTimelineEntry = ExpandedEpisodeEntry | ExpandedReleaseEntry;
+
+interface ExpandedSeriesTimeline {
+  episodeCount: number;
+  releaseCount: number;
+  firstDate: Date | string | null;
+  lastDate: Date | string | null;
+  entries: ExpandedTimelineEntry[];
+}
+
 function toImageUrl(path: string | null, source: string | null, size: 'w342' | 'w1280' = 'w342'): string | null {
   if (!path) return null;
   if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
@@ -31,14 +75,21 @@ function toImageUrl(path: string | null, source: string | null, size: 'w342' | '
 }
 
 function getDominantMediaType(
-  items: Array<{ mediaItem: { mediaType: string | null; source: string | null } }>
+  items: Array<{
+    mediaItem: {
+      mediaType: string | null;
+      source: string | null;
+      externalId?: string | null;
+      isPlaceholder?: boolean | null;
+    };
+  }>
 ): string | null {
   const counts = new Map<string, number>();
 
   for (const item of items) {
     const mediaType = item.mediaItem.mediaType?.trim();
     if (!mediaType) continue;
-    if (item.mediaItem.source === 'manual') continue;
+    if (!isApiBackedMediaItem(item.mediaItem)) continue;
     counts.set(mediaType, (counts.get(mediaType) || 0) + 1);
   }
 
@@ -61,6 +112,8 @@ function selectHeroCandidate(
       title: string;
       mediaType: string;
       source: string;
+      externalId: string;
+      isPlaceholder?: boolean | null;
       backdropPath: string | null;
       posterPath: string | null;
     };
@@ -110,32 +163,6 @@ function selectHeroCandidate(
   return { item: null, imagePath: null, imageKind: null };
 }
 
-function isTrackableMediaItem(mediaItem: {
-  source: string | null;
-  externalId: string;
-  isPlaceholder?: boolean | null;
-}): boolean {
-  if (mediaItem.isPlaceholder) return false;
-  if (mediaItem.source === 'manual') return false;
-  return Boolean(mediaItem.externalId);
-}
-
-function getMediaHref(
-  mediaType: string,
-  externalId: string,
-  source: string | null,
-  isPlaceholder?: boolean | null
-): string | null {
-  if (!isTrackableMediaItem({ source, externalId, isPlaceholder })) return null;
-  if (!externalId) return null;
-  if (mediaType === 'movie') return `/movies/${externalId}`;
-  if (mediaType === 'tv') return `/tv/${externalId}`;
-  if (mediaType === 'anime') return `/anime/${externalId}`;
-  if (mediaType === 'game') return `/games/${externalId}`;
-  if (mediaType === 'book') return `/books/${externalId}`;
-  return null;
-}
-
 function formatReleaseDate(value: Date | string | null): string {
   if (!value) return 'Unknown date';
 
@@ -161,60 +188,56 @@ function formatMediaType(type: string): string {
   return type.replace(/[_-]+/g, ' ').toUpperCase();
 }
 
-function getUnverifiedInputType(additionalData: unknown): string | null {
+function toDateKey(value: Date | string | null): string | null {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? trimmed.slice(0, 10) : null;
+  }
+
+  if (Number.isNaN(value.getTime())) return null;
+
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function compareDateKeys(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+function isSeriesMediaItem(mediaItem: { mediaType?: string | null }): boolean {
+  const type = mediaItem.mediaType?.trim().toLowerCase();
+  return type === 'anime' || type === 'tv';
+}
+
+function formatRuntime(runtime: number | null): string | null {
+  if (!runtime) return null;
+  return `${runtime} min`;
+}
+
+function getCuratedInputType(additionalData: unknown): string | null {
   if (!additionalData || typeof additionalData !== 'object' || Array.isArray(additionalData)) {
     return null;
   }
 
-  const unresolved = (additionalData as Record<string, unknown>).unresolved;
-  if (!unresolved || typeof unresolved !== 'object' || Array.isArray(unresolved)) {
+  const metadata = additionalData as Record<string, unknown>;
+  const curated = metadata.curated ?? metadata.unresolved;
+  if (!curated || typeof curated !== 'object' || Array.isArray(curated)) {
     return null;
   }
 
-  const rawType = (unresolved as Record<string, unknown>).inputType;
+  const rawType = (curated as Record<string, unknown>).inputType;
   if (typeof rawType !== 'string') return null;
   const trimmed = rawType.trim();
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function getUnverifiedReason(additionalData: unknown, mediaType: string): string | null {
-  if (additionalData && typeof additionalData === 'object' && !Array.isArray(additionalData)) {
-    const unresolved = (additionalData as Record<string, unknown>).unresolved;
-    if (unresolved && typeof unresolved === 'object' && !Array.isArray(unresolved)) {
-      const unresolvedRecord = unresolved as Record<string, unknown>;
-      const rawReason = unresolvedRecord.reason;
-      if (typeof rawReason === 'string' && rawReason.trim().length > 0) {
-        return rawReason.replace(/\s*\(tried:.*$/i, '').trim();
-      }
-
-      const inputSource = unresolvedRecord.inputSource;
-      const inputType = unresolvedRecord.inputType;
-      if (typeof inputSource === 'string' && inputSource.trim().length > 0) {
-        const sourceLabel = inputSource.trim().toUpperCase();
-        const typeLabel =
-          typeof inputType === 'string' && inputType.trim().length > 0
-            ? inputType.trim().toLowerCase()
-            : mediaType.toLowerCase();
-        return `No ${sourceLabel} ${typeLabel} match found`;
-      }
-    }
-  }
-
-  return null;
-}
-
-function getDisplayDescription(description: string | null, isUnverified: boolean): string {
-  if (!description) return 'No description available yet.';
-  if (!isUnverified) return description;
-
-  const marker = 'is kept as an archive-only entry.';
-  const lower = description.toLowerCase();
-  const markerIndex = lower.indexOf(marker);
-  if (markerIndex >= 0) {
-    return description.slice(0, markerIndex + marker.length).trim();
-  }
-
-  return description;
+function getDisplayDescription(description: string | null): string {
+  return description || 'No description available yet.';
 }
 
 export default async function Page({ params }: UniversePageProps) {
@@ -251,9 +274,103 @@ export default async function Page({ params }: UniversePageProps) {
 
   if (!universe) notFound();
 
+  const seriesMediaItemIds = universe.items
+    .map((item) => item.mediaItem)
+    .filter(isSeriesMediaItem)
+    .map((mediaItem) => mediaItem.id);
+
+  const seriesSeasons =
+    seriesMediaItemIds.length > 0
+      ? await db.query.seasons.findMany({
+          where: and(inArray(seasons.mediaItemId, seriesMediaItemIds), eq(seasons.source, 'tmdb')),
+          orderBy: [seasons.mediaItemId, seasons.seasonNumber],
+          with: {
+            episodes: {
+              orderBy: [episodesTable.episodeNumber],
+            },
+          },
+        })
+      : [];
+
+  const seasonsByMediaItemId = new Map<number, typeof seriesSeasons>();
+  for (const season of seriesSeasons) {
+    const current = seasonsByMediaItemId.get(season.mediaItemId) || [];
+    current.push(season);
+    seasonsByMediaItemId.set(season.mediaItemId, current);
+  }
+
+  const expandedTimelinesByMediaItemId = new Map<number, ExpandedSeriesTimeline>();
+  for (const item of universe.items) {
+    const mediaItem = item.mediaItem as TimelineMediaItem;
+    const matchedSeasons = seasonsByMediaItemId.get(mediaItem.id) || [];
+    const episodeEntries: ExpandedEpisodeEntry[] = matchedSeasons
+      .flatMap((season) =>
+        season.episodes.flatMap((episode) => {
+          const dateKey = toDateKey(episode.airDate);
+          if (!dateKey) return [];
+          const entry: ExpandedEpisodeEntry = {
+            kind: 'episode' as const,
+            id: episode.id,
+            dateKey,
+            sortOrder: episode.episodeNumber * 10,
+            episodeNumber: episode.episodeNumber,
+            title: episode.name,
+            airDate: episode.airDate,
+            runtime: episode.runtime,
+          };
+          return [entry];
+        })
+      );
+
+    if (episodeEntries.length === 0) continue;
+
+    const sortedEpisodes = [...episodeEntries].sort((a, b) => {
+      const dateDiff = compareDateKeys(a.dateKey, b.dateKey);
+      return dateDiff !== 0 ? dateDiff : a.sortOrder - b.sortOrder;
+    });
+    const firstDateKey = sortedEpisodes[0]?.dateKey;
+    const lastDateKey = sortedEpisodes[sortedEpisodes.length - 1]?.dateKey;
+    if (!firstDateKey || !lastDateKey) continue;
+
+    const releaseEntries: ExpandedReleaseEntry[] = universe.items
+      .filter((timelineItem) => timelineItem.mediaItem.id !== mediaItem.id)
+      .flatMap((timelineItem) => {
+        const releaseDateKey = toDateKey(timelineItem.mediaItem.releaseDate);
+        if (!releaseDateKey || releaseDateKey < firstDateKey || releaseDateKey > lastDateKey) {
+          return [];
+        }
+
+        const entry: ExpandedReleaseEntry = {
+          kind: 'release' as const,
+          id: timelineItem.id,
+          dateKey: releaseDateKey,
+          sortOrder: timelineItem.releaseOrder * 10 + 5,
+          title: timelineItem.mediaItem.title,
+          mediaType: timelineItem.mediaItem.mediaType,
+          href: getMediaDetailHref(timelineItem.mediaItem),
+          releaseDate: timelineItem.mediaItem.releaseDate,
+          groupName: timelineItem.groupName,
+        };
+        return [entry];
+      });
+
+    const entries = [...sortedEpisodes, ...releaseEntries].sort((a, b) => {
+      const dateDiff = compareDateKeys(a.dateKey, b.dateKey);
+      return dateDiff !== 0 ? dateDiff : a.sortOrder - b.sortOrder;
+    });
+
+    expandedTimelinesByMediaItemId.set(mediaItem.id, {
+      episodeCount: episodeEntries.length,
+      releaseCount: releaseEntries.length,
+      firstDate: sortedEpisodes[0].airDate,
+      lastDate: sortedEpisodes[sortedEpisodes.length - 1].airDate,
+      entries,
+    });
+  }
+
   const trackableMediaItemIds = universe.items
     .map((item) => item.mediaItem)
-    .filter((mediaItem) => isTrackableMediaItem(mediaItem))
+    .filter((mediaItem) => isApiBackedMediaItem(mediaItem))
     .map((mediaItem) => mediaItem.id);
   const progressRows =
     Number.isFinite(userId) && trackableMediaItemIds.length > 0
@@ -335,28 +452,22 @@ export default async function Page({ params }: UniversePageProps) {
             {universe.items.map((item, index) => {
               const reverse = index % 2 === 1;
               const poster = toImageUrl(item.mediaItem.posterPath, item.mediaItem.source, 'w342');
-              const href = getMediaHref(
-                item.mediaItem.mediaType,
-                item.mediaItem.externalId,
-                item.mediaItem.source,
-                item.mediaItem.isPlaceholder
-              );
+              const href = getMediaDetailHref(item.mediaItem);
               const releaseDate = formatReleaseDate(item.mediaItem.releaseDate);
-              const isTrackable = isTrackableMediaItem(item.mediaItem);
-              const isUnverified = !isTrackable;
+              const itemState = getTimelineItemState(item.mediaItem);
+              const isTrackable = itemState === 'trackable';
+              const isCurated = itemState === 'curated';
               const isWatched = isTrackable && watchedMediaIds.has(item.mediaItem.id);
-              const unverifiedInputType = isUnverified ? getUnverifiedInputType(item.mediaItem.additionalData) : null;
-              const mediaTypeLabel = unverifiedInputType ? formatMediaType(unverifiedInputType) : formatMediaType(item.mediaItem.mediaType);
-              const description = getDisplayDescription(item.mediaItem.description, isUnverified);
-              const unverifiedReason = isUnverified
-                ? getUnverifiedReason(item.mediaItem.additionalData, item.mediaItem.mediaType)
-                : null;
+              const expandedTimeline = expandedTimelinesByMediaItemId.get(item.mediaItem.id);
+              const curatedInputType = !isTrackable ? getCuratedInputType(item.mediaItem.additionalData) : null;
+              const mediaTypeLabel = curatedInputType ? formatMediaType(curatedInputType) : formatMediaType(item.mediaItem.mediaType);
+              const description = getDisplayDescription(item.mediaItem.description);
 
               return (
                 <div key={item.id} className={`relative mb-16 md:mb-24 flex flex-col ${reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center justify-between w-full`}>
                   <div className="hidden md:block w-5/12" />
                   <div className="z-20 w-8 h-8 rounded-full bg-base-100 border-2 border-primary flex items-center justify-center mb-4 md:mb-0">
-                    {isUnverified ? (
+                    {!isTrackable ? (
                       <div className="w-2 h-2 rounded-full border border-base-content/40" />
                     ) : isWatched ? (
                       <div className="w-2 h-2 rounded-full bg-primary" />
@@ -399,20 +510,19 @@ export default async function Page({ params }: UniversePageProps) {
                               {item.mediaItem.title}
                             </h3>
                           )}
-                          <span className="inline-block px-2 py-0.5 bg-base-300 text-base-content/70 text-[10px] font-bold rounded mb-2">
-                            {mediaTypeLabel}
-                          </span>
-                          {isUnverified ? (
-                            <span className="inline-block ml-2 px-2 py-0.5 bg-warning/15 text-warning text-[10px] font-bold rounded mb-2">
-                              Unverified
+                          <div className={`mb-2 flex flex-wrap gap-2 ${reverse ? 'md:justify-end' : ''}`}>
+                            <span className="inline-block px-2 py-0.5 bg-base-300 text-base-content/70 text-[10px] font-bold rounded">
+                              {mediaTypeLabel}
                             </span>
-                          ) : null}
+                            {isCurated ? (
+                              <span className="inline-block px-2 py-0.5 bg-primary/15 text-primary text-[10px] font-bold rounded">
+                                Curated
+                              </span>
+                            ) : null}
+                          </div>
                           <p className="text-sm text-base-content/80 mb-3 line-clamp-2">
                             {description}
                           </p>
-                          {unverifiedReason ? (
-                            <p className="text-xs text-warning mb-3">{unverifiedReason}</p>
-                          ) : null}
                           {item.mediaItem.rating ? (
                             <div className={`flex items-center gap-2 text-yellow-500 ${reverse ? 'md:justify-end' : ''}`}>
                               <Star className="w-4 h-4" fill="currentColor" />
@@ -421,6 +531,68 @@ export default async function Page({ params }: UniversePageProps) {
                           ) : null}
                         </div>
                       </div>
+                      {expandedTimeline ? (
+                        <details className="group/details mt-5 border-t border-base-content/10 pt-4">
+                          <summary className={`flex cursor-pointer list-none items-center justify-between gap-3 text-left ${reverse ? 'md:text-right' : ''}`}>
+                            <span className={`flex min-w-0 items-center gap-2 text-sm font-bold text-base-content ${reverse ? 'md:flex-row-reverse' : ''}`}>
+                              <ListTree className="h-4 w-4 shrink-0 text-primary" />
+                              <span className="truncate">Expanded airing window</span>
+                            </span>
+                            <span className={`flex shrink-0 items-center gap-2 text-xs font-bold text-base-content/60 ${reverse ? 'md:flex-row-reverse' : ''}`}>
+                              {expandedTimeline.episodeCount} episodes
+                              {expandedTimeline.releaseCount > 0 ? ` + ${expandedTimeline.releaseCount} releases` : ''}
+                              <ChevronDown className="h-4 w-4 transition-transform group-open/details:rotate-180" />
+                            </span>
+                          </summary>
+                          <div className="mt-4 max-h-[520px] overflow-y-auto pr-1">
+                            <div className="space-y-1.5">
+                              {expandedTimeline.entries.map((entry) => (
+                                <div
+                                  key={`${entry.kind}-${entry.id}`}
+                                  className={`grid grid-cols-[108px_minmax(0,1fr)] items-start gap-3 rounded-md px-3 py-2 text-sm ${entry.kind === 'release' ? 'bg-primary/10 text-base-content' : 'bg-base-300/40 text-base-content/80'}`}
+                                >
+                                  <span className="text-xs font-bold text-base-content/60">
+                                    {formatReleaseDate(entry.kind === 'episode' ? entry.airDate : entry.releaseDate)}
+                                  </span>
+                                  <div className="min-w-0">
+                                    {entry.kind === 'episode' ? (
+                                      <>
+                                        <div className="flex min-w-0 items-center gap-2">
+                                          <span className="shrink-0 rounded bg-base-100 px-1.5 py-0.5 text-[10px] font-bold text-base-content/60">
+                                            EP {entry.episodeNumber}
+                                          </span>
+                                          <span className="truncate font-medium">{entry.title}</span>
+                                        </div>
+                                        {formatRuntime(entry.runtime) ? (
+                                          <span className="mt-1 block text-xs text-base-content/50">{formatRuntime(entry.runtime)}</span>
+                                        ) : null}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <div className="flex min-w-0 items-center gap-2">
+                                          <span className="shrink-0 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                                            {formatMediaType(entry.mediaType)}
+                                          </span>
+                                          {entry.href ? (
+                                            <Link href={entry.href} scroll className="truncate font-bold text-primary hover:underline">
+                                              {entry.title}
+                                            </Link>
+                                          ) : (
+                                            <span className="truncate font-bold text-primary">{entry.title}</span>
+                                          )}
+                                        </div>
+                                        {entry.groupName ? (
+                                          <span className="mt-1 block text-xs text-base-content/50">{entry.groupName}</span>
+                                        ) : null}
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </details>
+                      ) : null}
                     </div>
                   </div>
                 </div>
