@@ -1,3 +1,11 @@
+<!-- BEGIN:nextjs-agent-rules -->
+
+# Next.js: ALWAYS read docs before coding
+
+Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated; the docs are the source of truth.
+
+<!-- END:nextjs-agent-rules -->
+
 # AGENTS.md instructions for Lore
 
 ## Product Goal
@@ -58,7 +66,7 @@ Lore is a universe archive, not just a media tracker. The goal is to build lore 
 ## Deployment
 
 1. Use ScoopCryo for Vercel CLI account work:
-   `vercel-account.ps1 run owning vercel profile <vercel args...>`
+   `vercel-account.ps1 run owning vercel profile [vercel args...]`
 2. The production project is `lore`.
 3. The production alias is `https://univrs.vercel.app`.
 4. After deploying, verify the deployed URL and relevant page behavior. For auth-gated pages, state exactly what could and could not be verified without a browser session.
