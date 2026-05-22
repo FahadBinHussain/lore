@@ -88,7 +88,6 @@ interface UniversePreviewItem {
   status: UniversePreviewStatus;
   selected: boolean;
   reason?: string;
-  resolverMeta?: Record<string, unknown>;
   isJapaneseAnimation?: boolean;
   reroutedToAnime?: boolean;
   resolved?: UniverseResolvedItemData;
@@ -1073,17 +1072,6 @@ export function CreateUniverseForm() {
                               >
                                 {item.reason}
                               </p>
-                            )}
-
-                            {item.resolverMeta && (
-                              <details className="text-xs mt-2">
-                                <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-                                  View AI response
-                                </summary>
-                                <pre className="mt-2 max-h-40 overflow-auto rounded border bg-muted p-2 text-[11px] leading-relaxed">
-{JSON.stringify(item.resolverMeta, null, 2)}
-                                </pre>
-                              </details>
                             )}
                           </div>
                         </div>

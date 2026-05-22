@@ -262,13 +262,6 @@ export function Navbar() {
               Search
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
             </Link>
-            <Link
-              href="/ai"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              AI
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
           </nav>
 
           {/* Medium Screen Navigation */}
@@ -306,13 +299,6 @@ export function Navbar() {
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
             >
               Search
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/ai"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              AI
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
             </Link>
           </nav>
@@ -599,13 +585,7 @@ export function Navbar() {
               >
                 Search
               </Link>
-              <Link
-                href="/ai"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                AI
-              </Link>
+
               <div className="pt-4 border-t border-border/50">
                 <p className="text-xs text-muted-foreground text-center">
                   Use the user menu above to sign in or access your dashboard

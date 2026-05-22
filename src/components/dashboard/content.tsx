@@ -373,7 +373,7 @@ export function DashboardContent() {
               { label: 'Categories', value: 10, icon: Layers, color: '#8b5cf6' },
               { label: 'Integrations', value: 4, icon: Activity, color: '#06b6d4' },
               { label: 'Import Sources', value: 2, icon: TrendingUp, color: '#f59e0b' },
-              { label: 'AI Powered', value: 1, icon: Star, color: '#ec4899', suffix: '' },
+              { label: 'Automation', value: 1, icon: Star, color: '#ec4899', suffix: '' },
             ].map((stat) => (
               <div
                 key={stat.label}

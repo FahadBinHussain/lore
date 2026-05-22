@@ -138,7 +138,7 @@ export const mediaItems = pgTable('media_items', {
   totalEpisodes: integer('total_episodes'),
   
   status: varchar('status', { length: 50 }), // 'released', 'upcoming', 'cancelled'
-  isPlaceholder: boolean('is_placeholder').default(false).notNull(), // For AI-suggested future items
+  isPlaceholder: boolean('is_placeholder').default(false).notNull(), // For future archive-only items
   
   tagline: text('tagline'),
   popularity: decimal('popularity', { precision: 10, scale: 2 }),
