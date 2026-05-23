@@ -28,13 +28,7 @@ interface TimelineMediaItem {
   source: string;
   externalId: string;
   releaseDate: Date | string | null;
-  additionalData?: unknown;
   isPlaceholder?: boolean | null;
-  networks?: unknown;
-  runtime?: number | null;
-  seasons?: number | null;
-  status?: string | null;
-  totalEpisodes?: number | null;
 }
 
 type ExpandedEpisodeEntry = {
@@ -62,20 +56,12 @@ type ExpandedReleaseEntry = {
 
 type ExpandedTimelineEntry = ExpandedEpisodeEntry | ExpandedReleaseEntry;
 
-interface SeriesSummaryRow {
-  label: string;
-  value: string;
-}
-
 interface ExpandedSeriesTimeline {
   episodeCount: number;
-  seasonCount: number;
   releaseCount: number;
   firstDate: Date | string | null;
   lastDate: Date | string | null;
   entries: ExpandedTimelineEntry[];
-  summaryRows: SeriesSummaryRow[];
-  note: string | null;
 }
 
 function toImageUrl(path: string | null, source: string | null, size: 'w342' | 'w1280' = 'w342'): string | null {
@@ -233,111 +219,6 @@ function formatRuntime(runtime: number | null): string | null {
   return `${runtime} min`;
 }
 
-function formatCount(value: number, singular: string, plural = `${singular}s`): string {
-  return `${value} ${value === 1 ? singular : plural}`;
-}
-
-function formatStatus(value: string | null | undefined): string | null {
-  if (!value) return null;
-
-  const normalized = value
-    .replace(/[_-]+/g, ' ')
-    .trim()
-    .toLowerCase();
-
-  if (!normalized) return null;
-  return normalized.replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function getPositiveInteger(value: unknown): number | null {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
-  const normalized = Math.trunc(value);
-  return normalized > 0 ? normalized : null;
-}
-
-function getStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0);
-}
-
-function getMetadataRecord(additionalData: unknown): Record<string, unknown> | null {
-  if (!additionalData || typeof additionalData !== 'object' || Array.isArray(additionalData)) {
-    return null;
-  }
-
-  return additionalData as Record<string, unknown>;
-}
-
-function getSeriesNote(additionalData: unknown, collectionNote: string | null): string | null {
-  const metadata = getMetadataRecord(additionalData);
-  const sheetNote = metadata && typeof metadata.sheetNote === 'string' ? metadata.sheetNote.trim() : '';
-  if (sheetNote) return sheetNote;
-
-  const note = collectionNote?.trim();
-  return note || null;
-}
-
-function getSeriesSeasonCount(mediaItem: { seasons?: number | null }, matchedSeasonCount: number): number {
-  return matchedSeasonCount || getPositiveInteger(mediaItem.seasons) || 0;
-}
-
-function getSeriesEpisodeCount(mediaItem: { totalEpisodes?: number | null }, episodeEntryCount: number): number {
-  return episodeEntryCount || getPositiveInteger(mediaItem.totalEpisodes) || 0;
-}
-
-function buildSeriesSummaryRows(
-  mediaItem: {
-    networks?: unknown;
-    runtime?: number | null;
-    seasons?: number | null;
-    status?: string | null;
-    totalEpisodes?: number | null;
-  },
-  matchedSeasonCount: number,
-  episodeEntryCount: number
-): SeriesSummaryRow[] {
-  const rows: SeriesSummaryRow[] = [];
-  const episodeCount = getSeriesEpisodeCount(mediaItem, episodeEntryCount);
-  const seasonCount = getSeriesSeasonCount(mediaItem, matchedSeasonCount);
-  const runtime = getPositiveInteger(mediaItem.runtime);
-  const networks = getStringArray(mediaItem.networks);
-  const status = formatStatus(mediaItem.status);
-
-  if (episodeCount > 0) {
-    rows.push({ label: 'Episodes', value: String(episodeCount) });
-  }
-
-  if (seasonCount > 0) {
-    rows.push({ label: 'Seasons', value: String(seasonCount) });
-  }
-
-  if (runtime) {
-    rows.push({ label: 'Runtime', value: formatRuntime(runtime) || String(runtime) });
-  }
-
-  if (status) {
-    rows.push({ label: 'Status', value: status });
-  }
-
-  if (networks.length > 0) {
-    rows.push({ label: networks.length === 1 ? 'Studio' : 'Studios', value: networks.join(', ') });
-  }
-
-  return rows;
-}
-
-function buildExpandedSummaryLabel(expandedTimeline: ExpandedSeriesTimeline): string {
-  const parts = [
-    expandedTimeline.episodeCount > 0 ? formatCount(expandedTimeline.episodeCount, 'episode') : null,
-    expandedTimeline.episodeCount === 0 && expandedTimeline.seasonCount > 0
-      ? formatCount(expandedTimeline.seasonCount, 'season')
-      : null,
-    expandedTimeline.releaseCount > 0 ? formatCount(expandedTimeline.releaseCount, 'release') : null,
-  ].filter((part): part is string => Boolean(part));
-
-  return parts.length > 0 ? parts.join(' + ') : 'Series details';
-}
-
 function getCuratedInputType(additionalData: unknown): string | null {
   if (!additionalData || typeof additionalData !== 'object' || Array.isArray(additionalData)) {
     return null;
@@ -440,26 +321,8 @@ export default async function Page({ params }: UniversePageProps) {
           return [entry];
         })
       );
-    const episodeCount = getSeriesEpisodeCount(mediaItem, episodeEntries.length);
-    const seasonCount = getSeriesSeasonCount(mediaItem, matchedSeasons.length);
-    const summaryRows = buildSeriesSummaryRows(mediaItem, matchedSeasons.length, episodeEntries.length);
-    const seriesNote = getSeriesNote(mediaItem.additionalData, item.notes);
 
-    if (episodeEntries.length === 0) {
-      if (summaryRows.length > 0 || seriesNote) {
-        expandedTimelinesByMediaItemId.set(mediaItem.id, {
-          episodeCount,
-          seasonCount,
-          releaseCount: 0,
-          firstDate: mediaItem.releaseDate,
-          lastDate: null,
-          entries: [],
-          summaryRows,
-          note: seriesNote,
-        });
-      }
-      continue;
-    }
+    if (episodeEntries.length === 0) continue;
 
     const sortedEpisodes = [...episodeEntries].sort((a, b) => {
       const dateDiff = compareDateKeys(a.dateKey, b.dateKey);
@@ -497,14 +360,11 @@ export default async function Page({ params }: UniversePageProps) {
     });
 
     expandedTimelinesByMediaItemId.set(mediaItem.id, {
-      episodeCount,
-      seasonCount,
+      episodeCount: episodeEntries.length,
       releaseCount: releaseEntries.length,
       firstDate: sortedEpisodes[0].airDate,
       lastDate: sortedEpisodes[sortedEpisodes.length - 1].airDate,
       entries,
-      summaryRows,
-      note: seriesNote,
     });
   }
 
@@ -599,7 +459,6 @@ export default async function Page({ params }: UniversePageProps) {
               const isCurated = itemState === 'curated';
               const isWatched = isTrackable && watchedMediaIds.has(item.mediaItem.id);
               const expandedTimeline = expandedTimelinesByMediaItemId.get(item.mediaItem.id);
-              const expandedSummaryLabel = expandedTimeline ? buildExpandedSummaryLabel(expandedTimeline) : null;
               const curatedInputType = !isTrackable ? getCuratedInputType(item.mediaItem.additionalData) : null;
               const mediaTypeLabel = curatedInputType ? formatMediaType(curatedInputType) : formatMediaType(item.mediaItem.mediaType);
               const description = getDisplayDescription(item.mediaItem.description);
@@ -680,77 +539,57 @@ export default async function Page({ params }: UniversePageProps) {
                               <span className="truncate">Expanded airing window</span>
                             </span>
                             <span className={`flex shrink-0 items-center gap-2 text-xs font-bold text-base-content/60 ${reverse ? 'md:flex-row-reverse' : ''}`}>
-                              {expandedSummaryLabel}
+                              {expandedTimeline.episodeCount} episodes
+                              {expandedTimeline.releaseCount > 0 ? ` + ${expandedTimeline.releaseCount} releases` : ''}
                               <ChevronDown className="h-4 w-4 transition-transform group-open/details:rotate-180" />
                             </span>
                           </summary>
-                          <div className="mt-4 space-y-4">
-                            {(expandedTimeline.summaryRows.length > 0 || expandedTimeline.note) ? (
-                              <div className="rounded-lg border border-base-content/10 bg-base-300/40 p-3">
-                                {expandedTimeline.summaryRows.length > 0 ? (
-                                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                    {expandedTimeline.summaryRows.map((row) => (
-                                      <div key={row.label} className="rounded-md bg-base-100/50 px-3 py-2">
-                                        <span className="block text-[10px] font-bold uppercase tracking-widest text-base-content/50">{row.label}</span>
-                                        <span className="text-sm font-bold text-base-content">{row.value}</span>
-                                      </div>
-                                    ))}
+                          <div className="mt-4 max-h-[520px] overflow-y-auto pr-1">
+                            <div className="space-y-1.5">
+                              {expandedTimeline.entries.map((entry) => (
+                                <div
+                                  key={`${entry.kind}-${entry.id}`}
+                                  className={`grid grid-cols-[108px_minmax(0,1fr)] items-start gap-3 rounded-md px-3 py-2 text-sm ${entry.kind === 'release' ? 'bg-primary/10 text-base-content' : 'bg-base-300/40 text-base-content/80'}`}
+                                >
+                                  <span className="text-xs font-bold text-base-content/60">
+                                    {formatReleaseDate(entry.kind === 'episode' ? entry.airDate : entry.releaseDate)}
+                                  </span>
+                                  <div className="min-w-0">
+                                    {entry.kind === 'episode' ? (
+                                      <>
+                                        <div className="flex min-w-0 items-center gap-2">
+                                          <span className="shrink-0 rounded bg-base-100 px-1.5 py-0.5 text-[10px] font-bold text-base-content/60">
+                                            EP {entry.episodeNumber}
+                                          </span>
+                                          <span className="truncate font-medium">{entry.title}</span>
+                                        </div>
+                                        {formatRuntime(entry.runtime) ? (
+                                          <span className="mt-1 block text-xs text-base-content/50">{formatRuntime(entry.runtime)}</span>
+                                        ) : null}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <div className="flex min-w-0 items-center gap-2">
+                                          <span className="shrink-0 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                                            {formatMediaType(entry.mediaType)}
+                                          </span>
+                                          {entry.href ? (
+                                            <Link href={entry.href} scroll className="truncate font-bold text-primary hover:underline">
+                                              {entry.title}
+                                            </Link>
+                                          ) : (
+                                            <span className="truncate font-bold text-primary">{entry.title}</span>
+                                          )}
+                                        </div>
+                                        {entry.groupName ? (
+                                          <span className="mt-1 block text-xs text-base-content/50">{entry.groupName}</span>
+                                        ) : null}
+                                      </>
+                                    )}
                                   </div>
-                                ) : null}
-                                {expandedTimeline.note ? (
-                                  <p className="mt-3 text-xs leading-relaxed text-base-content/60">{expandedTimeline.note}</p>
-                                ) : null}
-                              </div>
-                            ) : null}
-                            {expandedTimeline.entries.length > 0 ? (
-                              <div className="max-h-[520px] overflow-y-auto pr-1">
-                                <div className="space-y-1.5">
-                                  {expandedTimeline.entries.map((entry) => (
-                                    <div
-                                      key={`${entry.kind}-${entry.id}`}
-                                      className={`grid grid-cols-[108px_minmax(0,1fr)] items-start gap-3 rounded-md px-3 py-2 text-sm ${entry.kind === 'release' ? 'bg-primary/10 text-base-content' : 'bg-base-300/40 text-base-content/80'}`}
-                                    >
-                                      <span className="text-xs font-bold text-base-content/60">
-                                        {formatReleaseDate(entry.kind === 'episode' ? entry.airDate : entry.releaseDate)}
-                                      </span>
-                                      <div className="min-w-0">
-                                        {entry.kind === 'episode' ? (
-                                          <>
-                                            <div className="flex min-w-0 items-center gap-2">
-                                              <span className="shrink-0 rounded bg-base-100 px-1.5 py-0.5 text-[10px] font-bold text-base-content/60">
-                                                EP {entry.episodeNumber}
-                                              </span>
-                                              <span className="truncate font-medium">{entry.title}</span>
-                                            </div>
-                                            {formatRuntime(entry.runtime) ? (
-                                              <span className="mt-1 block text-xs text-base-content/50">{formatRuntime(entry.runtime)}</span>
-                                            ) : null}
-                                          </>
-                                        ) : (
-                                          <>
-                                            <div className="flex min-w-0 items-center gap-2">
-                                              <span className="shrink-0 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">
-                                                {formatMediaType(entry.mediaType)}
-                                              </span>
-                                              {entry.href ? (
-                                                <Link href={entry.href} scroll className="truncate font-bold text-primary hover:underline">
-                                                  {entry.title}
-                                                </Link>
-                                              ) : (
-                                                <span className="truncate font-bold text-primary">{entry.title}</span>
-                                              )}
-                                            </div>
-                                            {entry.groupName ? (
-                                              <span className="mt-1 block text-xs text-base-content/50">{entry.groupName}</span>
-                                            ) : null}
-                                          </>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))}
                                 </div>
-                              </div>
-                            ) : null}
+                              ))}
+                            </div>
                           </div>
                         </details>
                       ) : null}
