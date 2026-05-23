@@ -36,8 +36,10 @@ type ExpandedEpisodeEntry = {
   id: number;
   dateKey: string;
   sortOrder: number;
+  seasonNumber: number;
   episodeNumber: number;
   title: string;
+  href: string | null;
   airDate: Date | string | null;
   runtime: number | null;
 };
@@ -219,6 +221,30 @@ function formatRuntime(runtime: number | null): string | null {
   return `${runtime} min`;
 }
 
+function getEpisodeDetailHref(
+  mediaItem: TimelineMediaItem,
+  seasonNumber: number,
+  episodeNumber: number
+): string | null {
+  if (!isApiBackedMediaItem(mediaItem)) return null;
+
+  const externalId = mediaItem.externalId?.trim();
+  if (!externalId) return null;
+
+  const season = encodeURIComponent(String(seasonNumber));
+  const episode = encodeURIComponent(String(episodeNumber));
+  const id = encodeURIComponent(externalId);
+
+  switch (mediaItem.mediaType?.trim().toLowerCase()) {
+    case 'tv':
+      return `/tv/${id}/season/${season}/episode/${episode}`;
+    case 'anime':
+      return `/anime/${id}/season/${season}/episode/${episode}`;
+    default:
+      return null;
+  }
+}
+
 function getCuratedInputType(additionalData: unknown): string | null {
   if (!additionalData || typeof additionalData !== 'object' || Array.isArray(additionalData)) {
     return null;
@@ -312,9 +338,11 @@ export default async function Page({ params }: UniversePageProps) {
             kind: 'episode' as const,
             id: episode.id,
             dateKey,
-            sortOrder: episode.episodeNumber * 10,
+            sortOrder: season.seasonNumber * 10000 + episode.episodeNumber * 10,
+            seasonNumber: season.seasonNumber,
             episodeNumber: episode.episodeNumber,
             title: episode.name,
+            href: getEpisodeDetailHref(mediaItem, season.seasonNumber, episode.episodeNumber),
             airDate: episode.airDate,
             runtime: episode.runtime,
           };
@@ -559,9 +587,15 @@ export default async function Page({ params }: UniversePageProps) {
                                       <>
                                         <div className="flex min-w-0 items-center gap-2">
                                           <span className="shrink-0 rounded bg-base-100 px-1.5 py-0.5 text-[10px] font-bold text-base-content/60">
-                                            EP {entry.episodeNumber}
+                                            S{entry.seasonNumber} EP {entry.episodeNumber}
                                           </span>
-                                          <span className="truncate font-medium">{entry.title}</span>
+                                          {entry.href ? (
+                                            <Link href={entry.href} scroll className="truncate font-medium text-primary hover:underline">
+                                              {entry.title}
+                                            </Link>
+                                          ) : (
+                                            <span className="truncate font-medium">{entry.title}</span>
+                                          )}
                                         </div>
                                         {formatRuntime(entry.runtime) ? (
                                           <span className="mt-1 block text-xs text-base-content/50">{formatRuntime(entry.runtime)}</span>
