@@ -32,6 +32,32 @@ Lore is a multi-source media tracker built with Next.js App Router. It lets user
 | Podcasts | Listen Notes |
 | Theme Parks | Themeparks.wiki |
 
+## Comparison
+
+`✅` means the tool is built around that capability. `partial` means it has a related feature, but
+not the same scope or depth. `-` means it is not the point of that tool.
+
+| Capability | Lore | [Trakt](https://trakt.tv/) | [Simkl](https://simkl.com/) | [Letterboxd](https://letterboxd.com/) | [AniList](https://anilist.co/) / [MyAnimeList](https://myanimelist.net/) | [Goodreads](https://www.goodreads.com/) / [Backloggd](https://www.backloggd.com/) | Wiki/Fandom-style lore sites |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Movies and TV tracking | ✅ | ✅ | ✅ | partial | - | - | partial |
+| Anime tracking as a first-class category | ✅ | partial | ✅ | - | ✅ | - | partial |
+| Games, books, comics, board games, podcasts, soundtracks, and parks | ✅ | - | - | - | partial | partial | partial |
+| Cross-media universe/franchise timelines | ✅ | - | - | partial | - | partial | ✅ |
+| Personal progress dashboard | ✅ | ✅ | ✅ | partial | ✅ | ✅ | - |
+| Trakt JSON import for watched movies/history | ✅ | ✅ | partial | - | - | - | - |
+| Admin-curated universe creation | ✅ | - | - | - | - | - | ✅ |
+| Social reviews, comments, and follower graph | - | ✅ | ✅ | ✅ | ✅ | ✅ | partial |
+| Native mobile apps | - | ✅ | ✅ | ✅ | partial | partial | partial |
+| Public API / export ecosystem | partial | ✅ | ✅ | partial | ✅ | partial | partial |
+
+The closest overlap is Simkl and Trakt for watch tracking, but they stay mainly around
+movies, TV, and anime. Letterboxd, AniList, Goodreads, and Backloggd are much deeper inside
+their own communities. Lore is trying to cover a different gap: one archive for a whole
+franchise or universe across every official medium, with personal progress layered on top.
+
+The biggest missing pieces are social features, native mobile apps, richer imports/exports,
+and public API polish. Those are real advantages the mature trackers already have.
+
 ## Tech stack
 
 - Next.js `16.2.1` (App Router, Turbopack)
