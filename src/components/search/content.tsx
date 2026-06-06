@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Film, Tv, Gamepad2, BookOpen, Mic, Loader2 } from 'lucide-react';
+import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, MapPin, Mic, Music, Loader2 } from 'lucide-react';
 
 interface MediaItem {
   id: string;
   title: string;
-  type: 'movie' | 'tv' | 'anime' | 'game' | 'book' | 'boardgame' | 'comic' | 'podcast' | 'soundtrack' | 'themepark';
+  type: 'movie' | 'tv' | 'anime' | 'manga' | 'game' | 'book' | 'boardgame' | 'comic' | 'podcast' | 'soundtrack' | 'themepark';
   image?: string;
   year?: string;
   rating?: number;
@@ -117,9 +117,14 @@ export function SearchContent() {
       case 'movie': return <Film className="text-lg" />;
       case 'tv': return <Tv className="text-lg" />;
       case 'anime': return <span className="text-lg">capture</span>;
+      case 'manga': return <BookCopy className="text-lg" />;
       case 'game': return <Gamepad2 className="text-lg" />;
       case 'book': return <BookOpen className="text-lg" />;
+      case 'comic': return <BookCopy className="text-lg" />;
+      case 'boardgame': return <Dice6 className="text-lg" />;
       case 'podcast': return <Mic className="text-lg" />;
+      case 'soundtrack': return <Music className="text-lg" />;
+      case 'themepark': return <MapPin className="text-lg" />;
       default: return <Film className="text-lg" />;
     }
   };
@@ -133,8 +138,14 @@ export function SearchContent() {
       movie: `/movies/${item.id}`,
       tv: `/tv/${item.id}`,
       anime: `/anime/${item.id}`,
+      manga: `/manga/${item.id}`,
       game: `/games/${item.id}`,
       book: `/books/${item.id}`,
+      comic: `/comics/${item.id}`,
+      boardgame: `/boardgames/${item.id}`,
+      podcast: `/podcasts/${item.id}`,
+      soundtrack: `/soundtracks/${item.id}`,
+      themepark: `/themeparks/${item.id}`,
     };
     router.push(routes[item.type] || '/');
   };
@@ -233,6 +244,12 @@ export function SearchContent() {
             <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-full transition-all border border-outline-variant/10">
               <span className="material-symbols-outlined text-lg">capture</span>
               <span className="text-sm font-medium">Anime</span>
+            </button>
+          </Link>
+          <Link href="/manga">
+            <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-full transition-all border border-outline-variant/10">
+              <BookCopy className="text-lg" />
+              <span className="text-sm font-medium">Manga</span>
             </button>
           </Link>
           <Link href="/podcasts">

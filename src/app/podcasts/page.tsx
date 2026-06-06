@@ -157,7 +157,8 @@ export default function PodcastsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {displayPodcasts.map((podcast) => (
-                <Card key={podcast.id} className="group hover:shadow-lg transition-all duration-300 hover:scale-105">
+                <Link key={podcast.id} href={`/podcasts/${podcast.id}`} className="block h-full">
+                <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:scale-105">
                   <CardContent className="p-0">
                     <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted">
                       {podcast.image ? (
@@ -202,6 +203,7 @@ export default function PodcastsPage() {
                     </div>
                   </CardContent>
                 </Card>
+                </Link>
               ))}
             </div>
           )}

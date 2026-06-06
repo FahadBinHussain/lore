@@ -176,7 +176,8 @@ export default function ThemeParksPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {displayAttractions.map((attraction) => (
-                <Card key={attraction.id} className="group hover:shadow-lg transition-all duration-300 hover:scale-105">
+                <Link key={attraction.id} href={`/themeparks/${attraction.id}`} className="block h-full">
+                <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:scale-105">
                   <CardContent className="p-0">
                     <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/20">
@@ -222,6 +223,7 @@ export default function ThemeParksPage() {
                     </div>
                   </CardContent>
                 </Card>
+                </Link>
               ))}
             </div>
           )}

@@ -23,7 +23,7 @@ const iconMap = {
 };
 
 interface MediaContentProps {
-  type: 'movie' | 'tv' | 'anime' | 'game' | 'book' | 'comic' | 'boardgame' | 'soundtrack' | 'podcast' | 'themepark';
+  type: 'movie' | 'tv' | 'anime' | 'manga' | 'game' | 'book' | 'comic' | 'boardgame' | 'soundtrack' | 'podcast' | 'themepark';
   title: string;
   icon: keyof typeof iconMap;
 }
@@ -99,6 +99,7 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
       case 'movie': return `/movies/${externalId}`;
       case 'tv': return `/tv/${externalId}`;
       case 'anime': return `/anime/${externalId}`;
+      case 'manga': return `/manga/${externalId}`;
       case 'game': return `/games/${externalId}`;
       case 'book': return `/books/${externalId}`;
       case 'comic': return `/comics/${externalId}`;

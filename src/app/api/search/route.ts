@@ -7,7 +7,7 @@ import { searchComics } from '@/lib/api/comicvine';
 import { searchPodcasts } from '@/lib/api/listennotes';
 import { searchRecordings } from '@/lib/api/musicbrainz';
 import { searchAttractions } from '@/lib/api/themeparks';
-import { searchAnime, normalizeAnimeForApp } from '@/lib/api/anilist';
+import { searchAnime, searchManga, normalizeAnimeForApp, normalizeMangaForApp } from '@/lib/api/anilist';
 
 interface IGDBCover {
   url?: string;
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       try {
         const movies = await searchMovies(query);
         results.push(...movies.results.map(m => ({
-          id: `movie-${m.id}`,
+          id: String(m.id),
           title: m.title,
           type: 'movie',
           image: getTMDBImageUrl(m.poster_path),
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       try {
         const shows = await searchTVShows(query);
         results.push(...shows.results.map(s => ({
-          id: `tv-${s.id}`,
+          id: String(s.id),
           title: s.name,
           type: 'tv',
           image: getTMDBImageUrl(s.poster_path),
@@ -91,12 +91,32 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    if (!type || type === 'manga') {
+      try {
+        const mangaResults = await searchManga(query);
+        results.push(...mangaResults.map((m: any) => {
+          const normalized = normalizeMangaForApp(m);
+          return {
+            id: normalized.id.toString(),
+            title: normalized.title,
+            type: 'manga',
+            image: normalized.image,
+            year: normalized.year,
+            rating: normalized.rating,
+            description: normalized.description,
+          };
+        }));
+      } catch (error) {
+        console.error('AniList manga search error:', error);
+      }
+    }
+
     // Search books (if type is not specified)
-    if (!type) {
+    if (!type || type === 'book') {
       try {
         const books = await searchBooks(query);
         results.push(...books.docs.slice(0, 20).map(b => ({
-          id: `book-${b.key}`,
+          id: b.key?.replace(/^\/works\//, '') || b.key,
           title: b.title,
           type: 'book',
           image: getOpenLibraryCoverUrl(b.cover_i),
@@ -110,12 +130,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Search games (if type is not specified)
-    if (!type) {
+    if (!type || type === 'game') {
       try {
         const accessToken = await getIGDBAccessToken();
         const games = (await searchGames(query, accessToken)) as IGDBGame[];
         results.push(...games.map((g) => ({
-          id: `game-${g.id}`,
+          id: String(g.id),
           title: g.name,
           type: 'game',
           image: getIGDBCoverUrl(g.cover?.url),
@@ -127,11 +147,11 @@ export async function GET(request: NextRequest) {
         console.error('IGDB search error:', error);
       }
     }    // Search board games (if type is not specified)
-    if (!type) {
+    if (!type || type === 'boardgame') {
       try {
         const boardGames = await searchBoardGames(query);
         results.push(...boardGames.slice(0, 20).map(g => ({
-          id: `boardgame-${g.id}`,
+          id: String(g.id),
           title: g.name,
           type: 'boardgame',
           image: g.image_url,
@@ -144,11 +164,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Search comics (if type is not specified)
-    if (!type) {
+    if (!type || type === 'comic') {
       try {
         const comics = await searchComics(query);
         results.push(...comics.results.slice(0, 20).map(c => ({
-          id: `comic-${c.id}`,
+          id: String(c.id),
           title: c.name,
           type: 'comic',
           image: c.image?.original_url,
@@ -161,11 +181,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Search podcasts (if type is not specified)
-    if (!type) {
+    if ((!type || type === 'podcast') && process.env.LISTEN_NOTES_API_KEY) {
       try {
         const podcasts = await searchPodcasts(query);
         results.push(...podcasts.results.slice(0, 20).map(p => ({
-          id: `podcast-${p.id}`,
+          id: p.id,
           title: p.title,
           type: 'podcast',
           image: p.image,
@@ -177,11 +197,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Search soundtracks (if type is not specified)
-    if (!type) {
+    if (!type || type === 'soundtrack') {
       try {
         const recordings = await searchRecordings(query);
         results.push(...recordings.slice(0, 20).map(r => ({
-          id: `soundtrack-${r.id}`,
+          id: r.id,
           title: r.title,
           type: 'soundtrack',
           year: r.releases?.[0]?.date?.split('-')[0],
@@ -193,11 +213,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Search theme park attractions (if type is not specified)
-    if (!type) {
+    if (!type || type === 'themepark') {
       try {
         const attractions = await searchAttractions(query);
         results.push(...attractions.slice(0, 20).map(a => ({
-          id: `themepark-${a.id}`,
+          id: a.id,
           title: a.name,
           type: 'themepark',
           description: a.description,

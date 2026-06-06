@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  Film, Tv, Gamepad2, BookOpen, Sparkles,
+  Film, Tv, Gamepad2, BookOpen, BookCopy, Sparkles,
   Music, Podcast, MapPin, Menu, X, Home,
   Zap
 } from 'lucide-react';
@@ -16,6 +16,7 @@ const categories = [
   { name: 'Movies', href: '/dashboard/movies', icon: Film, color: 'text-violet-500' },
   { name: 'TV Shows', href: '/dashboard/tv', icon: Tv, color: 'text-cyan-500' },
   { name: 'Anime', href: '/dashboard/anime', icon: Zap, color: 'text-pink-500' },
+  { name: 'Manga', href: '/dashboard/manga', icon: BookCopy, color: 'text-sky-500' },
   { name: 'Games', href: '/dashboard/games', icon: Gamepad2, color: 'text-amber-500' },
   { name: 'Books', href: '/dashboard/books', icon: BookOpen, color: 'text-emerald-500' },
   { name: 'Comics', href: '/dashboard/comics', icon: Sparkles, color: 'text-purple-500' },

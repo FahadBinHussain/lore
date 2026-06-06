@@ -158,7 +158,8 @@ export default function ComicsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {displayComics.map((comic) => (
-                <Card key={comic.id} className="group hover:shadow-lg transition-all duration-300 hover:scale-105">
+                <Link key={comic.id} href={`/comics/${comic.id}`} className="block h-full">
+                <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:scale-105">
                   <CardContent className="p-0">
                     <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg bg-muted">
                       {comic.image ? (
@@ -204,6 +205,7 @@ export default function ComicsPage() {
                     </div>
                   </CardContent>
                 </Card>
+                </Link>
               ))}
             </div>
           )}

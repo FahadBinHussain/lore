@@ -231,3 +231,49 @@ export async function searchAttractions(query: string): Promise<ThemeParkAttract
     return [];
   }
 }
+
+export async function getAttractionDetails(id: string): Promise<ThemeParkAttraction | null> {
+  try {
+    const entityResponse = await fetch(`https://api.themeparks.wiki/v1/entity/${encodeURIComponent(id)}`, {
+      next: { revalidate: 300 },
+    });
+
+    if (entityResponse.ok) {
+      const entity = await entityResponse.json() as EntityChild & {
+        destination?: { name?: string };
+        park?: { id?: string; name?: string };
+        timezone?: string;
+      };
+
+      if (entity?.id && entity?.name) {
+        return {
+          id: entity.id,
+          name: entity.name,
+          location: entity.location ? {
+            latitude: entity.location.latitude || 0,
+            longitude: entity.location.longitude || 0,
+          } : undefined,
+          parkId: entity.parentId || entity.park?.id || '',
+          parkName: entity.park?.name || entity.destination?.name || 'Theme park',
+          status: undefined,
+        };
+      }
+    }
+  } catch (error) {
+    console.warn(`Failed direct theme park entity lookup for ${id}:`, error);
+  }
+
+  try {
+    const parks = await getThemeParks();
+
+    for (const park of parks) {
+      const attractions = await getParkAttractions(park.id);
+      const match = attractions.find((attraction) => attraction.id === id);
+      if (match) return match;
+    }
+  } catch (error) {
+    console.error('Failed fallback theme park attraction lookup:', error);
+  }
+
+  return null;
+}

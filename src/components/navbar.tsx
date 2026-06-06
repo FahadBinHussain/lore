@@ -200,6 +200,13 @@ export function Navbar() {
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
+              href="/manga"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            >
+              Manga
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+            </Link>
+            <Link
               href="/games"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
             >
@@ -521,6 +528,13 @@ export function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Anime
+              </Link>
+              <Link
+                href="/manga"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Manga
               </Link>
               <Link
                 href="/games"

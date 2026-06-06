@@ -177,7 +177,8 @@ export default function BoardGamesPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {displayGames.map((game) => (
-                <Card key={game.id} className="group hover:shadow-lg transition-all duration-300 hover:scale-105">
+                <Link key={game.id} href={`/boardgames/${game.id}`} className="block h-full">
+                <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:scale-105">
                   <CardContent className="p-0">
                     <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg bg-muted">
                       {game.image ? (
@@ -230,6 +231,7 @@ export default function BoardGamesPage() {
                     </div>
                   </CardContent>
                 </Card>
+                </Link>
               ))}
             </div>
           )}

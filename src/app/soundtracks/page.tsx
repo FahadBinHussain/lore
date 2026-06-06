@@ -157,7 +157,8 @@ export default function SoundtracksPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {displayTracks.map((track) => (
-                <Card key={track.id} className="group hover:shadow-lg transition-all duration-300 hover:scale-105">
+                <Link key={track.id} href={`/soundtracks/${track.id}`} className="block h-full">
+                <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:scale-105">
                   <CardContent className="p-0">
                     <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/20 dark:to-blue-900/20">
@@ -196,6 +197,7 @@ export default function SoundtracksPage() {
                     </div>
                   </CardContent>
                 </Card>
+                </Link>
               ))}
             </div>
           )}

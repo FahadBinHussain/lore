@@ -204,10 +204,22 @@ function getPreviewHref(item: UniversePreviewItem): string | null {
       return `/tv/${externalId}`;
     case 'anime':
       return `/anime/${externalId}`;
+    case 'manga':
+      return `/manga/${externalId}`;
     case 'game':
       return `/games/${externalId}`;
     case 'book':
       return `/books/${externalId}`;
+    case 'comic':
+      return `/comics/${externalId}`;
+    case 'boardgame':
+      return `/boardgames/${externalId}`;
+    case 'soundtrack':
+      return `/soundtracks/${externalId}`;
+    case 'podcast':
+      return `/podcasts/${externalId}`;
+    case 'themepark':
+      return `/themeparks/${externalId}`;
     default:
       return null;
   }

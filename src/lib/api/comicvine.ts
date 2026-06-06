@@ -53,6 +53,22 @@ export async function searchComics(query: string, page: number = 1): Promise<Com
   return response.json();
 }
 
+export async function searchComicVolumes(query: string, page: number = 1): Promise<{ results: ComicVineVolume[]; number_of_total_results: number }> {
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
+  const response = await fetch(
+    `https://comicvine.gamespot.com/api/volumes/?api_key=${process.env.COMICVINE_API_KEY}&format=json&filter=name:${query}&limit=${limit}&offset=${offset}`,
+    { next: { revalidate: 3600 } }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to search comic volumes');
+  }
+
+  return response.json();
+}
+
 export async function getComicDetails(id: number): Promise<ComicVineIssue> {
   const response = await fetch(
     `https://comicvine.gamespot.com/api/issue/4000-${id}/?api_key=${process.env.COMICVINE_API_KEY}&format=json`,
@@ -61,6 +77,20 @@ export async function getComicDetails(id: number): Promise<ComicVineIssue> {
 
   if (!response.ok) {
     throw new Error('Failed to get comic details');
+  }
+
+  const data = await response.json();
+  return data.results;
+}
+
+export async function getComicVolumeDetails(id: number): Promise<ComicVineVolume> {
+  const response = await fetch(
+    `https://comicvine.gamespot.com/api/volume/4050-${id}/?api_key=${process.env.COMICVINE_API_KEY}&format=json`,
+    { next: { revalidate: 3600 } }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to get comic volume details');
   }
 
   const data = await response.json();

@@ -11,8 +11,13 @@ import {
   TMDBTVShow,
 } from '@/lib/api/tmdb';
 import { getIGDBAccessToken, getIGDBCoverUrl, searchGames } from '@/lib/api/igdb';
-import { AniListAnime, normalizeAnimeForApp, searchAnime } from '@/lib/api/anilist';
+import { AniListAnime, AniListManga, normalizeAnimeForApp, normalizeMangaForApp, searchAnime, searchManga } from '@/lib/api/anilist';
 import { OpenLibraryBook, getOpenLibraryCoverUrl, searchBooks } from '@/lib/api/openlibrary';
+import { BGGGame, getBoardGameDetails, searchBoardGames } from '@/lib/api/bgg';
+import { ComicVineIssue, ComicVineVolume, getComicVineImageUrl, searchComicVolumes, searchComics } from '@/lib/api/comicvine';
+import { ListenNotesPodcast, searchPodcasts } from '@/lib/api/listennotes';
+import { MusicBrainzRecording, formatDuration, searchRecordings } from '@/lib/api/musicbrainz';
+import { ThemeParkAttraction, searchAttractions } from '@/lib/api/themeparks';
 
 type SupportedInputType =
   | 'movie'
@@ -27,11 +32,22 @@ type SupportedInputType =
   | 'podcast'
   | 'themepark'
   | 'other';
-type SupportedSource = 'tmdb' | 'igdb' | 'anilist' | 'openlibrary' | 'manual';
+type SupportedSource =
+  | 'tmdb'
+  | 'igdb'
+  | 'anilist'
+  | 'openlibrary'
+  | 'comicvine'
+  | 'bgg'
+  | 'listennotes'
+  | 'musicbrainz'
+  | 'themeparks'
+  | 'manual';
 type UniverseMediaType =
   | 'movie'
   | 'tv'
   | 'anime'
+  | 'manga'
   | 'game'
   | 'book'
   | 'comic'
@@ -168,7 +184,39 @@ function normalizeInputSource(value: unknown): SupportedSource | null {
   if (normalized === 'igdb') return 'igdb';
   if (normalized === 'anilist' || normalized === 'ani') return 'anilist';
   if (normalized === 'openlibrary' || normalized === 'ol') return 'openlibrary';
+  if (normalized === 'comicvine') return 'comicvine';
+  if (normalized === 'bgg' || normalized === 'boardgamegeek') return 'bgg';
+  if (normalized === 'listennotes' || normalized === 'listenapi') return 'listennotes';
+  if (normalized === 'musicbrainz') return 'musicbrainz';
+  if (normalized === 'themeparks' || normalized === 'themeparkswiki' || normalized === 'themeparkwiki') return 'themeparks';
   return 'manual';
+}
+
+function getDefaultSourceForType(type: SupportedInputType): SupportedSource {
+  switch (type) {
+    case 'movie':
+    case 'tv':
+      return 'tmdb';
+    case 'game':
+      return 'igdb';
+    case 'anime':
+    case 'manga':
+      return 'anilist';
+    case 'book':
+      return 'openlibrary';
+    case 'comic':
+      return 'comicvine';
+    case 'boardgame':
+      return 'bgg';
+    case 'podcast':
+      return 'listennotes';
+    case 'soundtrack':
+      return 'musicbrainz';
+    case 'themepark':
+      return 'themeparks';
+    default:
+      return 'manual';
+  }
 }
 
 function normalizeTitleForMatch(value: string): string {
@@ -317,6 +365,112 @@ function pickBestBookMatch(results: OpenLibraryBook[], queryTitle: string, query
   return scored[0]?.book ?? null;
 }
 
+function pickBestMangaMatch(results: AniListManga[], queryTitle: string, queryYear?: number): AniListManga | null {
+  if (results.length === 0) return null;
+
+  const scored = results.map((manga) => {
+    const titles = [manga.title.romaji, manga.title.english, manga.title.native].filter(
+      (value): value is string => typeof value === 'string' && value.length > 0
+    );
+
+    let bestTitleScore = 0;
+    for (const title of titles) {
+      const titleScore = calculateMatchScore(title, queryTitle);
+      if (titleScore > bestTitleScore) {
+        bestTitleScore = titleScore;
+      }
+    }
+
+    let yearScore = 0;
+    if (typeof manga.startDate?.year === 'number' && typeof queryYear === 'number') {
+      const yearDiff = Math.abs(manga.startDate.year - queryYear);
+      if (yearDiff === 0) yearScore = 20;
+      else if (yearDiff === 1) yearScore = 10;
+      else if (yearDiff === 2) yearScore = 5;
+    }
+
+    return {
+      manga,
+      score: bestTitleScore + yearScore,
+    };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0]?.manga ?? null;
+}
+
+function pickBestComicMatch(results: ComicVineIssue[], queryTitle: string, queryYear?: number): ComicVineIssue | null {
+  if (results.length === 0) return null;
+
+  const scored = results.map((comic) => ({
+    comic,
+    score: calculateMatchScore(comic.name || comic.volume?.name || '', queryTitle, getYearFromDate(comic.cover_date), queryYear),
+  }));
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0]?.comic ?? null;
+}
+
+function pickBestComicVolumeMatch(results: ComicVineVolume[], queryTitle: string, queryYear?: number): ComicVineVolume | null {
+  if (results.length === 0) return null;
+
+  const scored = results.map((volume) => ({
+    volume,
+    score: calculateMatchScore(volume.name, queryTitle, volume.start_year, queryYear),
+  }));
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0]?.volume ?? null;
+}
+
+function pickBestBoardGameMatch(results: BGGGame[], queryTitle: string, queryYear?: number): BGGGame | null {
+  if (results.length === 0) return null;
+
+  const scored = results.map((game) => ({
+    game,
+    score: calculateMatchScore(game.name, queryTitle, game.year_published, queryYear),
+  }));
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0]?.game ?? null;
+}
+
+function pickBestPodcastMatch(results: ListenNotesPodcast[], queryTitle: string): ListenNotesPodcast | null {
+  if (results.length === 0) return null;
+
+  const scored = results.map((podcast) => ({
+    podcast,
+    score: calculateMatchScore(podcast.title, queryTitle),
+  }));
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0]?.podcast ?? null;
+}
+
+function pickBestRecordingMatch(results: MusicBrainzRecording[], queryTitle: string, queryYear?: number): MusicBrainzRecording | null {
+  if (results.length === 0) return null;
+
+  const scored = results.map((recording) => ({
+    recording,
+    score: calculateMatchScore(recording.title, queryTitle, getYearFromDate(recording.releases?.[0]?.date), queryYear),
+  }));
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0]?.recording ?? null;
+}
+
+function pickBestAttractionMatch(results: ThemeParkAttraction[], queryTitle: string): ThemeParkAttraction | null {
+  if (results.length === 0) return null;
+
+  const scored = results.map((attraction) => ({
+    attraction,
+    score: calculateMatchScore(attraction.name, queryTitle),
+  }));
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0]?.attraction ?? null;
+}
+
 function isJapaneseAnimation(show: TMDBTVShowWithOrigin) {
   const hasAnimationGenre = Array.isArray(show.genres) && show.genres.some((genre) => genre.name === 'Animation');
   const hasJapanOrigin = Array.isArray(show.origin_country) && show.origin_country.includes('JP');
@@ -346,11 +500,17 @@ function parseUniversePasteItem(value: unknown): UniversePasteItem | null {
     }
   }
 
+  const rawSource = typeof raw.source === 'string' ? raw.source.trim().toLowerCase() : '';
+  const source =
+    parsedSource === 'manual' && rawSource !== 'manual'
+      ? getDefaultSourceForType(parsedType)
+      : parsedSource;
+
   return {
     title,
     year,
     type: parsedType,
-    source: parsedSource,
+    source,
   };
 }
 
@@ -1152,6 +1312,321 @@ async function resolveOpenLibraryBook(
   };
 }
 
+async function resolveAniListManga(index: number, input: UniversePasteItem): Promise<UniversePreviewItem> {
+  const mangaResults = await searchManga(input.title, 1, 5);
+  const bestManga = pickBestMangaMatch(mangaResults, input.title, input.year);
+
+  if (!bestManga) {
+    return unresolvedPreview(index, input, 'No AniList manga match found');
+  }
+
+  const mangaTitles = [bestManga.title.romaji, bestManga.title.english, bestManga.title.native].filter(
+    (value): value is string => typeof value === 'string' && value.length > 0
+  );
+  const bestTokenOverlap = Math.max(
+    ...mangaTitles.map((title) => countTitleTokenOverlap(title, input.title)),
+    0
+  );
+
+  if (bestTokenOverlap < getRequiredTokenOverlap(input.title)) {
+    return unresolvedPreview(index, input, 'No confident AniList manga match found');
+  }
+
+  const normalizedManga = normalizeMangaForApp(bestManga);
+  const releaseDate = bestManga.startDate?.year
+    ? `${bestManga.startDate.year}-${`${bestManga.startDate.month ?? 1}`.padStart(2, '0')}-${`${bestManga.startDate.day ?? 1}`.padStart(2, '0')}`
+    : null;
+
+  return {
+    index,
+    input,
+    status: 'resolved',
+    selected: true,
+    resolved: {
+      title: normalizedManga.title,
+      externalId: normalizedManga.id.toString(),
+      source: 'anilist',
+      mediaType: 'manga',
+      posterPath: normalizedManga.image || null,
+      backdropPath: normalizedManga.banner || null,
+      releaseDate,
+      rating: typeof normalizedManga.rating === 'number' ? Number(normalizedManga.rating.toFixed(1)) : null,
+      description: normalizedManga.description || null,
+      genres: normalizedManga.genres || [],
+      runtime: null,
+      developer: null,
+      publisher: null,
+      platforms: [],
+      networks: [],
+      seasons: null,
+      totalEpisodes: typeof normalizedManga.chapters === 'number' ? normalizedManga.chapters : null,
+      status: normalizedManga.status || null,
+      tagline: null,
+      popularity: typeof normalizedManga.popularity === 'number' ? Number(normalizedManga.popularity.toFixed(2)) : null,
+      previewImage: normalizedManga.image || null,
+    },
+  };
+}
+
+async function resolveComicVineComic(index: number, input: UniversePasteItem): Promise<UniversePreviewItem> {
+  if (!process.env.COMICVINE_API_KEY) {
+    return unresolvedPreview(index, input, 'Comic Vine API key is not configured');
+  }
+
+  const [comics, volumes] = await Promise.all([
+    searchComics(input.title, 1),
+    searchComicVolumes(input.title, 1),
+  ]);
+  const bestComic = pickBestComicMatch(comics.results || [], input.title, input.year);
+  const bestVolume = pickBestComicVolumeMatch(volumes.results || [], input.title, input.year);
+  const issueScore = bestComic
+    ? calculateMatchScore(bestComic.name || bestComic.volume?.name || '', input.title, getYearFromDate(bestComic.cover_date), input.year)
+    : Number.NEGATIVE_INFINITY;
+  const volumeScore = bestVolume
+    ? calculateMatchScore(bestVolume.name, input.title, bestVolume.start_year, input.year)
+    : Number.NEGATIVE_INFINITY;
+
+  if (!bestComic && !bestVolume) {
+    return unresolvedPreview(index, input, 'No Comic Vine issue match found');
+  }
+
+  if (bestVolume && volumeScore >= issueScore) {
+    return {
+      index,
+      input,
+      status: 'resolved',
+      selected: true,
+      resolved: {
+        title: bestVolume.name,
+        externalId: `volume-${bestVolume.id}`,
+        source: 'comicvine',
+        mediaType: 'comic',
+        posterPath: getComicVineImageUrl(bestVolume.image),
+        backdropPath: null,
+        releaseDate: toIsoDateFromYear(bestVolume.start_year),
+        rating: null,
+        description: bestVolume.description || null,
+        genres: [],
+        runtime: null,
+        developer: null,
+        publisher: bestVolume.publisher?.name || null,
+        platforms: [],
+        networks: [],
+        seasons: null,
+        totalEpisodes: null,
+        status: null,
+        tagline: bestVolume.publisher?.name || null,
+        popularity: null,
+        previewImage: getComicVineImageUrl(bestVolume.image),
+      },
+    };
+  }
+
+  if (!bestComic) {
+    return unresolvedPreview(index, input, 'No Comic Vine issue match found');
+  }
+
+  return {
+    index,
+    input,
+    status: 'resolved',
+      selected: true,
+    resolved: {
+      title: bestComic.name || `${bestComic.volume?.name || input.title}${bestComic.issue_number ? ` #${bestComic.issue_number}` : ''}`,
+      externalId: `issue-${bestComic.id}`,
+      source: 'comicvine',
+      mediaType: 'comic',
+      posterPath: getComicVineImageUrl(bestComic.image),
+      backdropPath: null,
+      releaseDate: bestComic.cover_date || null,
+      rating: null,
+      description: bestComic.description || null,
+      genres: [],
+      runtime: null,
+      developer: null,
+      publisher: null,
+      platforms: [],
+      networks: bestComic.volume?.name ? [bestComic.volume.name] : [],
+      seasons: null,
+      totalEpisodes: null,
+      status: null,
+      tagline: bestComic.issue_number ? `Issue #${bestComic.issue_number}` : null,
+      popularity: null,
+      previewImage: getComicVineImageUrl(bestComic.image),
+    },
+  };
+}
+
+async function resolveBoardGameGeekItem(index: number, input: UniversePasteItem): Promise<UniversePreviewItem> {
+  const games = await searchBoardGames(input.title, process.env.BGG_API_KEY);
+  const bestGame = pickBestBoardGameMatch(games, input.title, input.year);
+
+  if (!bestGame?.id) {
+    return unresolvedPreview(index, input, 'No BoardGameGeek match found');
+  }
+
+  let details = bestGame;
+  try {
+    details = await getBoardGameDetails(bestGame.id, process.env.BGG_API_KEY);
+  } catch {
+    details = bestGame;
+  }
+
+  return {
+    index,
+    input,
+    status: 'resolved',
+    selected: true,
+    resolved: {
+      title: details.name,
+      externalId: details.id,
+      source: 'bgg',
+      mediaType: 'boardgame',
+      posterPath: details.image_url || details.thumb_url || null,
+      backdropPath: null,
+      releaseDate: toIsoDateFromYear(details.year_published),
+      rating: null,
+      description: details.description || null,
+      genres: [...(details.categories || []), ...(details.mechanics || [])].slice(0, 10),
+      runtime: details.max_playtime || details.min_playtime || null,
+      developer: details.designers?.[0] || null,
+      publisher: details.publishers?.[0] || null,
+      platforms: [],
+      networks: [],
+      seasons: null,
+      totalEpisodes: null,
+      status: null,
+      tagline: details.min_players && details.max_players ? `${details.min_players}-${details.max_players} players` : null,
+      popularity: null,
+      previewImage: details.thumb_url || details.image_url || null,
+    },
+  };
+}
+
+async function resolveListenNotesPodcast(index: number, input: UniversePasteItem): Promise<UniversePreviewItem> {
+  if (!process.env.LISTEN_NOTES_API_KEY) {
+    return unresolvedPreview(index, input, 'Listen Notes API key is not configured');
+  }
+
+  const podcasts = await searchPodcasts(input.title);
+  const bestPodcast = pickBestPodcastMatch(podcasts.results || [], input.title);
+
+  if (!bestPodcast?.id) {
+    return unresolvedPreview(index, input, 'No Listen Notes podcast match found');
+  }
+
+  return {
+    index,
+    input,
+    status: 'resolved',
+    selected: true,
+    resolved: {
+      title: bestPodcast.title,
+      externalId: bestPodcast.id,
+      source: 'listennotes',
+      mediaType: 'podcast',
+      posterPath: bestPodcast.image || bestPodcast.thumbnail || null,
+      backdropPath: null,
+      releaseDate: null,
+      rating: typeof bestPodcast.listen_score === 'number' ? bestPodcast.listen_score : null,
+      description: bestPodcast.description || null,
+      genres: [],
+      runtime: null,
+      developer: null,
+      publisher: bestPodcast.publisher || null,
+      platforms: [],
+      networks: [],
+      seasons: null,
+      totalEpisodes: typeof bestPodcast.total_episodes === 'number' ? bestPodcast.total_episodes : null,
+      status: null,
+      tagline: bestPodcast.publisher || null,
+      popularity: null,
+      previewImage: bestPodcast.thumbnail || bestPodcast.image || null,
+    },
+  };
+}
+
+async function resolveMusicBrainzSoundtrack(index: number, input: UniversePasteItem): Promise<UniversePreviewItem> {
+  const recordings = await searchRecordings(input.title, 10);
+  const bestRecording = pickBestRecordingMatch(recordings, input.title, input.year);
+
+  if (!bestRecording?.id) {
+    return unresolvedPreview(index, input, 'No MusicBrainz recording match found');
+  }
+
+  const release = bestRecording.releases?.[0];
+  const artist = bestRecording['artist-credit']?.map((credit) => credit.artist.name).filter(Boolean).join(', ') || null;
+
+  return {
+    index,
+    input,
+    status: 'resolved',
+    selected: true,
+    resolved: {
+      title: bestRecording.title,
+      externalId: bestRecording.id,
+      source: 'musicbrainz',
+      mediaType: 'soundtrack',
+      posterPath: null,
+      backdropPath: null,
+      releaseDate: release?.date || null,
+      rating: null,
+      description: artist ? `${bestRecording.title} by ${artist}${formatDuration(bestRecording.length) ? ` (${formatDuration(bestRecording.length)})` : ''}.` : null,
+      genres: bestRecording.tags?.slice(0, 10).map((tag) => tag.name).filter(Boolean) || [],
+      runtime: bestRecording.length ? Math.round(bestRecording.length / 60000) : null,
+      developer: null,
+      publisher: artist,
+      platforms: [],
+      networks: release?.title ? [release.title] : [],
+      seasons: null,
+      totalEpisodes: null,
+      status: null,
+      tagline: artist,
+      popularity: null,
+      previewImage: null,
+    },
+  };
+}
+
+async function resolveThemeParksItem(index: number, input: UniversePasteItem): Promise<UniversePreviewItem> {
+  const attractions = await searchAttractions(input.title);
+  const bestAttraction = pickBestAttractionMatch(attractions, input.title);
+
+  if (!bestAttraction?.id) {
+    return unresolvedPreview(index, input, 'No ThemeParks.wiki attraction match found');
+  }
+
+  return {
+    index,
+    input,
+    status: 'resolved',
+    selected: true,
+    resolved: {
+      title: bestAttraction.name,
+      externalId: bestAttraction.id,
+      source: 'themeparks',
+      mediaType: 'themepark',
+      posterPath: null,
+      backdropPath: null,
+      releaseDate: null,
+      rating: null,
+      description: bestAttraction.description || `${bestAttraction.name} at ${bestAttraction.parkName}.`,
+      genres: [],
+      runtime: null,
+      developer: null,
+      publisher: bestAttraction.parkName || null,
+      platforms: [],
+      networks: [],
+      seasons: null,
+      totalEpisodes: null,
+      status: bestAttraction.status || null,
+      tagline: bestAttraction.parkName || null,
+      popularity: null,
+      previewImage: null,
+    },
+  };
+}
+
 function buildPreviewSummary(items: UniversePreviewItem[], total: number): UniversePreviewSummary {
   return {
     total,
@@ -1185,8 +1660,32 @@ async function resolvePreviewItem(
       return await resolveAniListAnime(index, item);
     }
 
+    if (item.source === 'anilist' && item.type === 'manga') {
+      return await resolveAniListManga(index, item);
+    }
+
     if (item.source === 'openlibrary' && item.type === 'book') {
       return await resolveOpenLibraryBook(index, item, state);
+    }
+
+    if (item.source === 'comicvine' && item.type === 'comic') {
+      return await resolveComicVineComic(index, item);
+    }
+
+    if (item.source === 'bgg' && item.type === 'boardgame') {
+      return await resolveBoardGameGeekItem(index, item);
+    }
+
+    if (item.source === 'listennotes' && item.type === 'podcast') {
+      return await resolveListenNotesPodcast(index, item);
+    }
+
+    if (item.source === 'musicbrainz' && item.type === 'soundtrack') {
+      return await resolveMusicBrainzSoundtrack(index, item);
+    }
+
+    if (item.source === 'themeparks' && item.type === 'themepark') {
+      return await resolveThemeParksItem(index, item);
     }
 
     return unresolvedPreview(index, item, buildResolverUnavailableReason(item));

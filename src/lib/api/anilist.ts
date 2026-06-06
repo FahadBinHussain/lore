@@ -98,6 +98,25 @@ export interface AniListAnime {
   };
 }
 
+export interface AniListManga {
+  id: number;
+  title: AniListTitle;
+  type: string;
+  format: string;
+  status: string;
+  description: string | null;
+  startDate: AniListDate;
+  endDate: AniListDate;
+  chapters: number | null;
+  volumes: number | null;
+  coverImage: AniListImage;
+  bannerImage: string | null;
+  genres: string[];
+  averageScore: number | null;
+  popularity: number | null;
+  favourites: number | null;
+}
+
 // GraphQL Queries
 const PAGE_SIZE = 20;
 
@@ -607,6 +626,84 @@ const ANIME_DETAIL_QUERY = `
   }
 `;
 
+const SEARCH_MANGA_QUERY = `
+  query ($search: String, $page: Int, $perPage: Int) {
+    Page(page: $page, perPage: $perPage) {
+      media(type: MANGA, search: $search, sort: SEARCH_MATCH) {
+        id
+        title {
+          romaji
+          english
+          native
+        }
+        type
+        format
+        status
+        description
+        startDate {
+          year
+          month
+          day
+        }
+        endDate {
+          year
+          month
+          day
+        }
+        chapters
+        volumes
+        coverImage {
+          large
+          medium
+        }
+        bannerImage
+        genres
+        averageScore
+        popularity
+        favourites
+      }
+    }
+  }
+`;
+
+const MANGA_DETAIL_QUERY = `
+  query ($id: Int) {
+    Media(id: $id, type: MANGA) {
+      id
+      title {
+        romaji
+        english
+        native
+      }
+      type
+      format
+      status
+      description
+      startDate {
+        year
+        month
+        day
+      }
+      endDate {
+        year
+        month
+        day
+      }
+      chapters
+      volumes
+      coverImage {
+        large
+        medium
+      }
+      bannerImage
+      genres
+      averageScore
+      popularity
+      favourites
+    }
+  }
+`;
+
 // Generic fetch function for AniList GraphQL API
 async function fetchAniList(query: string, variables: Record<string, any>) {
   const response = await fetch(ANILIST_API_URL, {
@@ -711,9 +808,23 @@ export async function getAnimeDetails(id: number) {
   return data?.Media;
 }
 
+export async function searchManga(search: string, page: number = 1, perPage: number = PAGE_SIZE) {
+  const data = await fetchAniList(SEARCH_MANGA_QUERY, { search, page, perPage });
+  return data?.Page?.media || [];
+}
+
+export async function getMangaDetails(id: number) {
+  const data = await fetchAniList(MANGA_DETAIL_QUERY, { id });
+  return data?.Media;
+}
+
 // Format helper for display - uses exact raw API field names
 export function formatAnimeTitle(anime: AniListAnime): string {
   return anime.title.english || anime.title.romaji || anime.title.native || 'Unknown Title';
+}
+
+function formatAniListTitle(title: AniListTitle): string {
+  return title.english || title.romaji || title.native || 'Unknown Title';
 }
 
 export function formatAnimeYear(anime: AniListAnime): string {
@@ -774,5 +885,27 @@ export function normalizeAnimeForApp(anime: AniListAnime) {
     startDate: anime.startDate,
     endDate: anime.endDate,
     type: anime.type,
+  };
+}
+
+export function normalizeMangaForApp(manga: AniListManga) {
+  return {
+    id: manga.id,
+    title: formatAniListTitle(manga.title),
+    image: manga.coverImage?.large || manga.coverImage?.medium,
+    year: manga.startDate?.year ? manga.startDate.year.toString() : '',
+    rating: manga.averageScore,
+    description: manga.description,
+    chapters: manga.chapters,
+    volumes: manga.volumes,
+    format: manga.format,
+    status: manga.status,
+    genres: manga.genres || [],
+    banner: manga.bannerImage,
+    popularity: manga.popularity,
+    favourites: manga.favourites,
+    startDate: manga.startDate,
+    endDate: manga.endDate,
+    type: manga.type,
   };
 }

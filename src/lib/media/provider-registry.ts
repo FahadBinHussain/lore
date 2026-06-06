@@ -80,50 +80,50 @@ export const MEDIA_PROVIDER_REGISTRY = [
     label: 'Comic Vine',
     mediaTypes: ['comic'],
     stage: 'active',
-    trackable: false,
+    trackable: true,
     requiresKey: true,
     moneyRisk: false,
-    notes: 'Active search source; non-commercial terms and no detail/watch route yet.',
+    notes: 'Primary comic issue metadata source; non-commercial terms apply.',
   },
   {
     id: 'bgg',
     label: 'BoardGameGeek',
     mediaTypes: ['boardgame'],
     stage: 'active',
-    trackable: false,
+    trackable: true,
     requiresKey: false,
     moneyRisk: false,
-    notes: 'Active board game source; no detail/watch route yet.',
+    notes: 'Primary board game metadata source.',
   },
   {
     id: 'listennotes',
     label: 'Listen Notes',
     mediaTypes: ['podcast'],
     stage: 'active',
-    trackable: false,
+    trackable: true,
     requiresKey: true,
     moneyRisk: true,
-    notes: 'Active podcast source with paid/commercial risk; prefer Podcast Index later.',
+    notes: 'Primary podcast source while Podcast Index credentials are not configured; paid/commercial risk.',
   },
   {
     id: 'musicbrainz',
     label: 'MusicBrainz',
     mediaTypes: ['soundtrack'],
     stage: 'active',
-    trackable: false,
+    trackable: true,
     requiresKey: false,
     moneyRisk: false,
-    notes: 'Active music metadata source; no detail/watch route yet.',
+    notes: 'Primary soundtrack/recording metadata source.',
   },
   {
     id: 'themeparks',
     label: 'ThemeParks.wiki',
     mediaTypes: ['themepark'],
     stage: 'active',
-    trackable: false,
+    trackable: true,
     requiresKey: false,
     moneyRisk: false,
-    notes: 'Active theme park/wait time source; no detail/watch route yet.',
+    notes: 'Primary theme park attraction/live data source.',
   },
   {
     id: 'wikidata',
@@ -261,16 +261,28 @@ const PRIMARY_PROVIDER_BY_TYPE: Partial<Record<MediaType, string>> = {
   movie: 'tmdb',
   tv: 'tmdb',
   anime: 'anilist',
+  manga: 'anilist',
   game: 'igdb',
   book: 'openlibrary',
+  comic: 'comicvine',
+  boardgame: 'bgg',
+  soundtrack: 'musicbrainz',
+  podcast: 'listennotes',
+  themepark: 'themeparks',
 };
 
 const DETAIL_ROUTE_BY_TYPE: Partial<Record<MediaType, (externalId: string) => string>> = {
   movie: (externalId) => `/movies/${externalId}`,
   tv: (externalId) => `/tv/${externalId}`,
   anime: (externalId) => `/anime/${externalId}`,
+  manga: (externalId) => `/manga/${externalId}`,
   game: (externalId) => `/games/${externalId}`,
   book: (externalId) => `/books/${externalId}`,
+  comic: (externalId) => `/comics/${externalId}`,
+  boardgame: (externalId) => `/boardgames/${externalId}`,
+  soundtrack: (externalId) => `/soundtracks/${externalId}`,
+  podcast: (externalId) => `/podcasts/${externalId}`,
+  themepark: (externalId) => `/themeparks/${externalId}`,
 };
 
 export function normalizeMediaType(value: unknown): MediaType | null {
@@ -347,7 +359,9 @@ export function getProviderSourceUrl(provider: unknown, mediaType: unknown, exte
         ? `https://www.themoviedb.org/tv/${normalizedId}`
         : `https://www.themoviedb.org/movie/${normalizedId}`;
     case 'anilist':
-      return `https://anilist.co/anime/${normalizedId}`;
+      return normalizedType === 'manga'
+        ? `https://anilist.co/manga/${normalizedId}`
+        : `https://anilist.co/anime/${normalizedId}`;
     case 'igdb':
       return `https://www.igdb.com/games/${normalizedId}`;
     case 'openlibrary':
@@ -355,6 +369,12 @@ export function getProviderSourceUrl(provider: unknown, mediaType: unknown, exte
         ? `https://openlibrary.org${normalizedId}`
         : `https://openlibrary.org/${normalizedId}`;
     case 'comicvine':
+      if (normalizedId.startsWith('volume-')) {
+        return `https://comicvine.gamespot.com/api/volume/4050-${normalizedId.replace(/^volume-/, '')}/`;
+      }
+      if (normalizedId.startsWith('issue-')) {
+        return `https://comicvine.gamespot.com/api/issue/4000-${normalizedId.replace(/^issue-/, '')}/`;
+      }
       return `https://comicvine.gamespot.com/api/issue/4000-${normalizedId}/`;
     case 'bgg':
       return `https://boardgamegeek.com/boardgame/${normalizedId}`;
@@ -362,6 +382,8 @@ export function getProviderSourceUrl(provider: unknown, mediaType: unknown, exte
       return `https://musicbrainz.org/recording/${normalizedId}`;
     case 'themeparks':
       return `https://api.themeparks.wiki/v1/entity/${normalizedId}`;
+    case 'listennotes':
+      return `https://www.listennotes.com/podcasts/${normalizedId}/`;
     case 'wikidata':
       return `https://www.wikidata.org/wiki/${normalizedId}`;
     case 'tvmaze':
