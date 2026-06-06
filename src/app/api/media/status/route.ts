@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { userMediaProgress, mediaItems, userEpisodeProgress, episodes, seasons } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
+import { ensureCanonicalMediaItem, findMediaItemByExternalMapping } from '@/lib/media/canonical';
+import { getPrimaryProviderForMediaType } from '@/lib/media/provider-registry';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -25,26 +27,24 @@ export async function GET(request: NextRequest) {
     const userId = parseInt(session.user.id);
     console.log('GET status request:', { mediaId, mediaType, userId, userIdType: typeof session.user.id });
 
-    const preferredSource = mediaType === 'anime' ? 'anilist' : 'tmdb';
+    const preferredSource = getPrimaryProviderForMediaType(mediaType) || (mediaType === 'anime' ? 'anilist' : 'tmdb');
 
-    // Find the media item with preferred source first
-    let mediaItem = await db.query.mediaItems.findFirst({
-      where: and(
-        eq(mediaItems.externalId, mediaId),
-        eq(mediaItems.source, preferredSource),
-        eq(mediaItems.mediaType, mediaType as any)
-      ),
+    // Find the media item through the provider mapping first, then legacy columns.
+    let mediaItem = await findMediaItemByExternalMapping({
+      externalId: mediaId,
+      mediaType,
+      provider: preferredSource,
     });
 
     // Fallback: only for non-anime media types
     if (!mediaItem && mediaType !== 'anime') {
       console.log('Media item not found with preferred source, trying any source for this media type...');
-      mediaItem = await db.query.mediaItems.findFirst({
+      mediaItem = (await db.query.mediaItems.findFirst({
         where: and(
           eq(mediaItems.externalId, mediaId),
           eq(mediaItems.mediaType, mediaType as any)
         ),
-      });
+      })) ?? null;
       if (mediaItem) {
         console.log('Found media item with different source:', { mediaItem, expectedSource: preferredSource });
       }
@@ -180,45 +180,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'mediaId and mediaType required' }, { status: 400 });
     }
 
-    const preferredSource = mediaType === 'anime' ? 'anilist' : 'tmdb';
+    const preferredSource = getPrimaryProviderForMediaType(mediaType) || (mediaType === 'anime' ? 'anilist' : 'tmdb');
 
-    // First, ensure the media item exists
-    const existingItem = await db.query.mediaItems.findFirst({
-      where: and(
-        eq(mediaItems.externalId, mediaId),
-        eq(mediaItems.source, preferredSource),
-        eq(mediaItems.mediaType, mediaType as any)
-      ),
+    const ensuredItem = await ensureCanonicalMediaItem({
+      externalId: mediaId,
+      source: preferredSource,
+      mediaType,
+      title: title || 'Unknown Title',
+      posterPath,
+      releaseDate: releaseDate || null,
+      totalEpisodes,
     });
 
-    console.log('Looking for existing media item:', { mediaId, mediaType, source: preferredSource, found: !!existingItem });
+    if (!ensuredItem) {
+      return NextResponse.json({ error: 'Unable to ensure media item' }, { status: 400 });
+    }
 
-    let mediaItemId: number;
+    const existingItem = ensuredItem.mediaItem;
+    const mediaItemId = existingItem.id;
 
-    if (!existingItem) {
-      // Create the media item first
-      const [newItem] = await db.insert(mediaItems).values({
-        externalId: mediaId,
-        source: preferredSource,
-        mediaType,
-        title: title || 'Unknown Title',
-        posterPath,
-        releaseDate: releaseDate || null,
-        totalEpisodes: typeof totalEpisodes === 'number' ? totalEpisodes : null,
-      }).returning();
+    console.log('Ensured media item:', { mediaId, mediaType, source: preferredSource, mediaItemId, created: ensuredItem.created });
 
-      mediaItemId = newItem.id;
-    } else {
-      mediaItemId = existingItem.id;
-
-      if (['anime', 'tv'].includes(mediaType) && typeof totalEpisodes === 'number' && totalEpisodes > 0 && existingItem.totalEpisodes !== totalEpisodes) {
-        await db.update(mediaItems)
-          .set({
-            totalEpisodes,
-            updatedAt: new Date(),
-          })
-          .where(eq(mediaItems.id, existingItem.id));
-      }
+    if (['anime', 'tv'].includes(mediaType) && typeof totalEpisodes === 'number' && totalEpisodes > 0 && existingItem.totalEpisodes !== totalEpisodes) {
+      await db.update(mediaItems)
+        .set({
+          totalEpisodes,
+          updatedAt: new Date(),
+        })
+        .where(eq(mediaItems.id, existingItem.id));
     }
 
     // Now update or create the user's progress

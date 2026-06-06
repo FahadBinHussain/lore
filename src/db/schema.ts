@@ -105,7 +105,7 @@ export const verificationTokens = pgTable('verification_tokens', {
 
 export const mediaItems = pgTable('media_items', {
   id: serial('id').primaryKey(),
-  // UNIQUE IDENTIFIER: External ID + Source (e.g., '123' from 'tmdb')
+  // Primary/source-of-first-import identifier. Additional provider ids live in media_external_ids.
   externalId: varchar('external_id', { length: 255 }).notNull(),
   source: varchar('source', { length: 50 }).notNull(), // 'tmdb', 'anilist', 'igdb', 'openlibrary', 'manual'
   mediaType: mediaTypeEnum('media_type').notNull(),
@@ -147,10 +147,31 @@ export const mediaItems = pgTable('media_items', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => [
-  uniqueIndex('media_items_external_source_idx').on(table.externalId, table.source),
+  uniqueIndex('media_items_source_type_external_idx').on(table.source, table.mediaType, table.externalId),
   index('media_items_mediaType_idx').on(table.mediaType),
   index('media_items_title_idx').on(table.title),
   index('media_items_releaseDate_idx').on(table.releaseDate),
+]);
+
+// ==================== MEDIA PROVIDER MAPPINGS ====================
+
+export const mediaExternalIds = pgTable('media_external_ids', {
+  id: serial('id').primaryKey(),
+  mediaItemId: integer('media_item_id').references(() => mediaItems.id, { onDelete: 'cascade' }).notNull(),
+  provider: varchar('provider', { length: 50 }).notNull(),
+  mediaType: mediaTypeEnum('media_type').notNull(),
+  externalId: varchar('external_id', { length: 255 }).notNull(),
+  sourceUrl: text('source_url'),
+  confidence: integer('confidence').default(100).notNull(),
+  isPrimary: boolean('is_primary').default(false).notNull(),
+  lastSyncedAt: timestamp('last_synced_at'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('media_external_ids_provider_type_external_idx').on(table.provider, table.mediaType, table.externalId),
+  index('media_external_ids_mediaItemId_idx').on(table.mediaItemId),
+  index('media_external_ids_provider_idx').on(table.provider),
 ]);
 
 // ==================== SEASONS ====================
@@ -382,6 +403,11 @@ export const mediaItemsRelations = relations(mediaItems, ({ many }) => ({
   collectionItems: many(collectionItems),
   mediaProgress: many(userMediaProgress),
   seasons: many(seasons),
+  externalIds: many(mediaExternalIds),
+}));
+
+export const mediaExternalIdsRelations = relations(mediaExternalIds, ({ one }) => ({
+  mediaItem: one(mediaItems, { fields: [mediaExternalIds.mediaItemId], references: [mediaItems.id] }),
 }));
 
 export const collectionsRelations = relations(collections, ({ one, many }) => ({

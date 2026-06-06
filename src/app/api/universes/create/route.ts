@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { collectionItems, collections, mediaItems } from '@/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { slugify } from '@/lib/utils';
 import { isAdminRole } from '@/lib/auth/roles';
+import { ensureCanonicalMediaItem } from '@/lib/media/canonical';
 
 const SUPPORTED_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'comic', 'boardgame', 'soundtrack', 'podcast', 'themepark'] as const;
 type SupportedMediaType = (typeof SUPPORTED_MEDIA_TYPES)[number];
@@ -272,60 +273,38 @@ async function ensureMediaItem(item: UniverseResolvedItemPayload): Promise<Ensur
     return null;
   }
 
-  const existingItem = await db.query.mediaItems.findFirst({
-    where: and(
-      eq(mediaItems.externalId, externalId),
-      eq(mediaItems.source, source),
-      eq(mediaItems.mediaType, mediaType)
-    ),
-  });
-
-  if (existingItem) {
-    return {
-      mediaItemId: existingItem.id,
-      releaseDate: normalizeReleaseDateValue(existingItem.releaseDate),
-    };
-  }
-
-  const safeTitle = title || `Untitled ${mediaType}`;
-  const genres = normalizeStringArray(item.genres);
-  const platforms = normalizeStringArray(item.platforms);
-  const networks = normalizeStringArray(item.networks);
-  const rating = normalizeOptionalNumber(item.rating);
-  const popularity = normalizeOptionalNumber(item.popularity);
-  const runtime = normalizeOptionalNumber(item.runtime);
-  const seasons = normalizeOptionalNumber(item.seasons);
-  const totalEpisodes = normalizeOptionalNumber(item.totalEpisodes);
-
-  const [createdItem] = await db.insert(mediaItems).values({
+  const ensured = await ensureCanonicalMediaItem({
     externalId,
     source,
     mediaType,
-    title: safeTitle,
-    originalTitle: safeTitle,
-    description: normalizeOptionalString(item.description),
-    posterPath: normalizeOptionalString(item.posterPath),
-    backdropPath: normalizeOptionalString(item.backdropPath),
+    title,
+    description: item.description,
+    posterPath: item.posterPath,
+    backdropPath: item.backdropPath,
     releaseDate,
-    rating: rating !== null ? rating.toString() : null,
-    genres: genres.length > 0 ? genres : null,
-    runtime: runtime !== null ? Math.trunc(runtime) : null,
-    developer: normalizeOptionalString(item.developer),
-    publisher: normalizeOptionalString(item.publisher),
-    platforms: platforms.length > 0 ? platforms : null,
-    networks: networks.length > 0 ? networks : null,
-    seasons: seasons !== null ? Math.trunc(seasons) : null,
-    totalEpisodes: totalEpisodes !== null ? Math.trunc(totalEpisodes) : null,
-    status: normalizeOptionalString(item.status),
+    rating: item.rating,
+    genres: item.genres,
+    runtime: item.runtime,
+    developer: item.developer,
+    publisher: item.publisher,
+    platforms: item.platforms,
+    networks: item.networks,
+    seasons: item.seasons,
+    totalEpisodes: item.totalEpisodes,
+    status: item.status,
     isPlaceholder,
-    tagline: normalizeOptionalString(item.tagline),
-    popularity: popularity !== null ? popularity.toString() : null,
-    additionalData: item.additionalData ?? null,
-  }).returning();
+    tagline: item.tagline,
+    popularity: item.popularity,
+    additionalData: item.additionalData,
+  });
+
+  if (!ensured) {
+    return null;
+  }
 
   return {
-    mediaItemId: createdItem.id,
-    releaseDate: normalizeReleaseDateValue(createdItem.releaseDate),
+    mediaItemId: ensured.mediaItem.id,
+    releaseDate: normalizeReleaseDateValue(ensured.mediaItem.releaseDate),
   };
 }
 
