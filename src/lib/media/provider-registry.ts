@@ -91,9 +91,9 @@ export const MEDIA_PROVIDER_REGISTRY = [
     mediaTypes: ['boardgame'],
     stage: 'active',
     trackable: true,
-    requiresKey: false,
+    requiresKey: true,
     moneyRisk: false,
-    notes: 'Primary board game metadata source.',
+    notes: 'Primary board game metadata source; registered app bearer token required for API use.',
   },
   {
     id: 'listennotes',
