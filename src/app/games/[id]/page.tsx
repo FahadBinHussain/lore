@@ -391,8 +391,8 @@ export default function GameDetailPage() {
     }
   };
 
-  const getExternalGameIcon = (category?: string) => {
-    const normalized = (category || '').toLowerCase();
+  const getExternalGameIcon = (category?: string | number) => {
+    const normalized = String(category || '').toLowerCase();
     if (normalized.includes('facebook')) return FacebookBrandIcon;
     if (normalized.includes('instagram')) return InstagramBrandIcon;
     if (normalized.includes('twitter')) return TwitterBrandIcon;
