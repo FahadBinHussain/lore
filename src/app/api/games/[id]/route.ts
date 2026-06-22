@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Simple in-memory cache for IGDB access tokens
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
@@ -18,9 +17,7 @@ async function getAccessToken(): Promise<string> {
     }),
   });
 
-  if (!response.ok) {
-    throw new Error('Failed to get IGDB access token');
-  }
+  if (!response.ok) throw new Error('Failed to get IGDB access token');
 
   const data = await response.json();
   cachedToken = {
@@ -28,25 +25,6 @@ async function getAccessToken(): Promise<string> {
     expiresAt: Date.now() + (data.expires_in - 60) * 1000,
   };
   return cachedToken.token;
-}
-
-async function igdbQuery(endpoint: string, query: string, accessToken: string): Promise<any[]> {
-  const response = await fetch(`https://api.igdb.com/v4/${endpoint}`, {
-    method: 'POST',
-    headers: {
-      'Client-ID': process.env.IGDB_CLIENT_ID!,
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'text/plain',
-    },
-    body: query,
-  });
-
-  if (!response.ok) {
-    console.error(`IGDB ${endpoint} error: ${response.status}`);
-    return [];
-  }
-
-  return response.json();
 }
 
 export async function GET(
@@ -63,105 +41,123 @@ export async function GET(
   try {
     const accessToken = await getAccessToken();
 
-    // Fetch game with ALL needed fields in ONE call
-    const games = await igdbQuery('games',
-      `where id = ${id}; fields 
-        id,name,slug,url,summary,storyline,cover.url,
-        first_release_date,rating,rating_count,
-        aggregated_rating,aggregated_rating_count,
-        total_rating,total_rating_count,
-        hypes,follows,created_at,updated_at,checksum,game_type,
-        genres.name,themes.name,game_modes.name,player_perspectives.name,
-        platforms.name,platform_logo.url,
-        involved_companies.company.name,involved_companies.developer,involved_companies.publisher,involved_companies.company.logo.url,
-        screenshots.url,artworks.url,
-        game_videos.name,game_videos.video_id,
-        websites.url,websites.category,
-        similar_games.id,similar_games.name,similar_games.cover.url,similar_games.first_release_date,
-        dlcs.id,dlcs.name,
-        expansions.id,expansions.name,
-        bundles.id,bundles.name,
-        collections.id,collections.name,
-        keywords.name,
-        alternative_names.name,
-        game_engines.name,game_engines.logo.url,
-        age_ratings.organization,age_ratings.rating_category,age_ratings.rating_content_descriptions.description,
-        release_dates.date,release_dates.region,release_dates.platform.name,release_dates.category,release_dates.status,
-        external_games.name,external_games.url,external_games.category,
-        language_supports.language.name,language_supports.language_support_type.name,
-        game_localizations.name,game_localizations.region,
-        multiplayer_modes.campaigncoop,multiplayer_modes.lancoop,multiplayer_modes.offlinecoop,
-        multiplayer_modes.onlinecoop,multiplayer_modes.splitscreen;
-        limit 1;`,
-      accessToken
-    );
+    // Single IGDB query with all fields
+    const gameResponse = await fetch('https://api.igdb.com/v4/games', {
+      method: 'POST',
+      headers: {
+        'Client-ID': process.env.IGDB_CLIENT_ID!,
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'text/plain',
+      },
+      body: `where id = ${id}; fields *; limit 1;`,
+    });
 
+    if (!gameResponse.ok) {
+      throw new Error(`IGDB error: ${gameResponse.status}`);
+    }
+
+    const games = await gameResponse.json();
     if (!games || games.length === 0) {
       return NextResponse.json({ error: 'Game not found' }, { status: 404 });
     }
 
     const game = games[0];
 
-    // Helper to get high-quality image URL
-    const hq = (url?: string): string | null => {
-      if (!url) return null;
-      let full = url.startsWith('//') ? `https:${url}` : url;
-      return full.replace('/t_thumb/', '/t_1080p/')
-                 .replace('/t_cover_small/', '/t_cover_big/')
-                 .replace('/t_logo_med/', '/t_logo_big/');
+    // Batch fetch related data by type
+    const batchFetch = async (endpoint: string, ids: number[], fields = 'id,name') => {
+      if (!ids?.length) return [];
+      const res = await fetch(`https://api.igdb.com/v4/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Client-ID': process.env.IGDB_CLIENT_ID!,
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'text/plain',
+        },
+        body: `where id = (${ids.join(',')}); fields ${fields}; limit 500;`,
+      });
+      return res.ok ? res.json() : [];
     };
 
-    // Process inline data (no separate API calls needed)
+    // Fetch only the related data that has IDs
+    const [genres, themes, gameModes, playerPerspectives, platforms, companies, screenshots, artworks, videos, websites, keywords, gameEngines, similarGames, dlcs, expansions, bundles, collections, alternativeNames, releaseDates, externalGames, ageRatings, languageSupports, gameLocalizations, multiplayerModes, cover] = await Promise.all([
+      batchFetch('genres', game.genres),
+      batchFetch('themes', game.themes),
+      batchFetch('game_modes', game.game_modes),
+      batchFetch('player_perspectives', game.player_perspectives),
+      batchFetch('platforms', game.platforms, 'id,name,platform_logo.url'),
+      batchFetch('companies', game.involved_companies?.map((ic: any) => ic.company).filter(Boolean) || [], 'id,name,logo.url'),
+      batchFetch('screenshots', game.screenshots, 'id,url'),
+      batchFetch('artworks', game.artworks, 'id,url'),
+      batchFetch('game_videos', game.videos, 'id,name,video_id'),
+      batchFetch('websites', game.websites, 'id,url,category'),
+      batchFetch('keywords', game.keywords, 'id,name'),
+      batchFetch('game_engines', game.game_engines, 'id,name,logo.url'),
+      batchFetch('games', game.similar_games, 'id,name,cover.url'),
+      batchFetch('games', game.dlcs, 'id,name'),
+      batchFetch('games', game.expansions, 'id,name'),
+      batchFetch('games', game.bundles, 'id,name'),
+      batchFetch('collections', game.collections, 'id,name'),
+      batchFetch('alternative_names', game.alternative_names, 'id,name'),
+      batchFetch('release_dates', game.release_dates, 'id,date,region,platform,category,status'),
+      batchFetch('external_games', game.external_games, 'id,name,url,category'),
+      batchFetch('age_ratings', game.age_ratings, 'id,organization,rating_category,rating_content_descriptions.description'),
+      batchFetch('language_supports', game.language_supports, 'id,language.name,language_support_type.name'),
+      batchFetch('game_localizations', game.game_localizations, 'id,name,region'),
+      batchFetch('multiplayer_modes', game.multiplayer_modes, 'id,campaigncoop,lancoop,offlinecoop,onlinecoop,splitscreen'),
+      game.cover ? batchFetch('covers', [game.cover], 'id,url') : Promise.resolve([]),
+    ]);
+
+    // Build lookup maps
+    const mapById = (arr: any[]) => new Map(arr.map((item: any) => [item.id, item]));
+    const companiesMap = mapById(companies);
+    const genresMap = mapById(genres);
+
+    // Process cover
+    const coverUrl = cover?.[0]?.url
+      ? `https:${cover[0].url}`.replace('/t_thumb/', '/t_1080p/')
+      : null;
+
+    // Process developers/publishers
     const developers = (game.involved_companies || [])
-      .filter((ic: any) => ic.developer && ic.company)
-      .map((ic: any) => ({
-        id: ic.company.id,
-        name: ic.company.name,
-        logo_url: hq(ic.company.logo?.url),
-      }));
+      .filter((ic: any) => ic.developer)
+      .map((ic: any) => {
+        const c = companiesMap.get(ic.company);
+        return c ? { id: c.id, name: c.name, logo_url: c.logo?.url ? `https:${c.logo.url}` : null } : null;
+      }).filter(Boolean);
 
     const publishers = (game.involved_companies || [])
-      .filter((ic: any) => ic.publisher && ic.company)
-      .map((ic: any) => ({
-        id: ic.company.id,
-        name: ic.company.name,
-        logo_url: hq(ic.company.logo?.url),
-      }));
+      .filter((ic: any) => ic.publisher)
+      .map((ic: any) => {
+        const c = companiesMap.get(ic.company);
+        return c ? { id: c.id, name: c.name, logo_url: c.logo?.url ? `https:${c.logo.url}` : null } : null;
+      }).filter(Boolean);
 
-    const platforms = (game.platforms || []).map((p: any) => ({
+    // Process platforms
+    const processedPlatforms = platforms.map((p: any) => ({
       id: p.id,
       name: p.name,
-      logo_url: hq(p.platform_logo?.url),
+      logo_url: p.platform_logo?.url ? `https:${p.platform_logo.url}` : null,
     }));
 
-    const screenshots = (game.screenshots || [])
-      .map((s: any) => ({ url: hq(s.url) }))
-      .filter((s: any) => s.url)
-      .slice(0, 10);
+    // Process screenshots/artworks
+    const processImages = (items: any[], field = 'url') =>
+      items.map(i => ({ url: i[field]?.startsWith('//') ? `https:${i[field]}` : i[field] })).filter(i => i.url);
 
-    const artworks = (game.artworks || [])
-      .map((a: any) => ({ url: hq(a.url) }))
-      .filter((a: any) => a.url)
-      .slice(0, 8);
-
-    const videos = (game.game_videos || [])
-      .map((v: any) => ({ video_id: v.video_id, name: v.name }))
-      .slice(0, 5);
-
-    const ageRatings = (game.age_ratings || []).map((ar: any) => ({
+    // Process age ratings
+    const ageRatingData = ageRatings.map((ar: any) => ({
       rating: ar.rating_category,
       category: ar.organization === 1 ? 'ESRB' : ar.organization === 2 ? 'PEGI' : `Org ${ar.organization}`,
       content_descriptions: (ar.rating_content_descriptions || []).map((cd: any) => cd.description).filter(Boolean),
     }));
 
-    const result = {
+    return NextResponse.json({
       id: game.id,
       name: game.name,
       slug: game.slug,
       url: game.url,
       summary: game.summary || '',
       storyline: game.storyline || '',
-      cover_url: hq(game.cover?.url),
+      cover_url: coverUrl,
       first_release_date: game.first_release_date,
       rating: game.rating,
       rating_count: game.rating_count,
@@ -175,39 +171,36 @@ export async function GET(
       updated_at: game.updated_at,
       checksum: game.checksum,
       game_type: game.game_type,
-      genres: game.genres || [],
-      themes: game.themes || [],
-      game_modes: game.game_modes || [],
-      player_perspectives: game.player_perspectives || [],
-      platforms,
+      genres,
+      themes,
+      game_modes: gameModes,
+      player_perspectives: playerPerspectives,
+      platforms: processedPlatforms,
       developers,
       publishers,
-      game_engines: (game.game_engines || []).map((e: any) => ({
-        id: e.id, name: e.name, logo_url: hq(e.logo?.url),
+      game_engines: gameEngines.map((e: any) => ({ id: e.id, name: e.name, logo_url: e.logo?.url ? `https:${e.logo.url}` : null })),
+      screenshots: processImages(screenshots).slice(0, 10),
+      artworks: processImages(artworks).slice(0, 8),
+      videos: videos.slice(0, 5).map((v: any) => ({ video_id: v.video_id, name: v.name })),
+      websites,
+      similar_games: similarGames.slice(0, 8).map((sg: any) => ({
+        id: sg.id, name: sg.name,
+        cover_url: sg.cover?.url ? `https:${sg.cover.url}` : null,
       })),
-      screenshots,
-      artworks,
-      videos,
-      websites: game.websites || [],
-      similar_games: (game.similar_games || []).map((sg: any) => ({
-        id: sg.id, name: sg.name, cover_url: hq(sg.cover?.url), first_release_date: sg.first_release_date,
-      })).slice(0, 8),
-      dlcs: (game.dlcs || []).slice(0, 6),
-      expansions: (game.expansions || []).slice(0, 6),
-      bundles: (game.bundles || []).slice(0, 6),
-      collections: (game.collections || []).slice(0, 6),
-      age_ratings: ageRatings,
-      release_dates: (game.release_dates || []).slice(0, 10),
-      external_games: game.external_games || [],
-      keywords: game.keywords || [],
+      dlcs: dlcs.slice(0, 6),
+      expansions: expansions.slice(0, 6),
+      bundles: bundles.slice(0, 6),
+      collections: collections.slice(0, 6),
+      age_ratings: ageRatingData,
+      release_dates: releaseDates.slice(0, 10),
+      external_games: externalGames,
+      keywords,
       tags: game.tags || [],
-      multiplayer_modes: game.multiplayer_modes || [],
-      language_supports: (game.language_supports || []).slice(0, 10),
-      game_localizations: (game.game_localizations || []).slice(0, 10),
-      alternative_names: game.alternative_names || [],
-    };
-
-    return NextResponse.json(result);
+      multiplayer_modes: multiplayerModes,
+      language_supports: languageSupports.slice(0, 10),
+      game_localizations: gameLocalizations.slice(0, 10),
+      alternative_names: alternativeNames,
+    });
   } catch (error) {
     console.error('Game detail API error:', error);
     return NextResponse.json({ error: 'Failed to fetch game details' }, { status: 500 });
