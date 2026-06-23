@@ -308,7 +308,7 @@ export default async function Page({ params }: UniversePageProps) {
   const seriesSeasons =
     seriesMediaItemIds.length > 0
       ? await db.query.seasons.findMany({
-          where: and(inArray(seasons.mediaItemId, seriesMediaItemIds), eq(seasons.source, 'tmdb')),
+          where: and(inArray(seasons.mediaItemId, seriesMediaItemIds), inArray(seasons.source, ['tmdb', 'anilist'])),
           orderBy: [seasons.mediaItemId, seasons.seasonNumber],
           with: {
             episodes: {
