@@ -128,6 +128,26 @@
   html {
     @apply font-sans;
   }
+
+  /* Light mode surface / on-surface overrides */
+  html:not(.dark) {
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f7f7f9;
+    --color-surface-container: #f0f0f3;
+    --color-surface-container-high: #e8e8ec;
+    --color-surface-container-highest: #e0e0e5;
+    --color-surface-bright: #ffffff;
+    --color-surface-dim: #d0d0d5;
+    --color-surface: #f0f0f3;
+    --color-surface-variant: #e0e0e5;
+    --color-on-surface: #1f1f25;
+    --color-on-surface-variant: #5a5a65;
+    --color-outline: #a0a0a8;
+    --color-outline-variant: #d0d0d5;
+    --color-inverse-surface: #1f1f25;
+    --color-inverse-on-surface: #f3eff6;
+    --color-inverse-primary: #6b64e8;
+  }
 }
 
 /* Avatar background images using data attributes to avoid hydration mismatch */
@@ -189,9 +209,57 @@
 
 /* Glass card effect */
 .glass-card {
-  background: rgba(31, 31, 37, 0.4);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass-card {
+  background: rgba(31, 31, 37, 0.4);
   border: 1px solid rgba(72, 71, 76, 0.15);
+}
+
+/* Light mode: ensure universe card text is readable over light translucent background */
+html:not(.dark) .glass-card {
+  color: #1f1f25;
+  --color-on-surface: #1f1f25;
+  --color-on-surface-variant: #4a4a5a;
+  --color-on-background: #1f1f25;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-highest: #f0f0f5;
+  --color-outline-variant: #e0e0e5;
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+/* Fix text-tertiary readability on light backgrounds */
+html:not(.dark) .text-tertiary,
+html:not(.dark) .group-hover\:text-tertiary:hover {
+  color: #b0307a;
+}
+
+/* Badge backgrounds inside light-mode glass cards */
+html:not(.dark) .glass-card .bg-surface-container-lowest\/60,
+html:not(.dark) .glass-card .bg-surface-container-lowest\/40 {
+  background: rgba(230, 230, 238, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Progress bar track in light-mode glass cards */
+html:not(.dark) .glass-card .bg-primary\/15 {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Card footer border in light mode */
+html:not(.dark) .glass-card .border-outline-variant\/10 {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html:not(.dark) .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 /* Script font for decorative text - loaded via Google Fonts link in layout */
