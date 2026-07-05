@@ -16,7 +16,9 @@ Items in a universe **must** be ordered by release date (chronological release o
 
 ## API connections
 
-When creating or updating universe items, agents **must** try to connect items to the project's existing APIs whenever possible. Use `ensureCanonicalMediaItem` with the correct `source` and `externalId` for each media type:
+**Hard rule:** when creating or updating universe items, agents **must** bind every item to the project's existing APIs. do not create `manual`/`curated` items unless the media is genuinely absent from all supported APIs.
+
+use `ensureCanonicalMediaItem` with the correct `source` and `externalId` for each media type:
 
 | Media type | API source | External ID format |
 | --- | --- | --- |
@@ -31,4 +33,10 @@ When creating or updating universe items, agents **must** try to connect items t
 | podcast | listennotes | `listennotes-{id}` |
 | themepark | themeparks | `themeparks-{id}` |
 
-If an item cannot be connected to an API (no listing, cancelled game, regional-only release), use `source: 'manual'` with a `curated-{type}-{year}-{slug}` external ID format.
+**allowed `manual` fallback only when:**
+- the item has no listing on the relevant API (e.g., cancelled/unreleased game, regional-only release, web-only short, or limited-run theme park experience with no database entry)
+- you have verified the absence by querying the API directly or confirming no search results exist
+
+fallback format: `source: 'manual'` with `curated-{type}-{year}-{slug}` external id.
+
+agents must not default to `manual` for convenience. API binding is the norm; curated is the exception and must be justified per item.
