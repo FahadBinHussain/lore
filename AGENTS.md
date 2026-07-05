@@ -33,9 +33,30 @@ use `ensureCanonicalMediaItem` with the correct `source` and `externalId` for ea
 | podcast | listennotes | `listennotes-{id}` |
 | themepark | themeparks | `themeparks-{id}` |
 
-**allowed `manual` fallback only when:**
-- the item has no listing on the relevant API (e.g., cancelled/unreleased game, regional-only release, web-only short, or limited-run theme park experience with no database entry)
-- you have verified the absence by querying the API directly or confirming no search results exist
+### TV / Anime structure rule
+
+**Universe collections must contain series-level items only. Never add individual episodes to a universe collection.**
+
+- add the **TV series** (e.g., "Black Mirror", "Agents of S.H.I.E.L.D.") as a single `media_item` with `media_type: 'tv'` and `source: 'tmdb'`.
+- episode tracking is handled automatically through the `seasons` and `episodes` tables, which get populated from the API when the series is imported.
+- do NOT create separate `media_item` records for individual episodes (e.g., "Black Mirror: White Christmas", "Agents of S.H.I.E.L.D. Episode 1").
+- anthologies, miniseries, and seasonal shows are still single series entries — the season/episode tables handle the breakdown.
+
+**Examples of existing correct patterns:**
+- Marvel Cinematic Universe: "WandaVision" (tmdb/85271), "Loki" (tmdb/84958) — series items only, zero episode entries in the collection.
+- Dr. Seuss: "The Wubbulous World of Dr. Seuss" (tmdb/3211), "Green Eggs and Ham" (tmdb/86957) — series items only.
+- Black Mirror: "Black Mirror" (tmdb/42009) — one series item covering all 7 seasons and 33 episodes via the seasons/episodes tables.
+
+**What NOT to do:**
+- the original Black Mirror universe had 33 manual episode entries like "Black Mirror: The National Anthem", "Black Mirror: San Junipero" — all were removed. the single series entry is sufficient.
+
+### Allowed `manual` fallback
+
+Only when an item is genuinely absent from the relevant API:
+- cancelled/unreleased game with no IGDB entry
+- regional-only release with no TMDB/AniList entry
+- web-only short, limited-run theme park experience, or one-off board game with no BGG entry
+- verified by querying the API directly and confirming zero results
 
 fallback format: `source: 'manual'` with `curated-{type}-{year}-{slug}` external id.
 
