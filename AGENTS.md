@@ -61,3 +61,28 @@ Only when an item is genuinely absent from the relevant API:
 fallback format: `source: 'manual'` with `curated-{type}-{year}-{slug}` external id.
 
 agents must not default to `manual` for convenience. API binding is the norm; curated is the exception and must be justified per item.
+
+### Verified API bindings (reference examples)
+
+These items were successfully connected to APIs after verification:
+
+| Item | Media Type | API | External ID |
+| --- | --- | --- | --- |
+| Black Mirror (series) | tv | tmdb | `42009` |
+| Black Mirror: Bandersnatch | movie | tmdb | `569547` |
+| Inside Black Mirror (book) | book | openlibrary | `OL20181820W` |
+| Thronglets (game) | game | igdb | `339816` |
+| Nohzdyve (game) | game | igdb | `123624` |
+
+### Confirmed manual-only items (API absence verified)
+
+These items were checked against their respective APIs and confirmed absent:
+
+| Item | Media Type | Why manual |
+| --- | --- | --- |
+| Black Mirror: USS Callister (Graphic Novel) | comic | ComicVine search returned no results for this graphic novel |
+| Nosedive (Board Game) | boardgame | BGG search returned no results |
+| Black Mirror Labyrinth | themepark | Not in themeparks API database (Thorpe Park limited-run attraction) |
+| The Black Mirror Experience | themepark | Not in themeparks API database (upcoming 2026 Univrse attraction) |
+
+When in doubt, query the API directly before falling back to manual. Never assume absence without checking.
