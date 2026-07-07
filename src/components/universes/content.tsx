@@ -98,7 +98,7 @@ function selectHeroImageCandidate(universe: Universe): { path: string | null; so
   return { path: null, source: null };
 }
 
-function getUniverseHeroImage(universe: Universe, size: 'w780' | 'w1280' = 'w780'): string | null {
+function getUniverseHeroImage(universe: Universe, size: 'w342' | 'w780' | 'w1280' = 'w780'): string | null {
   const heroCandidate = selectHeroImageCandidate(universe);
   return (
     toImageUrl(universe.bannerImage, 'tmdb', size) ||
