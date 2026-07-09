@@ -138,8 +138,8 @@
 
 }
 
-/* Light mode surface / on-surface overrides — outside @layer so they override @theme inline values */
-html:not(.dark) {
+/* Light mode surface / on-surface overrides — use html[data-theme="light"] so specificity beats daisyui [data-theme=light] */
+html[data-theme="light"] {
   --color-surface-container-lowest: #ffffff;
   --color-surface-container-low: #f7f7f9;
   --color-surface-container: #f0f0f3;
@@ -157,6 +157,9 @@ html:not(.dark) {
   --color-inverse-on-surface: #f3eff6;
   --color-inverse-primary: #6b64e8;
   --color-on-background: #1f1f25;
+  /* primary in light mode is light; on-primary must be dark */
+  --color-on-primary: #1f1f25;
+  --color-on-primary-fixed: #1f1f25;
 }
 
 /* Avatar background images using data attributes to avoid hydration mismatch */
