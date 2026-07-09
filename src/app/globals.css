@@ -82,6 +82,11 @@
   --color-secondary-fixed-dim: #cbbaff;
   --color-on-secondary-fixed: #3b1b88;
   --color-on-secondary-fixed-variant: #583da6;
+  /* On-primary tokens used by buttons */
+  --color-on-primary: #f3eff6;
+  --color-on-primary-fixed: #f3eff6;
+  /* Explicit error color so text-error / bg-error / border-error work */
+  --color-error: #ef4444;
 }
 
 :root,
