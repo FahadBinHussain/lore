@@ -38,7 +38,7 @@ interface UniversesContentProps {
   initialCanCreateUniverse?: boolean;
 }
 
-function toImageUrl(path: string | null, source: string | null, size: 'w780' | 'w1280' = 'w780'): string | null {
+function toImageUrl(path: string | null, source: string | null, size: 'w342' | 'w780' | 'w1280' = 'w780'): string | null {
   if (!path) return null;
   const trimmed = path.trim();
   if (!trimmed) return null;
