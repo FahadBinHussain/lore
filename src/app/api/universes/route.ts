@@ -143,7 +143,8 @@ export async function POST(request: NextRequest) {
         items.map((item: { mediaItemId: number; isRequired?: boolean; notes?: string }, index: number) => ({
           collectionId: newCollection.id,
           mediaItemId: item.mediaItemId,
-          orderIndex: index,
+          releaseOrder: index + 1,
+          chronologicalOrder: index + 1,
           isRequired: item.isRequired ?? true,
           notes: item.notes,
         }))

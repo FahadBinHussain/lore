@@ -10,9 +10,13 @@ Steps:
 3. Use the existing `create-*-universe.js` pattern to insert into the database
 4. Verify the inserted items match the research output
 
-## Universe item ordering
+## Universe completeness rule
 
-Items in a universe **must** be ordered by release date (chronological release order). When inserting items, set `release_order` and `chronological_order` based on actual release dates, not alphabetical or arbitrary order.
+A universe **must** contain **every official media item** found for that franchise. Do not skip, prune, or limit the list based on perceived size, popularity, or importance. Include **all** official entries: main series, sequels, spin-offs, crossovers, short films, web series, mobile games, comics, books, soundtracks, and regional exclusives. If it is officially released media under the franchise name, it belongs in the universe. Size is not a concern — completeness is.
+
+Items in a universe **must** be ordered by **release order** — the order in which each media item was first released to the public. When inserting items, set `release_order` and `chronological_order` based on actual release dates, not alphabetical or arbitrary order.
+
+**Release order rule:** sort by the item's original release date (earliest first). This is the canonical viewing/reading order for the franchise.
 
 ## API connections
 

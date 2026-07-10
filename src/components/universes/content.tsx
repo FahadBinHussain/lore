@@ -144,6 +144,16 @@ export function UniversesContent({
   const [deletingUniverseId, setDeletingUniverseId] = useState<number | null>(null);
   const [canCreateUniverse, setCanCreateUniverse] = useState<boolean>(initialCanCreateUniverse);
 
+  const totalUniverses = universes.length;
+  const totalTitles = universes.reduce((sum, u) => sum + (u.totalItems || u.items.length), 0);
+
+  const scrollToGrid = useCallback(() => {
+    const grid = document.getElementById('universe-grid');
+    if (grid) {
+      grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
   const fetchUniverses = useCallback(async () => {
     try {
       setError(null);
@@ -192,8 +202,6 @@ export function UniversesContent({
     }
   }, []);
 
-  const heroImage = universes.length > 0 ? getUniverseHeroImage(universes[0], 'w1280') : null;
-
   useEffect(() => {
     const handlePageShow = () => {
       fetchUniverses();
@@ -206,47 +214,114 @@ export function UniversesContent({
     };
   }, [fetchUniverses]);
 
+  // Featured universes for the hero strip — pick 6 with the best images
+  const featuredUniverses = universes
+    .filter((u) => getUniverseHeroImage(u, 'w342'))
+    .slice(0, 6);
+
   return (
     <div className="bg-background text-on-background font-body selection:bg-primary/30">
-      <main className="pt-8 pb-32">
-        <section className="relative h-[614px] min-h-[500px] flex items-center px-6 md:px-12 overflow-hidden mx-4 md:mx-10 rounded-3xl">
-          <div className="absolute inset-0 z-0">
-            {heroImage ? (
-              <Image className="w-full h-full object-cover opacity-60" alt="universe hero" src={heroImage} fill sizes="100vw" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary/20 via-transparent to-secondary/20" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
-          </div>
-          <div className="relative z-10 max-w-3xl">
-            <span className="inline-block px-4 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-widest mb-6 font-label">EXPLORE THE ARCHIVE</span>
-            <h1 className="text-6xl md:text-8xl font-headline font-extrabold tracking-tight text-on-background mb-6 leading-[0.9]">
-              The <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-tertiary">Multiverse</span>
-            </h1>
-            <p className="text-on-surface-variant text-lg md:text-xl max-w-xl font-body leading-relaxed">
-              Traverse across infinite dimensions. From neon-soaked streets to high-fantasy realms, track every legend born within these interconnected worlds.
-            </p>
-            <div className="flex gap-4 mt-8">
-              <button className="bg-gradient-to-br from-primary to-primary-dim text-on-primary-fixed font-bold px-8 py-3 rounded-full hover:scale-105 transition-transform" type="button">Begin Journey</button>
-              <button className="bg-surface-container-highest/40 backdrop-blur-md border border-outline-variant/20 text-on-surface font-bold px-8 py-3 rounded-full hover:bg-surface-container-highest/60 transition-colors" type="button">Manifesto</button>
+      <main>
+        {/* Hero */}
+        <section className="relative overflow-hidden bg-background">
+          <div className="mx-auto max-w-7xl px-6 md:px-12 pt-16 pb-8 md:pt-24 md:pb-12">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+              {/* Left: title + subtitle */}
+              <div className="max-w-2xl">
+                <span className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-primary uppercase mb-4">
+                  <span className="h-px w-6 bg-primary" />
+                  Explore the Archive
+                </span>
+                <h1 className="text-5xl md:text-7xl font-headline font-extrabold tracking-tight text-on-background mb-4 leading-[0.95]">
+                  The{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-tertiary">
+                    Multiverse
+                  </span>
+                </h1>
+                <p className="text-on-surface-variant text-base md:text-lg max-w-lg leading-relaxed mb-6">
+                  Track every legend across interconnected worlds — movies, games, anime, and beyond.
+                </p>
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={scrollToGrid}
+                    className="inline-flex items-center gap-2 bg-primary text-on-primary-fixed font-bold px-6 py-2.5 rounded-full text-sm hover:scale-105 transition-transform"
+                  >
+                    Browse Universes
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {canCreateUniverse && (
+                    <Link
+                      href="/universes/create"
+                      className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-secondary transition-colors"
+                    >
+                      Create New
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </Link>
+                  )}
+                </div>
+              </div>
+
+              {/* Right: live stats */}
+              <div className="flex gap-8 md:gap-12">
+                <div>
+                  <div className="text-3xl md:text-4xl font-headline font-extrabold text-on-background">{totalUniverses}</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mt-1">Universes</div>
+                </div>
+                <div>
+                  <div className="text-3xl md:text-4xl font-headline font-extrabold text-on-background">{totalTitles.toLocaleString()}</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mt-1">Titles</div>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Featured universe thumbnails strip */}
+          {featuredUniverses.length > 0 && (
+            <div className="mt-6 md:mt-8">
+              <div className="flex gap-3 overflow-x-auto px-6 md:px-12 no-scrollbar pb-4">
+                {featuredUniverses.map((universe) => {
+                  const image = getUniverseHeroImage(universe, 'w342');
+                  return (
+                    <button
+                      key={universe.id}
+                      type="button"
+                      onClick={() => router.push(`/universes/${universe.slug || universe.id}`)}
+                      className="group shrink-0 relative w-28 h-40 md:w-36 md:h-52 rounded-2xl overflow-hidden transition-transform hover:scale-105 duration-300"
+                    >
+                      {image ? (
+                        <Image
+                          src={image}
+                          alt={universe.name}
+                          fill
+                          sizes="144px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                        <span className="text-[10px] font-bold text-white/90 leading-tight line-clamp-2">
+                          {universe.name}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Bottom fade to content */}
+          <div className="h-12 bg-gradient-to-b from-transparent to-background" />
         </section>
 
-        <section className="px-6 md:px-12 mt-12 mb-10 overflow-x-auto">
-          <div className="flex items-center gap-3 no-scrollbar">
-            <span className="text-on-surface-variant font-bold text-sm mr-4 whitespace-nowrap">FILTER BY GENRE:</span>
-            <button className="px-6 py-2 rounded-full bg-primary text-on-primary-fixed text-sm font-bold shadow-lg shadow-primary/20 whitespace-nowrap" type="button">All Realms</button>
-            <button className="px-6 py-2 rounded-full bg-surface-container-high border border-outline-variant/15 text-on-surface-variant text-sm font-bold hover:border-primary/40 transition-all whitespace-nowrap" type="button">Sci-Fi</button>
-            <button className="px-6 py-2 rounded-full bg-surface-container-high border border-outline-variant/15 text-on-surface-variant text-sm font-bold hover:border-primary/40 transition-all whitespace-nowrap" type="button">Fantasy</button>
-            <button className="px-6 py-2 rounded-full bg-surface-container-high border border-outline-variant/15 text-on-surface-variant text-sm font-bold hover:border-primary/40 transition-all whitespace-nowrap" type="button">Cyberpunk</button>
-            <button className="px-6 py-2 rounded-full bg-surface-container-high border border-outline-variant/15 text-on-surface-variant text-sm font-bold hover:border-primary/40 transition-all whitespace-nowrap" type="button">Mystery</button>
-            <button className="px-6 py-2 rounded-full bg-surface-container-high border border-outline-variant/15 text-on-surface-variant text-sm font-bold hover:border-primary/40 transition-all whitespace-nowrap" type="button">Noir</button>
-          </div>
-        </section>
-
-        <section className="px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section id="universe-grid" className="px-6 md:px-12 pt-4 pb-32">
           {error && (
             <div className="col-span-full rounded-2xl border border-error/30 bg-error/10 p-4">
               <p className="text-sm text-error">{error}</p>
