@@ -31,6 +31,10 @@ interface Universe {
   totalItems?: number;
   untrackableCount?: number;
   canDelete?: boolean;
+  creator?: {
+    name: string | null;
+    image: string | null;
+  } | null;
 }
 
 interface UniversesContentProps {
@@ -122,6 +126,53 @@ function getUniverseHeroImage(universe: Universe, size: 'w342' | 'w780' | 'w1280
   );
 }
 
+function getMediaTypeBreakdown(items: Universe['items']): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    const mt = item.mediaItem.mediaType?.trim() || 'other';
+    counts.set(mt, (counts.get(mt) || 0) + 1);
+  }
+  return counts;
+}
+
+function mediaTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    movie: 'Movies',
+    tv: 'TV',
+    anime: 'Anime',
+    game: 'Games',
+    book: 'Books',
+    comic: 'Comics',
+    manga: 'Manga',
+    podcast: 'Podcasts',
+    soundtrack: 'Music',
+    boardgame: 'Board Games',
+    themepark: 'Theme Parks',
+    other: 'Other',
+    manual: 'Manual',
+  };
+  return labels[type] || type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+function mediaTypeIcon(type: string): string {
+  const icons: Record<string, string> = {
+    movie: 'movie',
+    tv: 'tv',
+    anime: 'animation',
+    game: 'sports_esports',
+    book: 'menu_book',
+    comic: 'auto_stories',
+    manga: 'import_contacts',
+    podcast: 'podcasts',
+    soundtrack: 'music_note',
+    boardgame: 'extension',
+    themepark: 'attractions',
+    other: 'category',
+    manual: 'edit_note',
+  };
+  return icons[type] || 'category';
+}
+
 function getVariant(index: number): 'primary' | 'secondary' | 'tertiary' {
   const variants: Array<'primary' | 'secondary' | 'tertiary'> = ['primary', 'secondary', 'tertiary', 'primary', 'secondary'];
   return variants[index % variants.length];
@@ -178,6 +229,18 @@ export function UniversesContent({
     fetchUniverses();
   }, [fetchUniverses]);
 
+  useEffect(() => {
+    const handlePageShow = () => {
+      fetchUniverses();
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('popstate', handlePageShow);
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('popstate', handlePageShow);
+    };
+  }, [fetchUniverses]);
+
   const handleDeleteUniverse = useCallback(async (universe: Universe) => {
     const confirmed = window.confirm(`Delete "${universe.name}"?\n\nThis cannot be undone.`);
     if (!confirmed) return;
@@ -201,23 +264,6 @@ export function UniversesContent({
       setDeletingUniverseId(null);
     }
   }, []);
-
-  useEffect(() => {
-    const handlePageShow = () => {
-      fetchUniverses();
-    };
-    window.addEventListener('pageshow', handlePageShow);
-    window.addEventListener('popstate', handlePageShow);
-    return () => {
-      window.removeEventListener('pageshow', handlePageShow);
-      window.removeEventListener('popstate', handlePageShow);
-    };
-  }, [fetchUniverses]);
-
-  // Featured universes for the hero strip — pick 6 with the best images
-  const featuredUniverses = universes
-    .filter((u) => getUniverseHeroImage(u, 'w342'))
-    .slice(0, 6);
 
   return (
     <div className="bg-background text-on-background font-body selection:bg-primary/30">
@@ -280,159 +326,206 @@ export function UniversesContent({
             </div>
           </div>
 
-          {/* Featured universe thumbnails strip */}
-          {featuredUniverses.length > 0 && (
-            <div className="mt-6 md:mt-8">
-              <div className="flex gap-3 overflow-x-auto px-6 md:px-12 no-scrollbar pb-4">
-                {featuredUniverses.map((universe) => {
-                  const image = getUniverseHeroImage(universe, 'w342');
-                  return (
-                    <button
-                      key={universe.id}
-                      type="button"
-                      onClick={() => router.push(`/universes/${universe.slug || universe.id}`)}
-                      className="group shrink-0 relative w-28 h-40 md:w-36 md:h-52 rounded-2xl overflow-hidden transition-transform hover:scale-105 duration-300"
-                    >
-                      {image ? (
-                        <Image
-                          src={image}
-                          alt={universe.name}
-                          fill
-                          sizes="144px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20" />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-2.5">
-                        <span className="text-[10px] font-bold text-white/90 leading-tight line-clamp-2">
-                          {universe.name}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {/* Bottom fade to content */}
           <div className="h-12 bg-gradient-to-b from-transparent to-background" />
         </section>
 
-        <section id="universe-grid" className="px-6 md:px-12 pt-4 pb-32">
+        <section id="universe-grid" className="px-6 md:px-12 pt-4 pb-32 max-w-7xl mx-auto">
           {error && (
-            <div className="col-span-full rounded-2xl border border-error/30 bg-error/10 p-4">
+            <div className="rounded-2xl border border-error/30 bg-error/10 p-4 mb-6">
               <p className="text-sm text-error">{error}</p>
             </div>
           )}
 
-          {!loading && universes.map((universe, index) => {
-            const variant = getVariant(index);
-            const progress = universe.progress || 0;
-            const image = getUniverseHeroImage(universe, 'w780');
-            const trackableTotal = universe.itemsTotal || 0;
-            const totalTitles = universe.totalItems || universe.items.length;
-            const untrackableCount = universe.untrackableCount || 0;
-            const isDeleting = deletingUniverseId === universe.id;
-            return (
-              <div
-                key={universe.id}
-                className="group glass-card flex h-full min-h-[604px] flex-col overflow-hidden rounded-3xl glow-hover transition-all duration-500 cursor-pointer"
-                role="button"
-                tabIndex={0}
-                onClick={() => router.push(`/universes/${universe.slug || universe.id}`)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    router.push(`/universes/${universe.slug || universe.id}`);
-                  }
-                }}
-              >
-                <div className="relative h-64 shrink-0 overflow-hidden">
-                  {image ? (
-                    <Image className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={universe.name} src={image} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/20 via-transparent to-secondary/20" />
-                  )}
-                  {universe.canDelete && (
-                    <button
-                      type="button"
-                      className="absolute top-4 left-4 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1 text-error hover:bg-error/20 transition-colors"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void handleDeleteUniverse(universe);
-                      }}
-                      disabled={isDeleting}
-                      aria-label={`Delete ${universe.name}`}
-                    >
-                      {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                      <span className="text-xs font-bold">{isDeleting ? 'Deleting' : 'Delete'}</span>
-                    </button>
-                  )}
-                  <div className="absolute top-4 right-4 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1">
-                    <span className="text-xs font-bold">{progress}% completed</span>
+          {loading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="glass-card rounded-3xl overflow-hidden animate-pulse">
+                  <div className="h-48 bg-surface-container-high/50" />
+                  <div className="p-6 space-y-3">
+                    <div className="h-6 bg-surface-container-high/50 rounded w-3/4" />
+                    <div className="h-4 bg-surface-container-high/50 rounded w-full" />
+                    <div className="h-4 bg-surface-container-high/50 rounded w-2/3" />
                   </div>
                 </div>
-                <div className="flex flex-1 flex-col p-6">
-                  <div className="mb-2 flex min-h-[72px] items-start justify-between">
-                    <h3 className={`line-clamp-2 text-2xl font-headline font-bold leading-tight text-on-surface ${variant === 'primary' ? 'group-hover:text-primary' : variant === 'secondary' ? 'group-hover:text-secondary' : 'group-hover:text-tertiary'} transition-colors`}>{universe.name}</h3>
-                  </div>
-                  <p className="mb-6 min-h-[40px] text-on-surface-variant text-sm line-clamp-2 font-body">{universe.description || 'No description available yet.'}</p>
+              ))}
+            </div>
+          )}
 
-                  <div className="mb-4 min-h-[76px]">
-                    <div className="flex items-center justify-between text-xs font-bold uppercase tracking-tighter text-on-surface-variant mb-2">
-                      <span>Progress</span>
-                      <span>
-                        {trackableTotal > 0
-                          ? `${universe.itemsCompleted || 0} / ${trackableTotal} Done`
-                          : 'Curated only'}
-                      </span>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-primary/15 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
-                        style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
-                      />
-                    </div>
-                    {untrackableCount > 0 && (
-                      <p className="mt-2 text-xs text-on-surface-variant">
-                        +{untrackableCount} curated item{untrackableCount === 1 ? '' : 's'}
-                      </p>
-                    )}
-                  </div>
+          {!loading && universes.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {universes.map((universe, index) => {
+                const variant = getVariant(index);
+                const progress = universe.progress || 0;
+                const image = getUniverseHeroImage(universe, 'w780');
+                const trackableTotal = universe.itemsTotal || 0;
+                const totalTitlesCount = universe.totalItems || universe.items.length;
+                const untrackableCount = universe.untrackableCount || 0;
+                const isDeleting = deletingUniverseId === universe.id;
+                const typeBreakdown = getMediaTypeBreakdown(universe.items);
+                const creatorName = universe.creator?.name || 'Unknown';
+                const creatorImage = universe.creator?.image;
 
-                  <div className="mt-auto flex items-center justify-between border-t border-outline-variant/10 pt-4">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-tighter">{totalTitles} TITLES</span>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
+                return (
+                  <div
+                    key={universe.id}
+                    className="group glass-card flex flex-col overflow-hidden rounded-3xl glow-hover transition-all duration-500 cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => router.push(`/universes/${universe.slug || universe.id}`)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
                         router.push(`/universes/${universe.slug || universe.id}`);
-                      }}
-                      className={`${variantTextClass(variant)} hover:translate-x-1 transition-transform flex items-center gap-1 font-bold text-sm`}
-                    >
-                      EXPLORE <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                      }
+                    }}
+                  >
+                    {/* Image Header */}
+                    <div className="relative h-48 shrink-0 overflow-hidden">
+                      {image ? (
+                        <Image
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          alt={universe.name}
+                          src={image}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 via-transparent to-secondary/20" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-          {canCreateUniverse ? (
-            <Link href="/universes/create" className="group border-2 border-dashed border-outline-variant/30 rounded-3xl flex flex-col items-center justify-center p-12 hover:border-primary/50 transition-colors bg-surface-container-low/20">
-              <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <span className="material-symbols-outlined text-3xl text-primary">add</span>
-              </div>
-              <h3 className="text-xl font-bold font-headline mb-2">Forge New Realm</h3>
-              <p className="text-on-surface-variant text-center text-sm font-body">Contribute a new universe to the archive and begin its legacy.</p>
-            </Link>
-          ) : null}
+                      {/* Delete button */}
+                      {universe.canDelete && (
+                        <button
+                          type="button"
+                          className="absolute top-3 left-3 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 text-error hover:bg-error/20 transition-colors"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void handleDeleteUniverse(universe);
+                          }}
+                          disabled={isDeleting}
+                          aria-label={`Delete ${universe.name}`}
+                        >
+                          {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                          <span className="text-xs font-bold">{isDeleting ? 'Deleting' : 'Delete'}</span>
+                        </button>
+                      )}
+
+                      {/* Progress badge */}
+                      <div className="absolute top-3 right-3 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1.5 rounded-full">
+                        <span className="text-xs font-bold">{progress}% done</span>
+                      </div>
+
+                      {/* Total titles badge */}
+                      <div className="absolute bottom-3 left-3 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1.5 rounded-full">
+                        <span className="text-xs font-bold uppercase tracking-tight">{totalTitlesCount} titles</span>
+                      </div>
+                    </div>
+
+                    {/* Content Body */}
+                    <div className="flex flex-1 flex-col p-5">
+                      {/* Title */}
+                      <h3 className={`text-xl font-headline font-bold leading-tight text-on-surface mb-2 ${variant === 'primary' ? 'group-hover:text-primary' : variant === 'secondary' ? 'group-hover:text-secondary' : 'group-hover:text-tertiary'} transition-colors`}>
+                        {universe.name}
+                      </h3>
+
+                      {/* Description */}
+                      <p className="text-on-surface-variant text-sm line-clamp-2 font-body mb-4 min-h-[40px]">
+                        {universe.description || 'No description available yet.'}
+                      </p>
+
+                      {/* Media Type Chips */}
+                      {typeBreakdown.size > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-4">
+                          {Array.from(typeBreakdown.entries()).slice(0, 4).map(([type, count]) => (
+                            <span
+                              key={type}
+                              className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-tight bg-surface-container-high/60 text-on-surface-variant px-2 py-1 rounded-full"
+                            >
+                              <span className="material-symbols-outlined text-[12px] leading-none">{mediaTypeIcon(type)}</span>
+                              {count} {mediaTypeLabel(type)}
+                            </span>
+                          ))}
+                          {typeBreakdown.size > 4 && (
+                            <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-tight bg-surface-container-high/60 text-on-surface-variant px-2 py-1 rounded-full">
+                              +{typeBreakdown.size - 4} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Progress Bar */}
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant mb-1.5">
+                          <span>Progress</span>
+                          <span>
+                            {trackableTotal > 0
+                              ? `${universe.itemsCompleted || 0} / ${trackableTotal} done`
+                              : 'Curated only'}
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full bg-primary/15 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
+                            style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
+                          />
+                        </div>
+                        {untrackableCount > 0 && (
+                          <p className="mt-1 text-[10px] text-on-surface-variant">
+                            +{untrackableCount} curated item{untrackableCount === 1 ? '' : 's'}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Footer: Creator + Explore */}
+                      <div className="mt-auto flex items-center justify-between border-t border-outline-variant/10 pt-4">
+                        <div className="flex items-center gap-2">
+                          {creatorImage ? (
+                            <Image
+                              src={creatorImage}
+                              alt={creatorName}
+                              width={20}
+                              height={20}
+                              className="rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                              <span className="material-symbols-outlined text-[10px] text-primary">person</span>
+                            </div>
+                          )}
+                          <span className="text-[11px] font-medium text-on-surface-variant truncate max-w-[120px]">
+                            {creatorName}
+                          </span>
+                        </div>
+
+                        <span className={`${variantTextClass(variant)} flex items-center gap-1 font-bold text-xs hover:translate-x-0.5 transition-transform`}>
+                          Explore <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Create New Card */}
+              {canCreateUniverse ? (
+                <Link
+                  href="/universes/create"
+                  className="group border-2 border-dashed border-outline-variant/30 rounded-3xl flex flex-col items-center justify-center p-12 hover:border-primary/50 transition-colors bg-surface-container-low/20 min-h-[380px]"
+                >
+                  <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                    <span className="material-symbols-outlined text-3xl text-primary">add</span>
+                  </div>
+                  <h3 className="text-xl font-bold font-headline mb-2">Forge New Realm</h3>
+                  <p className="text-on-surface-variant text-center text-sm font-body">Contribute a new universe to the archive and begin its legacy.</p>
+                </Link>
+              ) : null}
+            </div>
+          )}
 
           {!loading && universes.length === 0 && !error && (
-            <div className="col-span-full rounded-2xl border border-outline-variant/20 bg-surface-container p-8 text-center">
+            <div className="rounded-2xl border border-outline-variant/20 bg-surface-container p-8 text-center">
               <p className="text-on-surface-variant text-sm">
                 No universes found right now.
               </p>

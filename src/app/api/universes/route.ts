@@ -8,13 +8,13 @@ import { isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 export async function GET() {
   const session = await auth();
-  
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
-  try {
-    let userId = Number.parseInt(session.user.id || '', 10);
+  let userId: number | null = null;
+  let viewerIsAdmin = false;
+
+  if (session?.user) {
+    viewerIsAdmin = isAdminRole(session.user.role);
+    userId = Number.parseInt(session.user.id || '', 10);
     if (!Number.isFinite(userId) && session.user.email) {
       const dbUser = await db.query.users.findFirst({
         where: eq(users.email, session.user.email),
@@ -24,7 +24,9 @@ export async function GET() {
         userId = dbUser.id;
       }
     }
-    const viewerIsAdmin = isAdminRole(session.user.role);
+  }
+
+  try {
 
     const allCollections = await db.query.collections.findMany({
       where: eq(collections.visibility, 'public'),
@@ -57,7 +59,7 @@ export async function GET() {
     );
 
     const progressRows =
-      Number.isFinite(userId) && mediaItemIds.length > 0
+      userId && Number.isFinite(userId) && mediaItemIds.length > 0
         ? await db.query.userMediaProgress.findMany({
             where: and(
               eq(userMediaProgress.userId, userId),

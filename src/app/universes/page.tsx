@@ -9,20 +9,19 @@ import { isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 export default async function UniversesPage() {
   const session = await auth();
-  
-  if (!session?.user) {
-    redirect('/auth/signin');
-  }
-  const viewerIsAdmin = isAdminRole(session.user.role);
+  const viewerIsAdmin = session?.user ? isAdminRole(session.user.role) : false;
 
-  let userId = Number.parseInt(session.user.id || '', 10);
-  if (!Number.isFinite(userId) && session.user.email) {
-    const dbUser = await db.query.users.findFirst({
-      where: eq(users.email, session.user.email),
-      columns: { id: true },
-    });
-    if (dbUser) {
-      userId = dbUser.id;
+  let userId: number | null = null;
+  if (session?.user) {
+    userId = Number.parseInt(session.user.id || '', 10);
+    if (!Number.isFinite(userId) && session.user.email) {
+      const dbUser = await db.query.users.findFirst({
+        where: eq(users.email, session.user.email),
+        columns: { id: true },
+      });
+      if (dbUser) {
+        userId = dbUser.id;
+      }
     }
   }
 
@@ -57,7 +56,7 @@ export default async function UniversesPage() {
   );
 
   const progressRows =
-    Number.isFinite(userId) && mediaItemIds.length > 0
+    userId && Number.isFinite(userId) && mediaItemIds.length > 0
       ? await db.query.userMediaProgress.findMany({
           where: and(eq(userMediaProgress.userId, userId), inArray(userMediaProgress.mediaItemId, mediaItemIds)),
           columns: {
