@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useSyncExternalStore, useState } from 'react';
+import { useEffect, useSyncExternalStore, useState, type MouseEvent } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { isAdminRole, normalizeUserRole } from '@/lib/auth/roles';
 import {
   ArrowRight, LayoutDashboard, Search, Plus,
-  User, Settings, Bell, LogOut, Menu, X, Palette, Check
+  User, Settings, Bell, LogOut, Menu, X, Palette, Check, LoaderCircle
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -140,8 +141,27 @@ function normalizeAvatarUrl(value: string | null | undefined): string | null {
 export function Navbar() {
   const { data: session, status } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [universesPendingFrom, setUniversesPendingFrom] = useState<string | null>(null);
+  const pathname = usePathname();
   const theme = useSyncExternalStore(subscribeTheme, getClientTheme, getServerTheme);
   const avatarUrl = normalizeAvatarUrl(session?.user?.image);
+  const universesActive = pathname === '/universes' || pathname.startsWith('/universes/');
+  const universesPending = universesPendingFrom === pathname && !universesActive;
+
+  const handlePendingUniversesClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (
+      !universesPending ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -169,7 +189,7 @@ export function Navbar() {
               className="w-8 h-8 sm:w-10 sm:h-10 object-contain bg-transparent transform-none rotate-0 scale-100"
             />
             <div className="flex flex-col">
-              <span className="font-bold text-lg sm:text-xl bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
+              <span className="font-bold text-lg sm:text-xl text-foreground">
                 Lore
               </span>
               <span className="text-[8px] sm:text-[10px] text-muted-foreground font-medium -mt-1">Media Tracker</span>
@@ -257,10 +277,21 @@ export function Navbar() {
             </Link>
             <Link
               href="/universes"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+              className={`text-sm font-medium transition-colors relative group inline-flex items-center gap-1.5 ${
+                universesActive || universesPending ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+              }`}
+              aria-current={universesActive ? 'page' : undefined}
+              aria-busy={universesPending}
+              onClick={handlePendingUniversesClick}
+              onNavigate={() => setUniversesPendingFrom(pathname)}
             >
               Universes
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+              <span className="relative size-3.5" aria-hidden="true">
+                <LoaderCircle className={`absolute inset-0 size-3.5 animate-spin transition-opacity ${universesPending ? 'opacity-100' : 'opacity-0'}`} />
+              </span>
+              <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 transition-all duration-300 ${
+                universesActive || universesPending ? 'w-full' : 'w-0 group-hover:w-full'
+              }`} />
             </Link>
             <Link
               href="/search"
@@ -296,10 +327,21 @@ export function Navbar() {
             </Link>
             <Link
               href="/universes"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+              className={`text-sm font-medium transition-colors relative group inline-flex items-center gap-1.5 ${
+                universesActive || universesPending ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+              }`}
+              aria-current={universesActive ? 'page' : undefined}
+              aria-busy={universesPending}
+              onClick={handlePendingUniversesClick}
+              onNavigate={() => setUniversesPendingFrom(pathname)}
             >
               Universes
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
+              <span className="relative size-3.5" aria-hidden="true">
+                <LoaderCircle className={`absolute inset-0 size-3.5 animate-spin transition-opacity ${universesPending ? 'opacity-100' : 'opacity-0'}`} />
+              </span>
+              <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 transition-all duration-300 ${
+                universesActive || universesPending ? 'w-full' : 'w-0 group-hover:w-full'
+              }`} />
             </Link>
             <Link
               href="/search"
@@ -474,7 +516,7 @@ export function Navbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : status === 'loading' ? (
-                <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+                <div className="h-10 w-10 rounded-full skeleton-shimmer" />
               ) : (
                 <>
                   <Link href="/auth/signin">
@@ -587,10 +629,21 @@ export function Navbar() {
               </Link>
               <Link
                 href="/universes"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
+                className={`text-sm font-medium transition-colors inline-flex items-center gap-2 ${
+                  universesActive || universesPending ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                }`}
+                aria-current={universesActive ? 'page' : undefined}
+                aria-busy={universesPending}
+                onClick={(event) => {
+                  handlePendingUniversesClick(event);
+                  if (!event.defaultPrevented) setMobileMenuOpen(false);
+                }}
+                onNavigate={() => setUniversesPendingFrom(pathname)}
               >
                 Universes
+                <span className="relative size-4" aria-hidden="true">
+                  <LoaderCircle className={`absolute inset-0 size-4 animate-spin transition-opacity ${universesPending ? 'opacity-100' : 'opacity-0'}`} />
+                </span>
               </Link>
               <Link
                 href="/search"
