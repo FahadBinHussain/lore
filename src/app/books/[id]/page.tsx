@@ -24,6 +24,7 @@ import {
   YouTubeBrandIcon,
 } from '@/components/icons/social-icons';
 import { cn } from '@/lib/utils';
+import { DetailPageSkeleton } from '@/components/ui/skeleton';
 
 // Raw OpenLibrary response interface
 interface OpenLibraryDateTime {
@@ -236,14 +237,7 @@ export default function BookDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full blur-xl opacity-50 animate-pulse" />
-          <Loader2 className="w-16 h-16 animate-spin text-white relative z-10" />
-        </div>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (error || !book) {
@@ -539,7 +533,7 @@ export default function BookDetailPage() {
                     <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
                       <CardContent className="p-6">
                         <p className="text-white/90 italic text-lg leading-relaxed">
-                          "{book.first_sentence}"
+                          &quot;{book.first_sentence}&quot;
                         </p>
                       </CardContent>
                     </Card>
@@ -818,7 +812,7 @@ export default function BookDetailPage() {
                               )}
                               {author.bio && (
                                 <p className="text-white/70 text-sm mt-2 line-clamp-3">
-                                  {typeof author.bio === 'string' ? author.bio : (author.bio as any).value || ''}
+                                  {typeof author.bio === 'string' ? author.bio : (author.bio as { value?: string }).value || ''}
                                 </p>
                               )}
                               <p className="text-white/30 text-xs mt-1">{author.key}</p>

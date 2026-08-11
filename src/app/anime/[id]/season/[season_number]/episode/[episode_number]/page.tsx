@@ -292,7 +292,7 @@ export default function AnimeEpisodePage() {
             <CardContent className="p-8">
               <h3 className="text-2xl font-bold text-foreground mb-4">Episode {currentEpisode}</h3>
               <p className="text-muted-foreground leading-relaxed">
-                This is episode {currentEpisode} of {anime.title}. Since AniList doesn't provide detailed episode information,
+                This is episode {currentEpisode} of {anime.title}. Since AniList doesn&apos;t provide detailed episode information,
                 you can use this page to track your watching progress. More detailed episode information may be added in the future
                 if additional APIs are integrated.
               </p>

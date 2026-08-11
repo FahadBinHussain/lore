@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, MapPin, Mic, Music, Loader2 } from 'lucide-react';
+import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, MapPin, Mic, Music, Search, ScanSearch, Star, ArrowRight } from 'lucide-react';
+import { ListSkeleton, MediaGridSkeleton } from '@/components/ui/skeleton';
 
 interface MediaItem {
   id: string;
@@ -163,7 +164,7 @@ export function SearchContent() {
         <div className="w-full max-w-2xl relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full blur-xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
           <div className="relative flex items-center bg-surface-container-high rounded-full px-6 py-5 border border-outline-variant/20 shadow-2xl">
-            <span className="material-symbols-outlined text-on-surface-variant mr-4">search</span>
+            <Search className="text-on-surface-variant mr-4" />
             <input
               type="text"
               className="bg-transparent border-none focus:ring-0 text-on-surface placeholder-on-surface-variant w-full font-body text-lg"
@@ -182,9 +183,7 @@ export function SearchContent() {
         {showResults && (
           <div className="w-full max-w-2xl mt-4 bg-surface-container rounded-2xl border border-outline-variant/20 shadow-2xl overflow-hidden">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
+              <ListSkeleton count={4} />
             ) : results.length > 0 ? (
               <div className="max-h-96 overflow-y-auto">
                 {results.map((item) => (
@@ -242,7 +241,7 @@ export function SearchContent() {
           </Link>
           <Link href="/anime">
             <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-full transition-all border border-outline-variant/10">
-              <span className="material-symbols-outlined text-lg">capture</span>
+              <ScanSearch className="text-lg" />
               <span className="text-sm font-medium">Anime</span>
             </button>
           </Link>
@@ -268,9 +267,7 @@ export function SearchContent() {
           <Link href="#" className="text-primary text-sm font-medium hover:underline">View All</Link>
         </div>
         {trendingLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
+          <MediaGridSkeleton count={6} />
         ) : (
           <div className="flex gap-6 overflow-x-auto pb-6 custom-scrollbar snap-x">
             {trendingItems.map((item) => (
@@ -292,7 +289,7 @@ export function SearchContent() {
                     </div>
                   )}
                   <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1">
-                    <span className="material-symbols-outlined text-yellow-400 text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    <Star className="text-yellow-400 text-xs" fill="currentColor" />
                     <span className="text-[10px] font-bold">{item.rating}</span>
                   </div>
                   <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg">
@@ -313,7 +310,7 @@ export function SearchContent() {
           <h2 className="font-headline text-2xl font-bold tracking-tight">Featured Universes</h2>
           <Link href="/universes">
             <button className="p-2 rounded-full bg-surface-container-high border border-outline-variant/10 text-on-surface-variant hover:text-primary transition-colors">
-              <span className="material-symbols-outlined">arrow_forward</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </Link>
         </div>

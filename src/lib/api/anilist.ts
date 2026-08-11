@@ -705,7 +705,7 @@ const MANGA_DETAIL_QUERY = `
 `;
 
 // Generic fetch function for AniList GraphQL API
-async function fetchAniList(query: string, variables: Record<string, any>) {
+async function fetchAniList(query: string, variables: Record<string, unknown>) {
   const response = await fetch(ANILIST_API_URL, {
     method: 'POST',
     headers: {
@@ -798,9 +798,9 @@ export async function discoverAnime(params: {
   return data?.Page?.media || [];
 }
 
-export async function searchAnime(search: string, page: number = 1, perPage: number = PAGE_SIZE) {
+export async function searchAnime(search: string, page: number = 1, perPage: number = PAGE_SIZE): Promise<AniListAnime[]> {
   const data = await fetchAniList(SEARCH_ANIME_QUERY, { search, page, perPage });
-  return data?.Page?.media || [];
+  return (data?.Page?.media || []) as AniListAnime[];
 }
 
 export async function getAnimeDetails(id: number) {
@@ -808,9 +808,9 @@ export async function getAnimeDetails(id: number) {
   return data?.Media;
 }
 
-export async function searchManga(search: string, page: number = 1, perPage: number = PAGE_SIZE) {
+export async function searchManga(search: string, page: number = 1, perPage: number = PAGE_SIZE): Promise<AniListManga[]> {
   const data = await fetchAniList(SEARCH_MANGA_QUERY, { search, page, perPage });
-  return data?.Page?.media || [];
+  return (data?.Page?.media || []) as AniListManga[];
 }
 
 export async function getMangaDetails(id: number) {

@@ -38,7 +38,16 @@ export async function searchBooks(query: string, page: number = 1): Promise<Open
   return response.json();
 }
 
-export async function getBookDetails(key: string): Promise<any> {
+export interface OpenLibraryBookDetail {
+  key: string;
+  title: string;
+  authors?: Array<{ author?: { key: string }; key?: string }>;
+  subjects?: string[];
+  works?: Array<{ key: string }>;
+  description?: string | { value: string };
+}
+
+export async function getBookDetails(key: string): Promise<OpenLibraryBookDetail> {
   const response = await fetch(
     `https://openlibrary.org${key}.json`,
     { next: { revalidate: 3600 } }

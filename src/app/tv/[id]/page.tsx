@@ -24,6 +24,7 @@ import {
 } from '@/components/icons/social-icons';
 import { cn } from '@/lib/utils';
 import { isAdminRole } from '@/lib/auth/roles';
+import { DetailPageSkeleton } from '@/components/ui/skeleton';
 
 interface Genre {
   id: number;
@@ -348,14 +349,7 @@ export default function TVShowDetailPage() {
   const isAdminView = isAdminRole(session?.user?.role);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full blur-xl opacity-50 animate-pulse" />
-          <Loader2 className="w-16 h-16 animate-spin text-foreground relative z-10" />
-        </div>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (error || !show) {
@@ -377,15 +371,7 @@ export default function TVShowDetailPage() {
   }
 
   if (isJapaneseAnimation && sessionStatus === 'loading') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
-        <div className="relative text-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full blur-xl opacity-40 animate-pulse" />
-          <Loader2 className="w-12 h-12 animate-spin text-foreground relative z-10 mx-auto mb-3" />
-          <p className="text-muted-foreground relative z-10">Checking access...</p>
-        </div>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   // Show overlay for Japanese animation for standard users
@@ -538,7 +524,7 @@ export default function TVShowDetailPage() {
                 )}
                 {show.tagline && (
                   <p className="text-xl text-muted-foreground italic font-light">
-                    "{show.tagline}"
+                    &quot;{show.tagline}&quot;
                   </p>
                 )}
               </div>

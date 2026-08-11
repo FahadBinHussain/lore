@@ -82,7 +82,7 @@ export interface LiveQueue {
     state: string;
     returnStart: string | null;
     returnEnd: string | null;
-    price?: any;
+    price?: number | string | Record<string, unknown>;
   };
   BOARDING_GROUP?: {
     allocationStatus: string;
@@ -103,9 +103,9 @@ export interface LiveData {
   status: string;
   lastUpdated: string;
   queue?: LiveQueue;
-  showtimes?: any[];
-  operatingHours?: any[];
-  diningAvailability?: any[];
+  showtimes?: Array<Record<string, unknown>>;
+  operatingHours?: Array<Record<string, unknown>>;
+  diningAvailability?: Array<Record<string, unknown>>;
 }
 
 export interface EntityLiveDataResponse {

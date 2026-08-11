@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       duration: formatDuration(r.length),
       year: r.releases?.[0]?.date?.split('-')[0],
       album: r.releases?.[0]?.title,
-      genres: r.tags?.slice(0, 3).map((t: any) => t.name).join(', '),
+      genres: r.tags?.slice(0, 3).map((t) => t.name).join(', '),
     }));
 
     return NextResponse.json({

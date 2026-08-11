@@ -4,6 +4,26 @@ import { db } from '@/db/index';
 import { userEpisodeProgress, episodes } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
+interface TMDBSeasonDetail {
+  id: number;
+  name: string;
+  overview: string | null;
+  poster_path: string | null;
+  season_number: number;
+  air_date: string | null;
+  episodes?: Array<{
+    id: number;
+    name: string;
+    overview: string | null;
+    episode_number: number;
+    air_date: string | null;
+    runtime: number | null;
+    still_path: string | null;
+    vote_average: number;
+    vote_count: number;
+  }>;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; season_number: string }> }
@@ -28,11 +48,11 @@ export async function GET(
       throw new Error('Failed to fetch season details');
     }
 
-    const season = await response.json();
+    const season = (await response.json()) as TMDBSeasonDetail;
 
     // Get user session for watched status
     const session = await auth();
-    let watchedEpisodes: { [key: number]: boolean } = {};
+    const watchedEpisodes: { [key: number]: boolean } = {};
 
     if (session?.user?.id) {
       try {
@@ -64,7 +84,7 @@ export async function GET(
             watchedEpisodes[episode.episode_number] = false;
           }
         }
-      } catch (dbError) {
+      } catch {
         // If database tables don't exist yet, just set all episodes as unwatched
         console.log('Database not ready, using default unwatched status');
         for (const episode of season.episodes || []) {
@@ -81,7 +101,7 @@ export async function GET(
       season_number: season.season_number,
       episode_count: season.episodes?.length || 0,
       air_date: season.air_date,
-      episodes: (season.episodes || []).map((episode: any) => ({
+      episodes: (season.episodes || []).map((episode) => ({
         id: episode.id,
         name: episode.name,
         overview: episode.overview,

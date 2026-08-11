@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server';
 
 const ANILIST_API_URL = 'https://graphql.anilist.co';
 
+interface AniListSearchMedia {
+  id: number;
+  title?: { romaji?: string; english?: string; native?: string };
+  type?: string;
+  format?: string;
+  status?: string;
+  coverImage?: { large?: string; medium?: string };
+  averageScore?: number;
+  seasonYear?: number;
+}
+
 const SEARCH_ANIME_QUERY = `
   query ($search: String) {
     Page(page: 1, perPage: 5) {
@@ -51,7 +62,7 @@ export async function GET(request: Request) {
       throw new Error('Failed to search AniList');
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { errors?: unknown[]; data?: { Page?: { media?: AniListSearchMedia[] } } };
     
     if (data.errors) {
       console.error('AniList API errors:', data.errors);
@@ -62,11 +73,11 @@ export async function GET(request: Request) {
     
     // Return results with the site's anime page URL format
     return NextResponse.json({ 
-      results: results.map((anime: any) => ({
+      results: results.map((anime) => ({
         id: anime.id,
-        title: anime.title.romaji || anime.title.english || anime.title.native,
-        englishTitle: anime.title.english,
-        nativeTitle: anime.title.native,
+        title: anime.title?.romaji || anime.title?.english || anime.title?.native || '',
+        englishTitle: anime.title?.english,
+        nativeTitle: anime.title?.native,
         type: anime.type,
         format: anime.format,
         status: anime.status,

@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { BookCopy, Loader2, Search } from 'lucide-react';
+import { BookCopy, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { MediaGridSkeleton, EmptyState } from '@/components/ui/skeleton';
 
 interface MangaItem {
   id: number;
@@ -103,16 +104,13 @@ export default function MangaPage() {
       <section className="pb-16">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           {loading || searching ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
-              <span className="ml-2 text-muted-foreground">{searching ? 'Searching...' : 'Loading manga...'}</span>
-            </div>
+            <MediaGridSkeleton />
           ) : items.length === 0 ? (
-            <div className="py-16 text-center">
-              <BookCopy className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
-              <h3 className="mb-2 text-xl font-medium">No manga found</h3>
-              <p className="text-muted-foreground">Try a different search term.</p>
-            </div>
+            <EmptyState
+              icon={BookCopy}
+              title="No manga found"
+              description="Try a different search term."
+            />
           ) : (
             <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {items.map((item) => (

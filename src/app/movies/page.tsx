@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  Film, Star, Loader2, ArrowRight, ArrowLeft,
+  Film, Star, ArrowRight, ArrowLeft,
   TrendingUp, Flame, Sparkles, Search,
   Filter, X, Calendar, Award, Play, Clock
 } from 'lucide-react';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MediaGridSkeleton, EmptyState } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 
@@ -371,9 +372,7 @@ export default function MoviesPage() {
           )}
 
           {loading || searching ? (
-            <div className="flex items-center justify-center py-24">
-              <Loader2 className="w-12 h-12 animate-spin text-primary" />
-            </div>
+            <MediaGridSkeleton />
           ) : displayMovies.length > 0 ? (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -441,13 +440,11 @@ export default function MoviesPage() {
               )}
             </>
           ) : (
-            <Card className="p-12 text-center">
-              <Film className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-medium mb-2">No Movies Found</h3>
-              <p className="text-muted-foreground">
-                {searchQuery ? 'Try a different search term' : 'Unable to load movies at this time.'}
-              </p>
-            </Card>
+            <EmptyState
+              icon={Film}
+              title={searchQuery ? 'No movies found' : 'No movies available'}
+              description={searchQuery ? 'Try a different search term' : 'Unable to load movies at this time.'}
+            />
           )}
         </div>
       </section>

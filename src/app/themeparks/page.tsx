@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  MapPin, Star, Loader2, ArrowRight,
+  MapPin, Star, ArrowRight,
   TrendingUp, Flame, Sparkles, Search, Clock, Navigation
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { MediaGridSkeleton, EmptyState } from '@/components/ui/skeleton';
 
 interface ThemeParkItem {
   id: string;
@@ -150,7 +151,7 @@ export default function ThemeParksPage() {
           {searchQuery && (
             <div className="mb-6">
               <h2 className="text-2xl font-bold mb-2">
-                Search Results for "{searchQuery}"
+                Search Results for &quot;{searchQuery}&quot;
               </h2>
               <p className="text-muted-foreground">
                 {searchResults.length} attractions found
@@ -159,20 +160,13 @@ export default function ThemeParksPage() {
           )}
 
           {loading || searching ? (
-            <div className="flex justify-center items-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
-              <span className="ml-2 text-muted-foreground">
-                {searching ? 'Searching...' : 'Loading attractions...'}
-              </span>
-            </div>
+            <MediaGridSkeleton />
           ) : displayAttractions.length === 0 ? (
-            <div className="text-center py-16">
-              <MapPin className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-medium mb-2">No attractions found</h3>
-              <p className="text-muted-foreground">
-                {searchQuery ? 'Try a different search term' : 'Unable to load attractions at the moment'}
-              </p>
-            </div>
+            <EmptyState
+              icon={MapPin}
+              title="No theme parks found"
+              description={searchQuery ? 'Try a different search term' : 'Unable to load attractions at the moment'}
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {displayAttractions.map((attraction) => (

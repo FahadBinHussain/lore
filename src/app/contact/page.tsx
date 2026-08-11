@@ -71,7 +71,6 @@ const faqs = [
 ];
 
 export default function ContactPage() {
-  const [mounted, setMounted] = useState(false);
   const [formState, setFormState] = useState({
     name: '',
     email: '',
@@ -79,10 +78,6 @@ export default function ContactPage() {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,8 +163,8 @@ export default function ContactPage() {
             </h1>
             
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Have questions, feedback, or just want to say hello? We'd love to hear from you. 
-              Our team is here to help and we'll get back to you as soon as possible.
+              Have questions, feedback, or just want to say hello? We&apos;d love to hear from you. 
+              Our team is here to help and we&apos;ll get back to you as soon as possible.
             </p>
           </div>
         </div>
@@ -220,7 +215,7 @@ export default function ContactPage() {
                 </span>
               </h2>
               <p className="text-muted-foreground mb-8">
-                Fill out the form below and we'll get back to you within 24 hours.
+                Fill out the form below and we&apos;ll get back to you within 24 hours.
               </p>
 
               <Card className="border-0 bg-card/50 backdrop-blur-sm">
@@ -232,7 +227,7 @@ export default function ContactPage() {
                       </div>
                       <h3 className="text-xl font-semibold mb-2">Message Sent!</h3>
                       <p className="text-muted-foreground">
-                        Thank you for reaching out. We'll get back to you soon.
+                        Thank you for reaching out. We&apos;ll get back to you soon.
                       </p>
                     </div>
                   ) : (
@@ -314,7 +309,7 @@ export default function ContactPage() {
                 </span>
               </h2>
               <p className="text-muted-foreground mb-8">
-                Can't find what you're looking for? Check out these common questions.
+                Can&apos;t find what you&apos;re looking for? Check out these common questions.
               </p>
 
               <div className="space-y-4">

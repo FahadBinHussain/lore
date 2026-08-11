@@ -53,22 +53,13 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('Initial load for type:', type);
     setImageLoadErrors({});
     fetchItems();
   }, [type]);
 
-  useEffect(() => {
-    console.log('Items state changed:', items.length, 'items');
-    items.forEach(item => {
-      console.log('Item:', item.id, item.status, item.mediaItem.title);
-    });
-  }, [items]);
-
   // Refresh data when window regains focus (user navigates back)
   useEffect(() => {
     const handleFocus = () => {
-      console.log('Window focused, refreshing dashboard data for type:', type);
       fetchItems();
     };
 
@@ -83,8 +74,6 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
         cache: 'no-cache'
       });
       const data = await response.json();
-      console.log('Fetched items:', data.items?.length, 'items for type:', type);
-      console.log('Setting items state with:', data.items?.map((item: any) => ({ id: item.id, status: item.status, title: item.mediaItem.title })));
       setItems(data.items || []);
       setImageLoadErrors({});
     } catch (error) {
@@ -177,12 +166,12 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
-            <Card key={i} className="overflow-hidden animate-pulse">
-              <div className="aspect-[2/3] bg-muted rounded-t-lg" />
+            <Card key={i} className="overflow-hidden">
+              <div className="aspect-[2/3] skeleton-shimmer rounded-t-lg" />
               <CardContent className="p-4 space-y-3">
-                <div className="h-4 bg-muted rounded w-3/4" />
-                <div className="h-3 bg-muted rounded w-1/2" />
-                <div className="h-2 bg-muted rounded w-full" />
+                <div className="h-4 skeleton-shimmer rounded w-3/4" />
+                <div className="h-3 skeleton-shimmer rounded w-1/2" />
+                <div className="h-2 skeleton-shimmer rounded w-full" />
               </CardContent>
             </Card>
           ))}
@@ -244,14 +233,14 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
         </div>
       ) : (
         <div className="text-center py-16">
-          <Icon className="w-16 h-16 mx-auto mb-6 text-muted-foreground/50" />
-          <h3 className="text-2xl font-semibold mb-3">No {title} Tracked Yet</h3>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Start building your {title.toLowerCase()} collection. Search for your favorites and mark them as watched to see them here.
+          <Icon className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+          <h3 className="text-lg font-medium mb-2">No {title.toLowerCase()} tracked yet</h3>
+          <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+            Search for your favorites and mark them as watched to see them here.
           </p>
           <Link href="/search">
-            <Button size="lg" className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25">
-              <Search className="w-5 h-5 mr-2" />
+            <Button variant="outline" size="sm">
+              <Search className="w-4 h-4 mr-2" />
               Discover {title}
             </Button>
           </Link>

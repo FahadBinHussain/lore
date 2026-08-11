@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { DetailPageSkeleton } from '@/components/ui/skeleton';
 
 interface EpisodeDetails {
   id: number;
@@ -24,17 +25,44 @@ interface EpisodeDetails {
   still_path: string | null;
   vote_average: number;
   vote_count: number;
-  guest_stars: any[];
-  crew: any[];
+  guest_stars: GuestStar[];
+  crew: CrewMember[];
   is_watched: boolean;
+}
+
+interface GuestStar {
+  id: number;
+  name: string;
+  character: string;
+  profile_path: string | null;
+}
+
+interface CrewMember {
+  id: number;
+  name: string;
+  job: string;
+  profile_path: string | null;
+  department: string;
+}
+
+interface SeasonBrief {
+  name: string;
+  seasons: Array<{ id: number; season_number: number; name: string }>;
+  episodes: Array<{ episode_number: number }>;
+}
+
+interface ShowBrief {
+  name: string;
+  backdrop_path: string | null;
+  seasons: Array<{ id: number; season_number: number }>;
 }
 
 export default function EpisodeDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [episode, setEpisode] = useState<EpisodeDetails | null>(null);
-  const [show, setShow] = useState<any>(null);
-  const [season, setSeason] = useState<any>(null);
+  const [show, setShow] = useState<ShowBrief | null>(null);
+  const [season, setSeason] = useState<SeasonBrief | null>(null);
   const [loading, setLoading] = useState(true);
   const [updatingWatched, setUpdatingWatched] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +140,7 @@ export default function EpisodeDetailPage() {
   const navigateToEpisode = (direction: 'prev' | 'next') => {
     if (!season || !episode) return;
 
-    const currentIndex = season.episodes.findIndex((ep: any) => ep.episode_number === episode.episode_number);
+    const currentIndex = season.episodes.findIndex((ep) => ep.episode_number === episode.episode_number);
     if (currentIndex === -1) return;
 
     let targetIndex;
@@ -133,11 +161,7 @@ export default function EpisodeDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (error || !episode || !show || !season) {
@@ -336,7 +360,7 @@ export default function EpisodeDetailPage() {
                   Guest Stars
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                  {episode.guest_stars.slice(0, 12).map((star: any) => (
+                  {episode.guest_stars.slice(0, 12).map((star) => (
                     <div key={star.id} className="group">
                       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-muted mb-3 group-hover:scale-105 transition-transform duration-300">
                         {star.profile_path ? (
@@ -371,7 +395,7 @@ export default function EpisodeDetailPage() {
                   Crew
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                  {episode.crew.slice(0, 12).map((member: any) => (
+                  {episode.crew.slice(0, 12).map((member) => (
                     <div key={`${member.id}-${member.job}`} className="group">
                       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-muted mb-3 group-hover:scale-105 transition-transform duration-300">
                         {member.profile_path ? (

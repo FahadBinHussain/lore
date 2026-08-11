@@ -6,13 +6,14 @@ import Link from 'next/link';
 import {
   ArrowLeft, Star, Clock, Calendar,
   Check, Play, Eye, EyeOff,
-  Loader2, Monitor, PlayCircle,
+  Monitor, PlayCircle,
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { DetailPageSkeleton } from '@/components/ui/skeleton';
 
 interface Episode {
   id: number;
@@ -34,14 +35,20 @@ interface SeasonDetails {
   season_number: number;
   episode_count: number;
   air_date: string;
-  episodes: Episode[];
+  episodes: Array<Episode & { watched?: boolean }>;
+}
+
+interface ShowBrief {
+  id: number;
+  name: string;
+  backdrop_path: string | null;
 }
 
 export default function SeasonDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [season, setSeason] = useState<SeasonDetails | null>(null);
-  const [show, setShow] = useState<any>(null);
+  const [show, setShow] = useState<ShowBrief | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [watchedEpisodes, setWatchedEpisodes] = useState<Set<number>>(new Set());
@@ -59,18 +66,18 @@ export default function SeasonDetailPage() {
         // Fetch show details
         const showResponse = await fetch(`/api/tv/${numericShowId}`);
         if (!showResponse.ok) throw new Error('Failed to fetch show details');
-        const showData = await showResponse.json();
+        const showData = (await showResponse.json()) as ShowBrief;
         setShow(showData);
 
         // Fetch season details
         const seasonResponse = await fetch(`/api/tv/${numericShowId}/season/${seasonNumber}`);
         if (!seasonResponse.ok) throw new Error('Failed to fetch season details');
-        const seasonData = await seasonResponse.json();
+        const seasonData = (await seasonResponse.json()) as SeasonDetails;
         setSeason(seasonData);
 
         // Initialize watched episodes from API response
         const watchedSet = new Set<number>();
-        seasonData.episodes?.forEach((episode: any) => {
+        seasonData.episodes?.forEach((episode) => {
           if (episode.watched) {
             watchedSet.add(episode.episode_number);
           }
@@ -120,11 +127,7 @@ export default function SeasonDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (error || !season || !show) {

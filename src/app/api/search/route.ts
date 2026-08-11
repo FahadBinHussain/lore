@@ -22,6 +22,17 @@ interface IGDBGame {
   summary?: string;
 }
 
+interface SearchResult {
+  id: string;
+  title: string;
+  type: string;
+  image?: string | null;
+  year?: string | null;
+  rating?: number | null;
+  description?: string | null;
+  author?: string;
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q');
@@ -31,7 +42,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [] });
   }
 
-  const results: any[] = [];
+  const results: SearchResult[] = [];
 
   try {
     // Search movies (if type is not specified or includes movie)
@@ -74,7 +85,7 @@ export async function GET(request: NextRequest) {
     if (!type || type === 'anime') {
       try {
         const animeResults = await searchAnime(query);
-        results.push(...animeResults.map((a: any) => {
+        results.push(...animeResults.map((a) => {
           const normalized = normalizeAnimeForApp(a);
           return {
             id: normalized.id.toString(),
@@ -94,7 +105,7 @@ export async function GET(request: NextRequest) {
     if (!type || type === 'manga') {
       try {
         const mangaResults = await searchManga(query);
-        results.push(...mangaResults.map((m: any) => {
+        results.push(...mangaResults.map((m) => {
           const normalized = normalizeMangaForApp(m);
           return {
             id: normalized.id.toString(),

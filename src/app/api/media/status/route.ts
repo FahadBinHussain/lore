@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { userMediaProgress, mediaItems, userEpisodeProgress, episodes, seasons } from '@/db/schema';
+import { userMediaProgress, mediaItems, userEpisodeProgress, episodes, seasons, mediaTypeEnum } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { ensureCanonicalMediaItem, findMediaItemByExternalMapping } from '@/lib/media/canonical';
 import { getPrimaryProviderForMediaType } from '@/lib/media/provider-registry';
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       mediaItem = (await db.query.mediaItems.findFirst({
         where: and(
           eq(mediaItems.externalId, mediaId),
-          eq(mediaItems.mediaType, mediaType as any)
+          eq(mediaItems.mediaType, mediaType as (typeof mediaTypeEnum.enumValues)[number])
         ),
       })) ?? null;
       if (mediaItem) {

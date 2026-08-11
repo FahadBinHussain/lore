@@ -5,13 +5,14 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft, Star, Clock, Calendar,
-  Loader2, Play, Plus, Check,
+  Play, Plus, Check,
   Zap, PlayCircle, Monitor, Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { DetailPageSkeleton } from '@/components/ui/skeleton';
 
 interface AnimeCharacter {
   id: number;
@@ -194,14 +195,7 @@ export default function AnimeDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-xl opacity-50 animate-pulse" />
-          <Loader2 className="w-16 h-16 animate-spin text-primary relative z-10" />
-        </div>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (error || !anime) {

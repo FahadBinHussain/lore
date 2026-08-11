@@ -1,5 +1,85 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface IgdbItem {
+  id: number;
+  name?: string;
+  url?: string;
+  logo?: { url: string };
+}
+
+interface InvolvedCompany {
+  company: number;
+  developer: boolean;
+  publisher: boolean;
+}
+
+interface IgdbGameDetail extends IgdbItem {
+  slug?: string;
+  summary?: string;
+  storyline?: string;
+  first_release_date?: number;
+  rating?: number;
+  rating_count?: number;
+  aggregated_rating?: number;
+  aggregated_rating_count?: number;
+  total_rating?: number;
+  total_rating_count?: number;
+  hypes?: number;
+  follows?: number;
+  created_at?: number;
+  updated_at?: number;
+  checksum?: string;
+  game_type?: number;
+  tags?: number[];
+  involved_companies?: InvolvedCompany[];
+  genres?: number[];
+  themes?: number[];
+  game_modes?: number[];
+  player_perspectives?: number[];
+  platforms?: number[];
+  screenshots?: number[];
+  artworks?: number[];
+  videos?: number[];
+  websites?: number[];
+  keywords?: number[];
+  game_engines?: number[];
+  similar_games?: number[];
+  dlcs?: number[];
+  expansions?: number[];
+  bundles?: number[];
+  collections?: number[];
+  alternative_names?: number[];
+  release_dates?: number[];
+  external_games?: number[];
+  age_ratings?: number[];
+  language_supports?: number[];
+  game_localizations?: number[];
+  multiplayer_modes?: number[];
+  cover?: number;
+}
+
+interface PlatformItem extends IgdbItem {
+  platform_logo?: { url: string };
+}
+
+interface AgeRatingItem extends IgdbItem {
+  organization: number;
+  rating_category: number;
+  rating_content_descriptions?: Array<{ description: string }>;
+}
+
+interface VideoItem extends IgdbItem {
+  video_id: string;
+}
+
+interface SimilarGameItem extends IgdbItem {
+  cover?: { url: string };
+}
+
+interface ImageItem extends IgdbItem {
+  url: string;
+}
+
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
@@ -56,7 +136,7 @@ export async function GET(
       throw new Error(`IGDB error: ${gameResponse.status}`);
     }
 
-    const games = await gameResponse.json();
+    const games = (await gameResponse.json()) as IgdbGameDetail[];
     if (!games || games.length === 0) {
       return NextResponse.json({ error: 'Game not found' }, { status: 404 });
     }
@@ -64,7 +144,7 @@ export async function GET(
     const game = games[0];
 
     // Batch fetch related data by type
-    const batchFetch = async (endpoint: string, ids: number[], fields = 'id,name') => {
+    const batchFetch = async (endpoint: string, ids: number[] | undefined, fields = 'id,name') => {
       if (!ids?.length) return [];
       const res = await fetch(`https://api.igdb.com/v4/${endpoint}`, {
         method: 'POST',
@@ -79,13 +159,18 @@ export async function GET(
     };
 
     // Fetch only the related data that has IDs
-    const [genres, themes, gameModes, playerPerspectives, platforms, companies, screenshots, artworks, videos, websites, keywords, gameEngines, similarGames, dlcs, expansions, bundles, collections, alternativeNames, releaseDates, externalGames, ageRatings, languageSupports, gameLocalizations, multiplayerModes, cover] = await Promise.all([
+    const [
+      genres, themes, gameModes, playerPerspectives, platforms, companies, screenshots, artworks,
+      videos, websites, keywords, gameEngines, similarGames, dlcs, expansions, bundles, collections,
+      alternativeNames, releaseDates, externalGames, ageRatings, languageSupports, gameLocalizations,
+      multiplayerModes, cover,
+    ] = (await Promise.all([
       batchFetch('genres', game.genres),
       batchFetch('themes', game.themes),
       batchFetch('game_modes', game.game_modes),
       batchFetch('player_perspectives', game.player_perspectives),
       batchFetch('platforms', game.platforms, 'id,name,platform_logo.url'),
-      batchFetch('companies', game.involved_companies?.map((ic: any) => ic.company).filter(Boolean) || [], 'id,name,logo.url'),
+      batchFetch('companies', game.involved_companies?.map((ic) => ic.company).filter(Boolean) || [], 'id,name,logo.url'),
       batchFetch('screenshots', game.screenshots, 'id,url'),
       batchFetch('artworks', game.artworks, 'id,url'),
       batchFetch('game_videos', game.videos, 'id,name,video_id'),
@@ -105,12 +190,15 @@ export async function GET(
       batchFetch('game_localizations', game.game_localizations, 'id,name,region'),
       batchFetch('multiplayer_modes', game.multiplayer_modes, 'id,campaigncoop,lancoop,offlinecoop,onlinecoop,splitscreen'),
       game.cover ? batchFetch('covers', [game.cover], 'id,url') : Promise.resolve([]),
-    ]);
+    ])) as [
+      IgdbItem[], IgdbItem[], IgdbItem[], IgdbItem[], PlatformItem[], IgdbItem[], ImageItem[], ImageItem[],
+      VideoItem[], IgdbItem[], IgdbItem[], IgdbItem[], SimilarGameItem[], IgdbItem[], IgdbItem[], IgdbItem[],
+      IgdbItem[], IgdbItem[], IgdbItem[], IgdbItem[], AgeRatingItem[], IgdbItem[], IgdbItem[],
+      IgdbItem[], ImageItem[],
+    ];
 
     // Build lookup maps
-    const mapById = (arr: any[]) => new Map(arr.map((item: any) => [item.id, item]));
-    const companiesMap = mapById(companies);
-    const genresMap = mapById(genres);
+    const companiesMap = new Map<number, IgdbItem>(companies.map((item) => [item.id, item]));
 
     // Process cover
     const coverUrl = cover?.[0]?.url
@@ -119,35 +207,35 @@ export async function GET(
 
     // Process developers/publishers
     const developers = (game.involved_companies || [])
-      .filter((ic: any) => ic.developer)
-      .map((ic: any) => {
+      .filter((ic) => ic.developer)
+      .map((ic) => {
         const c = companiesMap.get(ic.company);
-        return c ? { id: c.id, name: c.name, logo_url: c.logo?.url ? `https:${c.logo.url}` : null } : null;
+        return c && c.logo ? { id: c.id, name: c.name ?? '', logo_url: `https:${c.logo.url}` } : null;
       }).filter(Boolean);
 
     const publishers = (game.involved_companies || [])
-      .filter((ic: any) => ic.publisher)
-      .map((ic: any) => {
+      .filter((ic) => ic.publisher)
+      .map((ic) => {
         const c = companiesMap.get(ic.company);
-        return c ? { id: c.id, name: c.name, logo_url: c.logo?.url ? `https:${c.logo.url}` : null } : null;
+        return c && c.logo ? { id: c.id, name: c.name ?? '', logo_url: `https:${c.logo.url}` } : null;
       }).filter(Boolean);
 
     // Process platforms
-    const processedPlatforms = platforms.map((p: any) => ({
+    const processedPlatforms = platforms.map((p) => ({
       id: p.id,
-      name: p.name,
+      name: p.name ?? '',
       logo_url: p.platform_logo?.url ? `https:${p.platform_logo.url}` : null,
     }));
 
     // Process screenshots/artworks
-    const processImages = (items: any[], field = 'url') =>
-      items.map(i => ({ url: i[field]?.startsWith('//') ? `https:${i[field]}` : i[field] })).filter(i => i.url);
+    const processImages = (items: ImageItem[], field: 'url' = 'url') =>
+      items.map((i) => ({ url: i[field]?.startsWith('//') ? `https:${i[field]}` : i[field] })).filter((i) => i.url);
 
     // Process age ratings
-    const ageRatingData = ageRatings.map((ar: any) => ({
+    const ageRatingData = ageRatings.map((ar) => ({
       rating: ar.rating_category,
       category: ar.organization === 1 ? 'ESRB' : ar.organization === 2 ? 'PEGI' : `Org ${ar.organization}`,
-      content_descriptions: (ar.rating_content_descriptions || []).map((cd: any) => cd.description).filter(Boolean),
+      content_descriptions: (ar.rating_content_descriptions || []).map((cd) => cd.description).filter(Boolean),
     }));
 
     return NextResponse.json({
@@ -178,13 +266,13 @@ export async function GET(
       platforms: processedPlatforms,
       developers,
       publishers,
-      game_engines: gameEngines.map((e: any) => ({ id: e.id, name: e.name, logo_url: e.logo?.url ? `https:${e.logo.url}` : null })),
+      game_engines: gameEngines.map((e) => ({ id: e.id, name: e.name ?? '', logo_url: e.logo?.url ? `https:${e.logo.url}` : null })),
       screenshots: processImages(screenshots).slice(0, 10),
       artworks: processImages(artworks).slice(0, 8),
-      videos: videos.slice(0, 5).map((v: any) => ({ video_id: v.video_id, name: v.name })),
+      videos: videos.slice(0, 5).map((v) => ({ video_id: v.video_id, name: v.name ?? '' })),
       websites,
-      similar_games: similarGames.slice(0, 8).map((sg: any) => ({
-        id: sg.id, name: sg.name,
+      similar_games: similarGames.slice(0, 8).map((sg) => ({
+        id: sg.id, name: sg.name ?? '',
         cover_url: sg.cover?.url ? `https:${sg.cover.url}` : null,
       })),
       dlcs: dlcs.slice(0, 6),

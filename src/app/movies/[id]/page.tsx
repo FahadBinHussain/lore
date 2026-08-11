@@ -21,6 +21,7 @@ import {
   TwitterBrandIcon,
 } from '@/components/icons/social-icons';
 import { cn } from '@/lib/utils';
+import { DetailPageSkeleton } from '@/components/ui/skeleton';
 
 interface Genre {
   id: number;
@@ -113,11 +114,11 @@ interface MovieDetails {
   spoken_languages: SpokenLanguage[];
   production_countries: ProductionCountry[];
   production_companies: ProductionCompany[];
-  belongs_to_collection: any | null;
+  belongs_to_collection: object | null;
   origin_country: string[];
-  release_dates: any | null;
+  release_dates: object | null;
   video: boolean;
-  images: any | null;
+  images: object | null;
   content_rating: string | null;
   external_ids: ExternalIds;
   videos: {
@@ -293,14 +294,7 @@ export default function MovieDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full blur-xl opacity-50 animate-pulse" />
-          <Loader2 className="w-16 h-16 animate-spin text-foreground relative z-10" />
-        </div>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (error || !movie) {
@@ -424,7 +418,7 @@ export default function MovieDetailPage() {
                 )}
                 {movie.tagline && (
                   <p className="text-base sm:text-lg lg:text-xl text-muted-foreground italic font-light">
-                    "{movie.tagline}"
+                    &quot;{movie.tagline}&quot;
                   </p>
                 )}
               </div>

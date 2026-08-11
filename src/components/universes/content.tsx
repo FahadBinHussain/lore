@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, Film, Tv, Clapperboard, Gamepad2, BookOpen, Library, BookA, Mic, Music, Dices, FerrisWheel, LayoutGrid, PenLine, ArrowRight, User, Plus } from 'lucide-react';
 import { isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 interface Universe {
@@ -154,23 +154,24 @@ function mediaTypeLabel(type: string): string {
   return labels[type] || type.charAt(0).toUpperCase() + type.slice(1);
 }
 
-function mediaTypeIcon(type: string): string {
-  const icons: Record<string, string> = {
-    movie: 'movie',
-    tv: 'tv',
-    anime: 'animation',
-    game: 'sports_esports',
-    book: 'menu_book',
-    comic: 'auto_stories',
-    manga: 'import_contacts',
-    podcast: 'podcasts',
-    soundtrack: 'music_note',
-    boardgame: 'extension',
-    themepark: 'attractions',
-    other: 'category',
-    manual: 'edit_note',
+function MediaTypeIcon({ type, className }: { type: string; className?: string }) {
+  const icons: Record<string, React.ComponentType<{ className?: string }>> = {
+    movie: Film,
+    tv: Tv,
+    anime: Clapperboard,
+    game: Gamepad2,
+    book: BookOpen,
+    comic: Library,
+    manga: BookA,
+    podcast: Mic,
+    soundtrack: Music,
+    boardgame: Dices,
+    themepark: FerrisWheel,
+    other: LayoutGrid,
+    manual: PenLine,
   };
-  return icons[type] || 'category';
+  const Icon = icons[type] || LayoutGrid;
+  return <Icon className={className} />;
 }
 
 function getVariant(index: number): 'primary' | 'secondary' | 'tertiary' {
@@ -443,7 +444,7 @@ export function UniversesContent({
                               key={type}
                               className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-tight bg-surface-container-high/60 text-on-surface-variant px-2 py-1 rounded-full"
                             >
-                              <span className="material-symbols-outlined text-[12px] leading-none">{mediaTypeIcon(type)}</span>
+                              <MediaTypeIcon type={type} className="w-3 h-3" />
                               {count} {mediaTypeLabel(type)}
                             </span>
                           ))}
@@ -491,7 +492,7 @@ export function UniversesContent({
                             />
                           ) : (
                             <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                              <span className="material-symbols-outlined text-[10px] text-primary">person</span>
+                              <User className="w-3 h-3 text-primary" />
                             </div>
                           )}
                           <span className="text-[11px] font-medium text-on-surface-variant truncate max-w-[120px]">
@@ -500,7 +501,7 @@ export function UniversesContent({
                         </div>
 
                         <span className={`${variantTextClass(variant)} flex items-center gap-1 font-bold text-xs hover:translate-x-0.5 transition-transform`}>
-                          Explore <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                          Explore <ArrowRight className="w-4 h-4" />
                         </span>
                       </div>
                     </div>
@@ -515,7 +516,7 @@ export function UniversesContent({
                   className="group border-2 border-dashed border-outline-variant/30 rounded-3xl flex flex-col items-center justify-center p-12 hover:border-primary/50 transition-colors bg-surface-container-low/20 min-h-[380px]"
                 >
                   <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                    <span className="material-symbols-outlined text-3xl text-primary">add</span>
+                    <Plus className="w-8 h-8 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold font-headline mb-2">Forge New Realm</h3>
                   <p className="text-on-surface-variant text-center text-sm font-body">Contribute a new universe to the archive and begin its legacy.</p>

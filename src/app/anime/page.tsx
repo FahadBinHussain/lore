@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  Zap, Star, Loader2, ArrowRight, ArrowLeft,
+  Zap, Star, ArrowRight, ArrowLeft,
   TrendingUp, Flame, Sparkles, Search,
   Award, Play, Clock, Filter, X
 } from 'lucide-react';
@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { MediaGridSkeleton, EmptyState } from '@/components/ui/skeleton';
 
 interface AnimeItem {
   id: number;
@@ -424,9 +425,7 @@ export default function AnimePage() {
           )}
 
           {loading || searching ? (
-            <div className="flex items-center justify-center py-24">
-              <Loader2 className="w-12 h-12 animate-spin text-primary" />
-            </div>
+            <MediaGridSkeleton />
           ) : displayAnime.length > 0 ? (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -501,13 +500,11 @@ export default function AnimePage() {
               )}
             </>
           ) : (
-            <Card className="p-12 text-center">
-              <Zap className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-medium mb-2">No Anime Found</h3>
-              <p className="text-muted-foreground">
-                {searchQuery ? 'Try a different search term' : 'Unable to load anime at this time.'}
-              </p>
-            </Card>
+            <EmptyState
+              icon={Zap}
+              title={searchQuery ? 'No anime found' : 'No anime available'}
+              description={searchQuery ? 'Try a different search term' : 'Unable to load anime at this time.'}
+            />
           )}
         </div>
       </section>

@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getBookDetails } from '@/lib/api/openlibrary';
 
+interface SimilarBook {
+  key: string;
+  title: string;
+  cover_id?: number;
+  authors?: string;
+  first_publish_year?: number;
+}
+
+interface OlLink {
+  title?: string;
+  url?: string;
+}
+
+interface OlExcerpt {
+  comment?: string;
+  text?: string;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string[] }> }
@@ -110,7 +128,7 @@ export async function GET(
     }
 
     // Fetch similar books
-    let similarBooks: any[] = [];
+    let similarBooks: SimilarBook[] = [];
     if (book.subjects && book.subjects.length > 0) {
       try {
         const subjectQuery = book.subjects[0].replace(/\s+/g, '_');
@@ -120,11 +138,14 @@ export async function GET(
         );
         if (similarResponse.ok) {
           const similarData = await similarResponse.json();
-          similarBooks = (similarData.works || []).slice(0, 6).map((w: any) => ({
+          similarBooks = (similarData.works || []).slice(0, 6).map((w: {
+            key: string; title: string; cover_id?: number; first_publish_year?: number;
+            authors?: Array<{ name: string }>;
+          }) => ({
             key: w.key,
             title: w.title,
             cover_id: w.cover_id,
-            authors: w.authors?.map((a: any) => a.name).join(', '),
+            authors: w.authors?.map((a) => a.name).join(', '),
             first_publish_year: w.first_publish_year,
           }));
         }
@@ -134,7 +155,7 @@ export async function GET(
     }
 
     // Fetch links
-    let links: any[] = [];
+    let links: OlLink[] = [];
     try {
       if (book.works && book.works.length > 0) {
         const linksResponse = await fetch(
@@ -151,7 +172,7 @@ export async function GET(
     }
 
     // Fetch excerpts
-    let excerpts: any[] = [];
+    let excerpts: OlExcerpt[] = [];
     try {
       if (book.works && book.works.length > 0) {
         const excerptsResponse = await fetch(

@@ -2,13 +2,24 @@
 
 ## Universe creation workflow
 
-When creating a new universe or expanding an existing one, agents **must** use the `deep-research` skill to find all media items across the franchise. Do not rely on manual lists alone — deep-research covers movies, TV, games, books, comics, spin-offs, mobile, browser, and regional releases that manual curation misses.
+When creating a new universe or expanding an existing one, agents **must** use the `research` skill (installed from `mattpocock/skills@research`) to find all media items across the franchise. Do not rely on manual lists alone — `research` spins up a background agent that investigates against primary sources (Wikipedia, official sites, first-party APIs) and writes findings to a markdown file with citations. It covers movies, TV, games, books, comics, spin-offs, mobile, browser, and regional releases that manual curation misses.
 
 Steps:
-1. Run deep-research on the franchise/universe name
+1. Run the `research` skill on the franchise/universe name
 2. Compile all official media items found
-3. Use the existing `create-*-universe.js` pattern to insert into the database
+3. Use the existing `create-*-universe.ts` script pattern to insert into the database
 4. Verify the inserted items match the research output
+
+### Duplicate prevention
+
+Before creating or expanding a universe, agents **must** inspect the database first:
+
+- Check whether the universe already exists by slug and name. If it exists, update the existing collection instead of creating another one.
+- For every researched item, check for an existing canonical `media_item` using its media type, API source, and external ID before creating a record.
+- Reuse existing canonical media records. Never create a second record for the same API entity.
+- Check whether each item is already linked to the target universe before inserting the collection membership. Never add duplicate membership rows.
+- Check whether the item belongs to other universes. Cross-universe membership is allowed when factually correct, but all universes must reference the same canonical media record.
+- After insertion, verify that the universe has one collection record, unique item memberships, and no duplicate canonical items.
 
 ## Universe completeness rule
 
@@ -90,3 +101,23 @@ These items were checked against their respective APIs and confirmed absent:
 | The Black Mirror Experience | themepark | Not in themeparks API database (upcoming 2026 Univrse attraction) |
 
 When in doubt, query the API directly before falling back to manual. Never assume absence without checking.
+
+### Running one-off TypeScript scripts
+
+This repository does not install `tsx` or `ts-node`, and the current Node 24 environment can fail when `tsx` tries to initialize its loader worker. For repository scripts, bundle the entry point with `npx --yes esbuild@0.25.10 <script> --bundle --platform=node --format=cjs --outfile=<temporary.cjs>`, then run the bundle with `node --env-file=.env --env-file=.env.local <temporary.cjs>`. Remove the temporary bundle afterward.
+
+## Navigation scroll restoration
+
+`ScrollNavigationTracker` owns window scroll behavior: new routes start at the top, while browser history navigation and reloads restore the saved position from session storage. Keep `PageTransition` keyed directly from `usePathname()`; delaying its key update in an effect remounts page content after restoration and loses the restored position.
+
+## Route loading feedback
+
+For App Router destinations that perform server-side database work before rendering, add a route-segment `loading.tsx` that mirrors the destination's final geometry. Navbar pending feedback must start from `Link`'s `onNavigate`, reserve indicator space to avoid layout shift, preserve modified clicks and normal link behavior, and suppress only duplicate unmodified navigation while the same route is pending.
+
+## Vercel deployment
+
+- Production project: `lore`, owned by the `owning vercel profile` Vercel profile.
+- Canonical production URL: `https://univrs.vercel.app`.
+- Link and deploy through `mainframe\vercel-account.ps1` with the `owning vercel profile` profile and team `team id`. Do not create another `lore` project under a different profile.
+- Preserve the existing `FahadBinHussain/lore` GitHub connection and project environment configuration.
+- Verify `/`, `/movies`, `/api/movies?page=1`, `/api/universes`, and `/api/auth/providers` before considering a production deployment complete.

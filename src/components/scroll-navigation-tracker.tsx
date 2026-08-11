@@ -13,7 +13,15 @@ function toRouteKey(pathname: string, search: string): string {
 
 function getCurrentRouteKey(): string {
   if (typeof window === 'undefined') return '/';
-  return toRouteKey(window.location.pathname, window.location.search);
+  return toRouteKey(window.location.pathname, window.location.search.slice(1));
+}
+
+function shouldRestoreInitialScroll(): boolean {
+  if (typeof window === 'undefined') return false;
+  const navigation = window.performance.getEntriesByType('navigation')[0] as
+    | PerformanceNavigationTiming
+    | undefined;
+  return navigation?.type === 'reload' || navigation?.type === 'back_forward';
 }
 
 export function ScrollNavigationTracker() {
@@ -22,6 +30,7 @@ export function ScrollNavigationTracker() {
 
   const isPopNavigationRef = useRef(false);
   const isRestoringRef = useRef(false);
+  const shouldRestoreInitialRef = useRef(shouldRestoreInitialScroll());
   const currentRouteKeyRef = useRef<string>(getCurrentRouteKey());
 
   const routeKey = useMemo(() => {
@@ -34,6 +43,9 @@ export function ScrollNavigationTracker() {
   }, [routeKey]);
 
   useEffect(() => {
+    const previousScrollRestoration = window.history.scrollRestoration;
+    let saveTimeoutId: number | null = null;
+
     if (window.history.scrollRestoration !== 'manual') {
       window.history.scrollRestoration = 'manual';
     }
@@ -81,6 +93,14 @@ export function ScrollNavigationTracker() {
       saveRouteScroll();
     };
 
+    const handleScroll = () => {
+      if (isRestoringRef.current || saveTimeoutId !== null) return;
+      saveTimeoutId = window.setTimeout(() => {
+        saveTimeoutId = null;
+        saveRouteScroll();
+      }, 100);
+    };
+
     const originalPushState = window.history.pushState.bind(window.history);
     const originalReplaceState = window.history.replaceState.bind(window.history);
 
@@ -99,6 +119,7 @@ export function ScrollNavigationTracker() {
     };
 
     window.addEventListener('popstate', handlePopState);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('click', handleDocumentClick, true);
     window.addEventListener('pagehide', handlePageHide);
     window.addEventListener('beforeunload', handlePageHide);
@@ -107,9 +128,12 @@ export function ScrollNavigationTracker() {
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
       window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleDocumentClick, true);
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('beforeunload', handlePageHide);
+      if (saveTimeoutId !== null) window.clearTimeout(saveTimeoutId);
+      window.history.scrollRestoration = previousScrollRestoration;
     };
   }, []);
 
@@ -118,6 +142,7 @@ export function ScrollNavigationTracker() {
     let stopTimeoutId: number | null = null;
     let rafId: number | null = null;
     let fallbackTimeoutId: number | null = null;
+    let stableAttempts = 0;
 
     const stopRestore = () => {
       isRestoringRef.current = false;
@@ -135,7 +160,10 @@ export function ScrollNavigationTracker() {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     };
 
-    if (!isPopNavigationRef.current) {
+    const shouldRestore = isPopNavigationRef.current || shouldRestoreInitialRef.current;
+    shouldRestoreInitialRef.current = false;
+
+    if (!shouldRestore) {
       scrollTopNow();
       rafId = window.requestAnimationFrame(scrollTopNow);
       fallbackTimeoutId = window.setTimeout(scrollTopNow, 50);
@@ -166,7 +194,10 @@ export function ScrollNavigationTracker() {
     const attemptRestore = () => {
       window.scrollTo({ top: savedY, left: 0, behavior: 'auto' });
       if (Math.abs(window.scrollY - savedY) <= 2) {
-        stopRestore();
+        stableAttempts += 1;
+        if (stableAttempts >= 2) stopRestore();
+      } else {
+        stableAttempts = 0;
       }
     };
 

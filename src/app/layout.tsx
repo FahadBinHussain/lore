@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Geist, Geist_Mono, Epilogue, Manrope } from "next/font/google";
+import { Geist, Geist_Mono, Epilogue, Italianno, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/navbar";
 import { ScrollNavigationTracker } from "@/components/scroll-navigation-tracker";
+import { PageTransition } from "@/components/page-transition";
+import { RouteProgress } from "@/components/route-progress";
 
 export const metadata: Metadata = {
   title: "Lore - Media Tracker",
@@ -38,6 +40,13 @@ const manrope = Manrope({
   weight: ["400", "500", "600", "700"],
 });
 
+const italianno = Italianno({
+  variable: "--font-italianno",
+  subsets: ["latin"],
+  weight: "400",
+  preload: false,
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,27 +56,17 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="light"
-      className={`${geistSans.variable} ${geistMono.variable} ${epilogue.variable} ${manrope.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${epilogue.variable} ${manrope.variable} ${italianno.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Italianno&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
-          rel="stylesheet"
-        />
-        <style>{`
-          .font-script {
-            font-family: 'Italianno', cursive;
-          }
-        `}</style>
-      </head>
       <body className="min-h-full flex flex-col bg-background pt-16">
         <Providers>
           <Suspense fallback={null}>
             <ScrollNavigationTracker />
           </Suspense>
           <Navbar />
-          {children}
+          <RouteProgress />
+          <PageTransition>{children}</PageTransition>
         </Providers>
       </body>
     </html>

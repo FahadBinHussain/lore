@@ -1,34 +1,50 @@
 'use client';
 
-import { useRef, useMemo, useCallback } from 'react';
+import { useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+
+interface ParticleData {
+  positions: Float32Array;
+  velocities: Float32Array;
+  sizes: Float32Array;
+  opacities: Float32Array;
+}
+
+function createParticleData(count: number): ParticleData {
+  const positions = new Float32Array(count * 3);
+  const velocities = new Float32Array(count * 3);
+  const sizes = new Float32Array(count);
+  const opacities = new Float32Array(count);
+
+  for (let i = 0; i < count; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 30;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 15;
+
+    velocities[i * 3] = (Math.random() - 0.5) * 0.003;
+    velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.003;
+    velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.002;
+
+    sizes[i] = Math.random() * 2.5 + 0.5;
+    opacities[i] = Math.random() * 0.6 + 0.2;
+  }
+
+  return { positions, velocities, sizes, opacities };
+}
+
+const particleUniforms = {
+  uTime: { value: 0 },
+  uPointer: { value: new THREE.Vector2(0, 0) },
+};
 
 function Particles({ count = 600 }: { count?: number }) {
   const mesh = useRef<THREE.Points>(null);
   const { pointer } = useThree();
 
-  const { positions, velocities, sizes, opacities } = useMemo(() => {
-    const positions = new Float32Array(count * 3);
-    const velocities = new Float32Array(count * 3);
-    const sizes = new Float32Array(count);
-    const opacities = new Float32Array(count);
-
-    for (let i = 0; i < count; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 30;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 15;
-
-      velocities[i * 3] = (Math.random() - 0.5) * 0.003;
-      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.003;
-      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.002;
-
-      sizes[i] = Math.random() * 2.5 + 0.5;
-      opacities[i] = Math.random() * 0.6 + 0.2;
-    }
-
-    return { positions, velocities, sizes, opacities };
-  }, [count]);
+  const [data] = useState(() => createParticleData(count));
+  const { positions, sizes, opacities } = data;
+  const velocitiesRef = useRef(data.velocities);
 
   const vertexShader = `
     attribute float aSize;
@@ -75,22 +91,15 @@ function Particles({ count = 600 }: { count?: number }) {
     }
   `;
 
-  const uniforms = useMemo(
-    () => ({
-      uTime: { value: 0 },
-      uPointer: { value: new THREE.Vector2(0, 0) },
-    }),
-    []
-  );
-
   useFrame((state) => {
     if (!mesh.current) return;
 
     const time = state.clock.getElapsedTime();
-    uniforms.uTime.value = time;
-    uniforms.uPointer.value.set(pointer.x, -pointer.y);
+    particleUniforms.uTime.value = time;
+    particleUniforms.uPointer.value.set(pointer.x, -pointer.y);
 
     const posArray = mesh.current.geometry.attributes.position.array as Float32Array;
+    const velocities = velocitiesRef.current;
     for (let i = 0; i < count; i++) {
       posArray[i * 3] += velocities[i * 3];
       posArray[i * 3 + 1] += velocities[i * 3 + 1];
@@ -122,7 +131,7 @@ function Particles({ count = 600 }: { count?: number }) {
       <shaderMaterial
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
-        uniforms={uniforms}
+        uniforms={particleUniforms}
         transparent
         depthWrite={false}
         blending={THREE.AdditiveBlending}
@@ -135,7 +144,7 @@ function ConnectionLines() {
   const linesRef = useRef<THREE.LineSegments>(null);
   const lineCount = 40;
 
-  const { positions, colors } = useMemo(() => {
+  const [data] = useState(() => {
     const positions = new Float32Array(lineCount * 6);
     const colors = new Float32Array(lineCount * 6);
 
@@ -168,7 +177,8 @@ function ConnectionLines() {
     }
 
     return { positions, colors };
-  }, []);
+  });
+  const { positions, colors } = data;
 
   useFrame((state) => {
     if (!linesRef.current) return;

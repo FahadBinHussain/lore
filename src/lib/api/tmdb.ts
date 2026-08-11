@@ -100,6 +100,92 @@ export interface TMDBSearchResponse<T> {
   total_results: number;
 }
 
+export interface TMDBMediaListResult {
+  id: number;
+  title?: string;
+  name?: string;
+  poster_path: string | null;
+  vote_average: number;
+  release_date?: string;
+  first_air_date?: string;
+}
+
+export interface TMDBVideo {
+  id: string;
+  type: string;
+  site: string;
+  name: string;
+  key: string;
+}
+
+export interface TMDBBackdrop {
+  file_path: string;
+  width: number;
+  height: number;
+}
+
+export interface TMDBSpokenLanguage {
+  english_name: string;
+  iso_639_1: string;
+  name: string;
+}
+
+export interface TMDBCountry {
+  iso_3166_1: string;
+  name: string;
+}
+
+export interface TMDBMovieDetail extends TMDBMovie {
+  spoken_languages?: TMDBSpokenLanguage[];
+  production_countries?: TMDBCountry[];
+  belongs_to_collection?: {
+    id: number;
+    name: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+  } | null;
+  origin_country?: string[];
+  release_dates?: {
+    results?: Array<{
+      iso_3166_1: string;
+      release_dates?: Array<{ certification?: string }>;
+    }>;
+  };
+  videos?: { results?: TMDBVideo[] };
+  similar?: TMDBSearchResponse<TMDBMediaListResult>;
+  recommendations?: TMDBSearchResponse<TMDBMediaListResult>;
+  images?: { backdrops?: TMDBBackdrop[] };
+  external_ids?: {
+    imdb_id?: string | null;
+    facebook_id?: string | null;
+    instagram_id?: string | null;
+    twitter_id?: string | null;
+  };
+  imdb_id?: string | null;
+  video?: boolean;
+  homepage?: string | null;
+}
+
+export interface TMDBTVShowDetail extends TMDBTVShow {
+  spoken_languages?: TMDBSpokenLanguage[];
+  origin_country?: string[];
+  production_companies?: TMDBProductionCompany[];
+  in_production?: boolean;
+  homepage?: string | null;
+  content_ratings?: { results?: Array<{ iso_3166_1: string; rating?: string }> };
+  videos?: { results?: TMDBVideo[] };
+  similar?: TMDBSearchResponse<TMDBMediaListResult>;
+  recommendations?: TMDBSearchResponse<TMDBMediaListResult>;
+  images?: { backdrops?: TMDBBackdrop[] };
+  external_ids?: {
+    imdb_id?: string | null;
+    tvdb_id?: number | null;
+    facebook_id?: string | null;
+    instagram_id?: string | null;
+    twitter_id?: string | null;
+  };
+}
+
 export function getTMDBImageUrl(path: string | null, size: string = 'w500'): string | null {
   if (!path) return null;
   return `${TMDB_IMAGE_BASE_URL}/${size}${path}`;

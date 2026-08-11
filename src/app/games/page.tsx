@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  Gamepad2, Star, Loader2, ArrowRight,
+  Gamepad2, Star, ArrowRight,
   TrendingUp, Flame, Sparkles, Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { MediaGridSkeleton, EmptyState } from '@/components/ui/skeleton';
 
 interface GameItem {
   id: number;
@@ -134,7 +135,7 @@ export default function GamesPage() {
           {searchQuery && (
             <div className="mb-6">
               <h2 className="text-2xl font-bold mb-2">
-                Search Results for "{searchQuery}"
+                Search Results for &quot;{searchQuery}&quot;
               </h2>
               <p className="text-muted-foreground">
                 {searchResults.length} games found
@@ -143,20 +144,13 @@ export default function GamesPage() {
           )}
 
           {loading || searching ? (
-            <div className="flex justify-center items-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
-              <span className="ml-2 text-muted-foreground">
-                {searching ? 'Searching...' : 'Loading games...'}
-              </span>
-            </div>
+            <MediaGridSkeleton />
           ) : displayGames.length === 0 ? (
-            <div className="text-center py-16">
-              <Gamepad2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-medium mb-2">No games found</h3>
-              <p className="text-muted-foreground">
-                {searchQuery ? 'Try a different search term' : 'Unable to load games at the moment'}
-              </p>
-            </div>
+            <EmptyState
+              icon={Gamepad2}
+              title="No games found"
+              description={searchQuery ? 'Try a different search term' : 'Unable to load games at the moment'}
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {displayGames.map((game) => (

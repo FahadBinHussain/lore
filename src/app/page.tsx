@@ -1,26 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import {
-  Film, Tv, Gamepad2, BookOpen,
-  ArrowRight, Play, Star, Zap, Globe,
-  ChevronRight, Flame, Crown, Rocket,
-  TrendingUp, Users, Award, Shield,
-  CheckCircle, BarChart3, Layers, Target,
-  Monitor, Smartphone, Cloud, Lock,
-  MessageCircle, Heart, Eye,
-  Clock, Calendar, MapPin, Mail,
-  Phone, ExternalLink, Download, Share2,
-  Loader2, BookOpen as ComicIcon, Music, Podcast, MapPin as ThemeParkIcon,
-  Puzzle, Clapperboard
+  Film, Tv, Gamepad2, BookOpen, ArrowRight, Star,
+  Music, Podcast, Puzzle, Clapperboard, MapPin as ThemeParkIcon,
+  Compass, Layers,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { MediaGridSkeleton, EmptyState, ErrorState } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { LogoScrollSequence } from '@/components/home/logo-scroll-sequence';
 
@@ -35,1046 +27,340 @@ interface MediaItem {
   episodes?: number;
 }
 
+type MediaTabKey =
+  | 'movies' | 'tv' | 'anime' | 'games'
+  | 'books' | 'comics' | 'boardgames'
+  | 'soundtracks' | 'podcasts' | 'themeparks';
+
+const MEDIA_TABS: { key: MediaTabKey; label: string; icon: typeof Film; href: string }[] = [
+  { key: 'movies', label: 'Movies', icon: Film, href: '/movies' },
+  { key: 'tv', label: 'TV Shows', icon: Tv, href: '/tv' },
+  { key: 'anime', label: 'Anime', icon: Clapperboard, href: '/anime' },
+  { key: 'games', label: 'Games', icon: Gamepad2, href: '/games' },
+  { key: 'books', label: 'Books', icon: BookOpen, href: '/books' },
+  { key: 'comics', label: 'Comics', icon: BookOpen, href: '/comics' },
+  { key: 'boardgames', label: 'Board Games', icon: Puzzle, href: '/boardgames' },
+  { key: 'soundtracks', label: 'Soundtracks', icon: Music, href: '/soundtracks' },
+  { key: 'podcasts', label: 'Podcasts', icon: Podcast, href: '/podcasts' },
+  { key: 'themeparks', label: 'Theme Parks', icon: ThemeParkIcon, href: '/themeparks' },
+];
+
+function MediaCard({ item, href, icon }: { item: MediaItem; href: string; icon: typeof Film }) {
+  return (
+    <Link href={href} className="block">
+      <Card className="overflow-hidden group hover:shadow-md transition-shadow duration-200 cursor-pointer border-border/40">
+        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
+          {item.image ? (
+            <img
+              src={item.image}
+              alt={item.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              {(() => {
+                const Icon = icon;
+                return <Icon className="w-12 h-12 text-muted-foreground/40" />;
+              })()}
+            </div>
+          )}
+          {item.rating && (
+            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+              {item.rating.toFixed(1)}
+            </div>
+          )}
+        </div>
+        <CardContent className="p-3">
+          <h3 className="font-semibold text-sm truncate">{item.title}</h3>
+          <div className="flex items-center gap-2 mt-1">
+            {item.year && <p className="text-xs text-muted-foreground">{item.year}</p>}
+            {item.seasons && (
+              <p className="text-xs text-muted-foreground">
+                {item.seasons} season{item.seasons !== 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
+
+function MediaGrid({
+  items,
+  loading,
+  error,
+  href,
+  icon,
+  emptyLabel,
+  onRetry,
+}: {
+  items: MediaItem[];
+  loading: boolean;
+  error: boolean;
+  href: string;
+  icon: typeof Film;
+  emptyLabel: string;
+  onRetry: () => void;
+}) {
+  if (loading) {
+    return <MediaGridSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="Failed to load"
+        description="Something went wrong while fetching this content."
+        retryAction={
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            Try again
+          </Button>
+        }
+      />
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        icon={icon}
+        title={emptyLabel}
+        description="Check back later for new additions."
+      />
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      {items.slice(0, 12).map((item) => (
+        <MediaCard key={item.id} item={item} href={`${href}/${item.id}`} icon={icon} />
+      ))}
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const { status } = useSession();
-  
-  const [movies, setMovies] = useState<MediaItem[]>([]);
-  const [tvShows, setTVShows] = useState<MediaItem[]>([]);
-  const [games, setGames] = useState<MediaItem[]>([]);
-  const [books, setBooks] = useState<MediaItem[]>([]);
-  const [comics, setComics] = useState<MediaItem[]>([]);
-  const [boardGames, setBoardGames] = useState<MediaItem[]>([]);
-  const [soundtracks, setSoundtracks] = useState<MediaItem[]>([]);
-  const [podcasts, setPodcasts] = useState<MediaItem[]>([]);
-  const [themeParks, setThemeParks] = useState<MediaItem[]>([]);
-  
-  const [loadingMovies, setLoadingMovies] = useState(true);
-  const [loadingTV, setLoadingTV] = useState(true);
-  const [loadingGames, setLoadingGames] = useState(true);
-  const [loadingBooks, setLoadingBooks] = useState(true);
-  const [loadingComics, setLoadingComics] = useState(true);
-  const [loadingBoardGames, setLoadingBoardGames] = useState(true);
-  const [loadingSoundtracks, setLoadingSoundtracks] = useState(true);
-  const [loadingPodcasts, setLoadingPodcasts] = useState(true);
-  const [loadingThemeParks, setLoadingThemeParks] = useState(true);
-  const [anime, setAnime] = useState<MediaItem[]>([]);
-  const [loadingAnime, setLoadingAnime] = useState(true);
-  const [activeTab, setActiveTab] = useState('movies');
+
+  const [mediaData, setMediaData] = useState<Record<MediaTabKey, MediaItem[]>>({
+    movies: [], tv: [], anime: [], games: [],
+    books: [], comics: [], boardgames: [],
+    soundtracks: [], podcasts: [], themeparks: [],
+  });
+  const [loadingStates, setLoadingStates] = useState<Record<MediaTabKey, boolean>>({
+    movies: true, tv: true, anime: true, games: true,
+    books: true, comics: true, boardgames: true,
+    soundtracks: true, podcasts: true, themeparks: true,
+  });
+  const [errorStates, setErrorStates] = useState<Record<MediaTabKey, boolean>>({
+    movies: false, tv: false, anime: false, games: false,
+    books: false, comics: false, boardgames: false,
+    soundtracks: false, podcasts: false, themeparks: false,
+  });
+
+  const [activeTab, setActiveTab] = useState<MediaTabKey>('movies');
   const isAuthenticated = status === 'authenticated';
+
+  const fetchMedia = useCallback(async (key: MediaTabKey) => {
+    const endpoints: Record<MediaTabKey, string> = {
+      movies: '/api/movies?category=trending&timeWindow=week',
+      tv: '/api/tv?category=trending&timeWindow=week',
+      anime: '/api/anime?category=trending',
+      games: '/api/games',
+      books: '/api/books',
+      comics: '/api/comics',
+      boardgames: '/api/boardgames',
+      soundtracks: '/api/soundtracks',
+      podcasts: '/api/podcasts',
+      themeparks: '/api/themeparks',
+    };
+
+    try {
+      const response = await fetch(endpoints[key]);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      setMediaData((prev) => ({ ...prev, [key]: data.results || [] }));
+      setErrorStates((prev) => ({ ...prev, [key]: false }));
+    } catch (error) {
+      console.error(`Failed to fetch ${key}:`, error);
+      setErrorStates((prev) => ({ ...prev, [key]: true }));
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, [key]: false }));
+    }
+  }, []);
 
   useEffect(() => {
     setMounted(true);
-    fetchMovies();
-    fetchTVShows();
-    fetchAnime();
-    fetchGames();
-    fetchBooks();
-    fetchComics();
-    fetchBoardGames();
-    fetchSoundtracks();
-    fetchPodcasts();
-    fetchThemeParks();
-  }, []);
-
-  const fetchMovies = async () => {
-    try {
-      const response = await fetch('/api/movies?category=trending&timeWindow=week');
-      const data = await response.json();
-      setMovies(data.results || []);
-    } catch (error) {
-      console.error('Failed to fetch movies:', error);
-    } finally {
-      setLoadingMovies(false);
-    }
-  };
-
-  const fetchTVShows = async () => {
-    try {
-      const response = await fetch('/api/tv?category=trending&timeWindow=week');
-      const data = await response.json();
-      setTVShows(data.results || []);
-    } catch (error) {
-      console.error('Failed to fetch TV shows:', error);
-    } finally {
-      setLoadingTV(false);
-    }
-  };
-
-  const fetchAnime = async () => {
-    try {
-      const response = await fetch('/api/anime?category=trending');
-      const data = await response.json();
-      setAnime(data.results || []);
-    } catch (error) {
-      console.error('Failed to fetch anime:', error);
-    } finally {
-      setLoadingAnime(false);
-    }
-  };
-
-  const fetchGames = async () => {
-    try {
-      const response = await fetch('/api/games');
-      const data = await response.json();
-      setGames(data.results || []);
-    } catch (error) {
-      console.error('Failed to fetch games:', error);
-    } finally {
-      setLoadingGames(false);
-    }
-  };
-
-  const fetchBooks = async () => {
-    try {
-      const response = await fetch('/api/books');
-      const data = await response.json();
-      setBooks(data.results || []);
-    } catch (error) {
-      console.error('Failed to fetch books:', error);
-    } finally {
-      setLoadingBooks(false);
-    }
-  };
-
-  const fetchComics = async () => {
-    try {
-      const response = await fetch('/api/comics');
-      const data = await response.json();
-      setComics(data.results || []);
-    } catch (error) {
-      console.error('Failed to fetch comics:', error);
-    } finally {
-      setLoadingComics(false);
-    }
-  };
-
-  const fetchBoardGames = async () => {
-    try {
-      const response = await fetch('/api/boardgames');
-      const data = await response.json();
-      setBoardGames(data.results || []);
-    } catch (error) {
-      console.error('Failed to fetch board games:', error);
-    } finally {
-      setLoadingBoardGames(false);
-    }
-  };
-
-  const fetchSoundtracks = async () => {
-    try {
-      const response = await fetch('/api/soundtracks');
-      const data = await response.json();
-      setSoundtracks(data.results || []);
-    } catch (error) {
-      console.error('Failed to fetch soundtracks:', error);
-    } finally {
-      setLoadingSoundtracks(false);
-    }
-  };
-
-  const fetchPodcasts = async () => {
-    try {
-      const response = await fetch('/api/podcasts');
-      const data = await response.json();
-      setPodcasts(data.results || []);
-    } catch (error) {
-      console.error('Failed to fetch podcasts:', error);
-    } finally {
-      setLoadingPodcasts(false);
-    }
-  };
-
-  const fetchThemeParks = async () => {
-    try {
-      const response = await fetch('/api/themeparks');
-      const data = await response.json();
-      setThemeParks(data.results || []);
-    } catch (error) {
-      console.error('Failed to fetch theme parks:', error);
-    } finally {
-      setLoadingThemeParks(false);
-    }
-  };
+    MEDIA_TABS.forEach(({ key }) => fetchMedia(key));
+  }, [fetchMedia]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-
-      {/* Hero Section */}
-      <section className="relative z-0 min-h-[240vh]">
-        <div className="sticky top-0 h-screen overflow-hidden">
-          {/* Animated Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-2xl animate-pulse delay-1000" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl opacity-50" />
+    <div className="min-h-screen bg-background">
+      {/* Hero — scroll-locked canvas animation */}
+      <section className="relative min-h-[240vh]">
+        <div className="sticky top-0 h-screen overflow-hidden flex items-center">
           <LogoScrollSequence />
-          
-          <div className="relative z-10 w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-32 pb-20 sm:pb-24 lg:pb-32">
-            <div className="text-center space-y-4 sm:space-y-6 lg:space-y-8 w-full max-w-4xl">
-              {/* Badge */}
-              <div className={cn(
-                "inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20 transition-all duration-1000",
-                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              )}>
-                <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                <span className="text-xs sm:text-sm font-medium text-primary">Introducing Lore 2.0</span>
-                <Badge variant="secondary" className="text-xs">New</Badge>
-              </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/30 to-background" />
 
-              {/* Main Headline */}
-              <div className={cn(
-                "space-y-3 sm:space-y-4 transition-all duration-1000 delay-200",
-                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              )}>
-                <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-                  <span className="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
-                    Track Your
-                  </span>
-                  <br />
-                  <span className="bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent">
-                    Media Universe
-                  </span>
-                </h1>
-                <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
-                  Discover, track, and organize your entire media universe - from movies and TV shows to games, books, comics, podcasts, soundtracks, and theme parks. 
-                  Join thousands of enthusiasts who&apos;ve transformed their media experience.
-                </p>
-              </div>
-
-              {/* CTA Buttons */}
-              <div className={cn(
-                "flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-1000 delay-300",
-                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              )}>
-                <Link href={isAuthenticated ? "/dashboard" : "/auth/signin"}>
-                  <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
-                    <Rocket className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                    {isAuthenticated ? 'Go to Dashboard' : 'Start Tracking Free'}
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          <div className="relative z-10 w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className={cn(
+              "space-y-6 transition-all duration-700",
+              mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            )}>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground font-[family-name:var(--font-epilogue)]">
+                Track your media universe
+              </h1>
+              <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+                Discover, track, and organize every movie, show, game, book, and comic across interconnected franchises — in release order.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link href={isAuthenticated ? '/dashboard' : '/auth/signin'}>
+                  <Button size="lg" className="group">
+                    {isAuthenticated ? 'Go to Dashboard' : 'Start Tracking'}
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
                   </Button>
                 </Link>
-                <Button variant="outline" size="lg" className="group border-2 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300">
-                  <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                  Watch Demo
-                </Button>
-              </div>
-
-              {/* Social Proof */}
-              <div className={cn(
-                "flex flex-col items-center gap-6 pt-8 transition-all duration-1000 delay-500",
-                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              )}>
-                  <div className="flex -space-x-2">
-                  {[
-                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50',
-                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
-                    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50',
-                    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
-                    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50'
-                  ].map((avatar, i) => (
-                    <div
-                      key={i}
-                      className="w-10 h-10 rounded-full border-2 border-background bg-cover bg-center shadow-lg"
-                      style={{ backgroundImage: `url("${avatar}")` }}
-                      suppressHydrationWarning
-                    />
-                  ))}
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Trusted by <span className="font-semibold text-foreground">50,000+</span> users worldwide
-                  </p>
-                  <div className="flex items-center justify-center gap-1 mt-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                    <span className="text-sm font-medium ml-1">4.9/5 rating</span>
-                  </div>
-                </div>
+                <Link href="/universes">
+                  <Button variant="outline" size="lg">
+                    <Compass className="w-4 h-4 mr-2" />
+                    Browse Universes
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Trending Media Section */}
-      <section className="py-12 sm:py-16 lg:py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5" />
-        <div className="relative w-full px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <Badge variant="outline" className="mb-3 sm:mb-4 bg-primary/10 text-primary border-primary/30">
-              <TrendingUp className="w-3 h-3 mr-1" />
-              Trending Now
-            </Badge>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
-              <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                Discover What's Hot
-              </span>
+      {/* Trending Media */}
+      <section className="py-12 sm:py-16 relative">
+        <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2 font-[family-name:var(--font-epilogue)]">
+              Trending now
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2 sm:px-0">
-              Explore trending picks across movies, TV, anime, games, books, and more
+            <p className="text-sm text-muted-foreground">
+              Discover what&apos;s popular across movies, TV, anime, games, and more
             </p>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="mb-6 sm:mb-8 -mx-4 px-4 sm:mx-0 sm:px-0">
-              <div className="overflow-x-auto pb-2 sm:flex sm:justify-center [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                <TabsList className="inline-flex min-w-max h-auto items-center rounded-xl bg-muted p-1 text-muted-foreground gap-1 sm:mx-auto">
-                <TabsTrigger value="movies" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
-                  <Film className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Movies
-                </TabsTrigger>
-                <TabsTrigger value="tv" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
-                  <Tv className="w-3 h-3 sm:w-4 sm:h-4" />
-                  TV Shows
-                </TabsTrigger>
-                <TabsTrigger value="anime" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
-                  <Clapperboard className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Anime
-                </TabsTrigger>
-                <TabsTrigger value="games" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
-                  <Gamepad2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Games
-                </TabsTrigger>
-                <TabsTrigger value="books" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
-                  <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Books
-                </TabsTrigger>
-                <TabsTrigger value="comics" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
-                  <ComicIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Comics
-                </TabsTrigger>
-                <TabsTrigger value="boardgames" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
-                  <Puzzle className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Board Games
-                </TabsTrigger>
-                <TabsTrigger value="soundtracks" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
-                  <Music className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Soundtracks
-                </TabsTrigger>
-                <TabsTrigger value="podcasts" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
-                  <Podcast className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Podcasts
-                </TabsTrigger>
-                <TabsTrigger value="themeparks" className="shrink-0 flex items-center gap-1 sm:gap-2 whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3">
-                  <ThemeParkIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Theme Parks
-                </TabsTrigger>
-                </TabsList>
-              </div>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as MediaTabKey)} className="w-full">
+            <div className="mb-6 overflow-x-auto no-scrollbar">
+              <TabsList className="inline-flex min-w-max h-auto items-center rounded-lg bg-muted p-1 gap-0.5">
+                {MEDIA_TABS.map(({ key, label, icon: Icon }) => (
+                  <TabsTrigger
+                    key={key}
+                    value={key}
+                    className="shrink-0 flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3 py-1.5"
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
             </div>
 
-            <TabsContent value="movies">
-              {loadingMovies ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : movies.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {movies.slice(0, 12).map((movie) => (
-                    <Link key={movie.id} href={`/movies/${movie.id}`}>
-                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                          {movie.image ? (
-                            <img 
-                              src={movie.image} 
-                              alt={movie.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Film className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          {movie.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              {movie.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm truncate">{movie.title}</h3>
-                          {movie.year && (
-                            <p className="text-xs text-muted-foreground mt-1">{movie.year}</p>
-                          )}
-                        </CardContent>
-                      </Card>
+            {MEDIA_TABS.map(({ key, label, icon, href }) => (
+              <TabsContent key={key} value={key}>
+                <MediaGrid
+                  items={mediaData[key]}
+                  loading={loadingStates[key]}
+                  error={errorStates[key]}
+                  href={href}
+                  icon={icon}
+                  emptyLabel={`No ${label.toLowerCase()} found right now`}
+                  onRetry={() => fetchMedia(key)}
+                />
+                {mediaData[key].length > 0 && (
+                  <div className="mt-8 text-center">
+                    <Link href={href}>
+                      <Button variant="outline" size="sm" className="group">
+                        View all {label.toLowerCase()}
+                        <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-0.5 transition-transform" />
+                      </Button>
                     </Link>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-12 text-center">
-                  <Film className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">No Movies Found</h3>
-                  <p className="text-muted-foreground">Unable to load trending movies at this time.</p>
-                </Card>
-              )}
-              <div className="mt-8 text-center">
-                <Link href="/movies">
-                  <Button variant="outline" className="group">
-                    View All Movies
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="tv">
-              {loadingTV ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : tvShows.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {tvShows.slice(0, 12).map((show) => (
-                    <Link key={show.id} href={`/tv/${show.id}`}>
-                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                          {show.image ? (
-                            <img 
-                              src={show.image} 
-                              alt={show.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Tv className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          {show.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              {show.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm truncate">{show.title}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            {show.year && (
-                              <p className="text-xs text-muted-foreground">{show.year}</p>
-                            )}
-                            {show.seasons && (
-                              <p className="text-xs text-muted-foreground">
-                                {show.seasons} season{show.seasons !== 1 ? 's' : ''}
-                              </p>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-12 text-center">
-                  <Tv className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">No TV Shows Found</h3>
-                  <p className="text-muted-foreground">Unable to load trending TV shows at this time.</p>
-                </Card>
-              )}
-              <div className="mt-8 text-center">
-                <Link href="/tv">
-                  <Button variant="outline" className="group">
-                    View All TV Shows
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="anime">
-              {loadingAnime ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : anime.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {anime.slice(0, 12).map((item) => (
-                    <Link key={item.id} href={`/anime/${item.id}`}>
-                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                          {item.image ? (
-                            <img 
-                              src={item.image} 
-                              alt={item.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Clapperboard className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          {item.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              {item.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm truncate">{item.title}</h3>
-                          {item.year && (
-                            <p className="text-xs text-muted-foreground mt-1">{item.year}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-12 text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <Clapperboard className="w-12 h-12 text-muted-foreground" />
-                    <p className="text-muted-foreground">No anime found</p>
                   </div>
-                </Card>
-              )}
-              
-              <div className="mt-8 text-center">
-                <Link href="/anime">
-                  <Button variant="outline" className="group">
-                    View All Anime
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="games">
-              {loadingGames ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : games.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {games.slice(0, 12).map((game) => (
-                    <Link key={game.id} href={`/games/${game.id}`}>
-                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                          {game.image ? (
-                            <img 
-                              src={game.image} 
-                              alt={game.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Gamepad2 className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          {game.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              {game.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm truncate">{game.title}</h3>
-                          {game.year && (
-                            <p className="text-xs text-muted-foreground mt-1">{game.year}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-12 text-center">
-                  <Gamepad2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">No Games Found</h3>
-                  <p className="text-muted-foreground">Unable to load trending games at this time.</p>
-                </Card>
-              )}
-              <div className="mt-8 text-center">
-                <Link href="/games">
-                  <Button variant="outline" className="group">
-                    View All Games
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="books">
-              {loadingBooks ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : books.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {books.slice(0, 12).map((book) => (
-                    <Link key={book.id} href={`/books/${book.id}`}>
-                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                          {book.image ? (
-                            <img 
-                              src={book.image} 
-                              alt={book.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <BookOpen className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          {book.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              {book.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm truncate">{book.title}</h3>
-                          {book.year && (
-                            <p className="text-xs text-muted-foreground mt-1">{book.year}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-12 text-center">
-                  <BookOpen className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">No Books Found</h3>
-                  <p className="text-muted-foreground">Unable to load trending books at this time.</p>
-                </Card>
-              )}
-              <div className="mt-8 text-center">
-                <Link href="/books">
-                  <Button variant="outline" className="group">
-                    View All Books
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="comics">
-              {loadingComics ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : comics.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {comics.slice(0, 12).map((comic) => (
-                    <Link key={comic.id} href={`/comics/${comic.id}`}>
-                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                          {comic.image ? (
-                            <img 
-                              src={comic.image} 
-                              alt={comic.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ComicIcon className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          {comic.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              {comic.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm truncate">{comic.title}</h3>
-                          {comic.year && (
-                            <p className="text-xs text-muted-foreground mt-1">{comic.year}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-12 text-center">
-                  <ComicIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">No Comics Found</h3>
-                  <p className="text-muted-foreground">Unable to load trending comics at this time.</p>
-                </Card>
-              )}
-              <div className="mt-8 text-center">
-                <Link href="/comics">
-                  <Button variant="outline" className="group">
-                    View All Comics
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="boardgames">
-              {loadingBoardGames ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : boardGames.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {boardGames.slice(0, 12).map((boardGame) => (
-                    <Link key={boardGame.id} href={`/boardgames/${boardGame.id}`}>
-                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                          {boardGame.image ? (
-                            <img 
-                              src={boardGame.image} 
-                              alt={boardGame.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Puzzle className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          {boardGame.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              {boardGame.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm truncate">{boardGame.title}</h3>
-                          {boardGame.year && (
-                            <p className="text-xs text-muted-foreground mt-1">{boardGame.year}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-12 text-center">
-                  <Puzzle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">No Board Games Found</h3>
-                  <p className="text-muted-foreground">Unable to load trending board games at this time.</p>
-                </Card>
-              )}
-              <div className="mt-8 text-center">
-                <Link href="/boardgames">
-                  <Button variant="outline" className="group">
-                    View All Board Games
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="soundtracks">
-              {loadingSoundtracks ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : soundtracks.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {soundtracks.slice(0, 12).map((soundtrack) => (
-                    <Link key={soundtrack.id} href={`/soundtracks/${soundtrack.id}`}>
-                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                          {soundtrack.image ? (
-                            <img 
-                              src={soundtrack.image} 
-                              alt={soundtrack.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Music className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          {soundtrack.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              {soundtrack.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm truncate">{soundtrack.title}</h3>
-                          {soundtrack.year && (
-                            <p className="text-xs text-muted-foreground mt-1">{soundtrack.year}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-12 text-center">
-                  <Music className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">No Soundtracks Found</h3>
-                  <p className="text-muted-foreground">Unable to load trending soundtracks at this time.</p>
-                </Card>
-              )}
-              <div className="mt-8 text-center">
-                <Link href="/soundtracks">
-                  <Button variant="outline" className="group">
-                    View All Soundtracks
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="podcasts">
-              {loadingPodcasts ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : podcasts.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {podcasts.slice(0, 12).map((podcast) => (
-                    <Link key={podcast.id} href={`/podcasts/${podcast.id}`}>
-                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                          {podcast.image ? (
-                            <img 
-                              src={podcast.image} 
-                              alt={podcast.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Podcast className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          {podcast.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              {podcast.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm truncate">{podcast.title}</h3>
-                          {podcast.year && (
-                            <p className="text-xs text-muted-foreground mt-1">{podcast.year}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-12 text-center">
-                  <Podcast className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">No Podcasts Found</h3>
-                  <p className="text-muted-foreground">Unable to load trending podcasts at this time.</p>
-                </Card>
-              )}
-              <div className="mt-8 text-center">
-                <Link href="/podcasts">
-                  <Button variant="outline" className="group">
-                    View All Podcasts
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="themeparks">
-              {loadingThemeParks ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : themeParks.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {themeParks.slice(0, 12).map((themePark) => (
-                    <Link key={themePark.id} href={`/themeparks/${themePark.id}`}>
-                      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                        <div className="aspect-[2/3] relative overflow-hidden bg-muted">
-                          {themePark.image ? (
-                            <img 
-                              src={themePark.image} 
-                              alt={themePark.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ThemeParkIcon className="w-12 h-12 text-muted-foreground" />
-                            </div>
-                          )}
-                          {themePark.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              {themePark.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm truncate">{themePark.title}</h3>
-                          {themePark.year && (
-                            <p className="text-xs text-muted-foreground mt-1">{themePark.year}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-12 text-center">
-                  <ThemeParkIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">No Theme Parks Found</h3>
-                  <p className="text-muted-foreground">Unable to load trending theme parks at this time.</p>
-                </Card>
-              )}
-              <div className="mt-8 text-center">
-                <Link href="/themeparks">
-                  <Button variant="outline" className="group">
-                    View All Theme Parks
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
+                )}
+              </TabsContent>
+            ))}
           </Tabs>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-12 sm:py-16 lg:py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10" />
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
-        
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="space-y-6 sm:space-y-8">
-            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20">
-              <Rocket className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-              <span className="text-xs sm:text-sm font-medium text-primary">
-                {isAuthenticated ? 'Welcome Back' : 'Ready to Start?'}
-              </span>
-            </div>
-            
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">
-              <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                {isAuthenticated ? 'Continue Your Journey' : 'Begin Your Journey Today'}
-              </span>
-            </h2>
-            
-            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-2 sm:px-0">
-              {isAuthenticated
-                ? 'Jump back in and keep your media universe up to date.'
-                : 'Join our community of media enthusiasts and transform how you track your entertainment.'}
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-              <Link href={isAuthenticated ? "/dashboard" : "/auth/signin"}>
-                <Button size="lg" className="w-full sm:w-auto group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                  {isAuthenticated ? 'Open Dashboard' : 'Get Started Free'}
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+      {/* Universes callout */}
+      <section className="py-16 sm:py-20 border-t border-border/30">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+              <Badge variant="outline" className="mb-4">
+                <Layers className="w-3 h-3 mr-1.5" />
+                Universes
+              </Badge>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-3 font-[family-name:var(--font-epilogue)]">
+                Every item in a franchise, in release order
+              </h2>
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-6">
+                Universes are curated collections of every official release in a franchise — movies, shows, games, books, comics, soundtracks, and theme park attractions. All ordered by release date, so you always know what to experience next.
+              </p>
+              <Link href="/universes">
+                <Button className="group">
+                  Explore universes
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto border-2">
-                <Globe className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                View on GitHub
-              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Universes', value: '40+' },
+                { label: 'Media items', value: '2,900+' },
+                { label: 'Media types', value: '10' },
+                { label: 'Franchises', value: 'MCU, DC, Shrek, and more' },
+              ].map((stat) => (
+                <div key={stat.label} className="p-4 rounded-lg border border-border/40 bg-card/50">
+                  <div className="text-xl font-bold font-[family-name:var(--font-epilogue)]">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-12">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Brand */}
-            <div className="space-y-4">
-              <Link href="/" className="flex items-center gap-3">
-                <img
-                  src="/logo.png?v=3"
-                  alt="Lore logo"
-                  className="w-10 h-10 rounded-2xl object-contain bg-transparent shadow-lg shadow-primary/20"
-                />
-                <span className="font-bold text-xl">Lore</span>
+      <footer className="border-t border-border/30 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <Link href="/" className="flex items-center gap-2">
+              <img
+                src="/logo.png?v=3"
+                alt="Lore logo"
+                className="w-8 h-8 object-contain"
+              />
+              <span className="font-bold text-lg">Lore</span>
+            </Link>
+            <div className="flex items-center gap-6">
+              <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                About
               </Link>
-              <p className="text-sm text-muted-foreground">
-                The most beautiful way to track your media universe.
-              </p>
-              <div className="flex items-center gap-4">
-                {[MessageCircle, Heart, Eye, Globe].map((Icon, i) => (
-                  <Button key={i} variant="ghost" size="icon" className="h-8 w-8">
-                    <Icon className="w-4 h-4" />
-                  </Button>
-                ))}
-              </div>
+              <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Contact
+              </Link>
+              <Link href="/universes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Universes
+              </Link>
+              <Link href="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Search
+              </Link>
             </div>
-
-            {/* Product */}
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2">
-                {['Features', 'Integrations', 'Changelog'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                      {item}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2">
-                {['Privacy', 'Terms', 'Security', 'Cookies'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                      {item}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-border/50 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              © 2026 Lore. All rights reserved.
+              &copy; {new Date().getFullYear()} Lore
             </p>
-            <div className="flex items-center gap-4 mt-4 md:mt-0">
-              <span className="text-sm text-muted-foreground">Made with</span>
-              <Heart className="w-4 h-4 text-red-500 fill-current" />
-              <span className="text-sm text-muted-foreground">for media lovers</span>
-            </div>
           </div>
         </div>
       </footer>
     </div>
   );
 }
-

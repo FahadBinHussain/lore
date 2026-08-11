@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { and, eq, inArray, or } from 'drizzle-orm';
-import { Star, BookOpen, Users, Gem, ChevronDown, ListTree } from 'lucide-react';
+import { Star, BookOpen, Users, Gem, ChevronDown, ListTree, Film, Tv, Gamepad2, BookA, Music, Podcast, MapPin, Newspaper, Check, Clock, CircleSlash2, PauseCircle } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { collectionItems, collections, episodes as episodesTable, seasons, userMediaProgress, users } from '@/db/schema';
@@ -74,6 +74,24 @@ function toImageUrl(path: string | null, source: string | null, size: 'w342' | '
   if (source === 'anilist' && path.startsWith('/file/')) return `https://s4.anilist.co${path}`;
   if (path.startsWith('/')) return `https://image.tmdb.org/t/p/${size}${path}`;
   return path;
+}
+
+function getMediaTypeFallbackIcon(mediaType: string) {
+  const iconClass = 'w-8 h-8 text-base-content/30';
+  switch (mediaType) {
+    case 'movie': return <Film className={iconClass} />;
+    case 'tv': return <Tv className={iconClass} />;
+    case 'anime': return <Tv className={iconClass} />;
+    case 'game': return <Gamepad2 className={iconClass} />;
+    case 'book': return <BookA className={iconClass} />;
+    case 'comic': return <BookA className={iconClass} />;
+    case 'manga': return <BookA className={iconClass} />;
+    case 'soundtrack': return <Music className={iconClass} />;
+    case 'podcast': return <Podcast className={iconClass} />;
+    case 'boardgame': return <Gem className={iconClass} />;
+    case 'themepark': return <MapPin className={iconClass} />;
+    default: return <Newspaper className={iconClass} />;
+  }
 }
 
 function getDominantMediaType(
@@ -266,12 +284,42 @@ function getDisplayDescription(description: string | null): string {
   return description || 'No description available yet.';
 }
 
+function getStatusBadge(status: string) {
+  switch (status) {
+    case 'completed':
+      return {
+        label: 'Watched',
+        icon: <Check className="w-3 h-3" />,
+        className: 'bg-green-500/15 text-green-500',
+      };
+    case 'in_progress':
+      return {
+        label: 'In Progress',
+        icon: <Clock className="w-3 h-3" />,
+        className: 'bg-amber-500/15 text-amber-500',
+      };
+    case 'dropped':
+      return {
+        label: 'Dropped',
+        icon: <CircleSlash2 className="w-3 h-3" />,
+        className: 'bg-red-500/15 text-red-500',
+      };
+    case 'on_hold':
+      return {
+        label: 'On Hold',
+        icon: <PauseCircle className="w-3 h-3" />,
+        className: 'bg-blue-500/15 text-blue-500',
+      };
+    default:
+      return null;
+  }
+}
+
 export default async function Page({ params }: UniversePageProps) {
   const session = await auth();
-  if (!session?.user) redirect('/auth/signin');
 
-  let userId = Number.parseInt(session.user.id || '', 10);
-  if (!Number.isFinite(userId) && session.user.email) {
+  let userId = Number.parseInt(session?.user?.id || '', 10);
+  if (!Number.isFinite(userId) && session?.user?.email) {
     const dbUser = await db.query.users.findFirst({
       where: eq(users.email, session.user.email),
       columns: { id: true },
@@ -418,6 +466,8 @@ export default async function Page({ params }: UniversePageProps) {
       .filter((row) => row.status !== 'not_started')
       .map((row) => row.mediaItemId)
   );
+  const statusByMediaItemId = new Map(progressRows.map((row) => [row.mediaItemId, row.status]));
+  const watchedCount = universe.items.filter((item) => isApiBackedMediaItem(item.mediaItem) && watchedMediaIds.has(item.mediaItem.id)).length;
 
   const heroCandidate = selectHeroCandidate(universe.items);
   const heroImage =
@@ -465,6 +515,12 @@ export default async function Page({ params }: UniversePageProps) {
                 <span className="text-primary font-bold text-2xl">{universe.items.length}</span>
                 <span className="text-base-content/60 text-xs uppercase tracking-widest font-bold">Titles</span>
               </div>
+              {watchedCount > 0 ? (
+                <div className="flex flex-col">
+                  <span className="text-green-500 font-bold text-2xl">{watchedCount}</span>
+                  <span className="text-base-content/60 text-xs uppercase tracking-widest font-bold">Watched</span>
+                </div>
+              ) : null}
             </div>
           </div>
         </section>
@@ -486,6 +542,7 @@ export default async function Page({ params }: UniversePageProps) {
               const isTrackable = itemState === 'trackable';
               const isCurated = itemState === 'curated';
               const isWatched = isTrackable && watchedMediaIds.has(item.mediaItem.id);
+              const statusBadge = isTrackable ? getStatusBadge(statusByMediaItemId.get(item.mediaItem.id) || '') : null;
               const expandedTimeline = expandedTimelinesByMediaItemId.get(item.mediaItem.id);
               const curatedInputType = !isTrackable ? getCuratedInputType(item.mediaItem.additionalData) : null;
               const mediaTypeLabel = curatedInputType ? formatMediaType(curatedInputType) : formatMediaType(item.mediaItem.mediaType);
@@ -515,7 +572,9 @@ export default async function Page({ params }: UniversePageProps) {
                                   className="h-full w-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
                                 />
                               ) : (
-                                <div className="h-full w-full bg-base-300" />
+                                <div className="h-full w-full bg-base-300 flex items-center justify-center">
+                                  {getMediaTypeFallbackIcon(item.mediaItem.mediaType)}
+                                </div>
                               )}
                             </Link>
                           ) : poster ? (
@@ -525,7 +584,9 @@ export default async function Page({ params }: UniversePageProps) {
                               className="h-full w-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
                             />
                           ) : (
-                            <div className="h-full w-full bg-base-300" />
+                            <div className="h-full w-full bg-base-300 flex items-center justify-center">
+                              {getMediaTypeFallbackIcon(item.mediaItem.mediaType)}
+                            </div>
                           )}
                         </div>
                         <div className={`flex-grow ${reverse ? 'md:text-right' : ''}`}>
@@ -545,6 +606,12 @@ export default async function Page({ params }: UniversePageProps) {
                             {isCurated ? (
                               <span className="inline-block px-2 py-0.5 bg-primary/15 text-primary text-[10px] font-bold rounded">
                                 Curated
+                              </span>
+                            ) : null}
+                            {statusBadge ? (
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded ${statusBadge.className}`}>
+                                {statusBadge.icon}
+                                {statusBadge.label}
                               </span>
                             ) : null}
                           </div>

@@ -195,11 +195,6 @@ html[data-theme="light"] {
   background-clip: text;
 }
 
-/* Material symbols reset */
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
 /* Custom scrollbar for horizontal scrolling */
 .custom-scrollbar::-webkit-scrollbar {
   height: 4px;
@@ -359,4 +354,36 @@ html:not(.dark) .glass-panel {
 
 .dashboard-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.3);
+}
+
+/* Skeleton shimmer */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, var(--muted) 25%, color-mix(in oklch, var(--muted) 60%, transparent) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Page transition */
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-fade-in {
+  animation: page-fade-in 0.3s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer,
+  .page-fade-in {
+    animation: none;
+  }
+}
+.font-script {
+  font-family: var(--font-italianno), cursive;
 }

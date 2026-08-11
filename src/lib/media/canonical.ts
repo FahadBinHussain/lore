@@ -9,6 +9,113 @@ import {
   type MediaType,
 } from './provider-registry';
 
+async function fetchPosterFromProvider(
+  provider: string,
+  mediaType: MediaType,
+  externalId: string,
+): Promise<{ posterPath: string | null; backdropPath: string | null }> {
+  try {
+    if (provider === 'tmdb') {
+      const endpoint = mediaType === 'tv' ? 'tv' : 'movie';
+      const resp = await fetch(
+        `https://api.themoviedb.org/3/${endpoint}/${externalId}?api_key=${process.env.TMDB_API_KEY}`,
+        { next: { revalidate: 86400 } },
+      );
+      if (!resp.ok) return { posterPath: null, backdropPath: null };
+      const data = (await resp.json()) as { poster_path: string | null; backdrop_path: string | null };
+      return { posterPath: data.poster_path, backdropPath: data.backdrop_path };
+    }
+
+    if (provider === 'igdb') {
+      const clientId = process.env.IGDB_CLIENT_ID;
+      const clientSecret = process.env.IGDB_CLIENT_SECRET;
+      if (!clientId || !clientSecret) return { posterPath: null, backdropPath: null };
+
+      const tokenResp = await fetch('https://id.twitch.tv/oauth2/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          grant_type: 'client_credentials',
+        }),
+      });
+      if (!tokenResp.ok) return { posterPath: null, backdropPath: null };
+      const tokenData = (await tokenResp.json()) as { access_token: string };
+
+      const gameResp = await fetch('https://api.igdb.com/v4/games', {
+        method: 'POST',
+        headers: {
+          'Client-ID': clientId,
+          Authorization: `Bearer ${tokenData.access_token}`,
+          'Content-Type': 'text/plain',
+        },
+        body: `fields id,cover.image_id,artworks.image_id; where id = ${externalId}; limit 1;`,
+      });
+      if (!gameResp.ok) return { posterPath: null, backdropPath: null };
+      const gameData = (await gameResp.json()) as Array<{
+        cover?: { image_id: string };
+        artworks?: Array<{ image_id: string }>;
+      }>;
+      if (gameData.length === 0) return { posterPath: null, backdropPath: null };
+
+      const game = gameData[0];
+      const posterPath = game.cover
+        ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover.image_id}.jpg`
+        : null;
+      const backdropPath = game.artworks && game.artworks.length > 0
+        ? `https://images.igdb.com/igdb/image/upload/t_1080p/${game.artworks[0].image_id}.jpg`
+        : null;
+      return { posterPath, backdropPath };
+    }
+
+    if (provider === 'openlibrary') {
+      const workResp = await fetch(
+        `https://openlibrary.org/works/${externalId}.json`,
+        { next: { revalidate: 86400 } },
+      );
+      if (!workResp.ok) return { posterPath: null, backdropPath: null };
+      const workData = (await workResp.json()) as { covers?: number[] };
+      if (workData.covers && workData.covers.length > 0) {
+        return {
+          posterPath: `https://covers.openlibrary.org/b/id/${workData.covers[0]}-L.jpg`,
+          backdropPath: null,
+        };
+      }
+      return { posterPath: null, backdropPath: null };
+    }
+  } catch {
+    // Network/API errors are non-fatal — the item just won't have a poster
+  }
+
+  return { posterPath: null, backdropPath: null };
+}
+
+async function backfillPosterIfNeeded(
+  mediaItem: typeof mediaItems.$inferSelect,
+  provider: string,
+  mediaType: MediaType,
+  externalId: string,
+): Promise<typeof mediaItems.$inferSelect> {
+  if (mediaItem.posterPath) return mediaItem;
+
+  const { posterPath, backdropPath } = await fetchPosterFromProvider(provider, mediaType, externalId);
+
+  if (posterPath) {
+    const [updated] = await db
+      .update(mediaItems)
+      .set({
+        posterPath,
+        backdropPath: backdropPath || mediaItem.backdropPath,
+      })
+      .where(eq(mediaItems.id, mediaItem.id))
+      .returning();
+    return updated || mediaItem;
+  }
+
+  return mediaItem;
+}
+
 export type CanonicalMediaPayload = {
   mediaItemId?: number | null;
   externalId?: unknown;
@@ -264,8 +371,10 @@ export async function ensureCanonicalMediaItem(payload: CanonicalMediaPayload): 
       metadata: normalizeObject(payload.mappingMetadata),
     });
 
+    const enrichedItem = await backfillPosterIfNeeded(existingById, provider, mediaType, externalId);
+
     return {
-      mediaItem: existingById,
+      mediaItem: enrichedItem,
       mapping,
       created: false,
     };
@@ -283,8 +392,10 @@ export async function ensureCanonicalMediaItem(payload: CanonicalMediaPayload): 
       metadata: normalizeObject(payload.mappingMetadata),
     });
 
+    const enrichedItem = await backfillPosterIfNeeded(mappedItem, provider, mediaType, externalId);
+
     return {
-      mediaItem: mappedItem,
+      mediaItem: enrichedItem,
       mapping,
       created: false,
     };
@@ -337,8 +448,10 @@ export async function ensureCanonicalMediaItem(payload: CanonicalMediaPayload): 
     metadata: normalizeObject(payload.mappingMetadata),
   });
 
+  const enrichedItem = await backfillPosterIfNeeded(createdItem, provider, mediaType, externalId);
+
   return {
-    mediaItem: createdItem,
+    mediaItem: enrichedItem,
     mapping,
     created: true,
   };

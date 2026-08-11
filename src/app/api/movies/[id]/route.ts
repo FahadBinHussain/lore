@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMovieDetails, getTMDBImageUrl } from '@/lib/api/tmdb';
+import { TMDBMovieDetail } from '@/lib/api/tmdb';
 
 export async function GET(
   request: NextRequest,
@@ -23,7 +23,7 @@ export async function GET(
       throw new Error('Failed to fetch movie details');
     }
 
-    const movie = await response.json();
+    const movie = (await response.json()) as TMDBMovieDetail;
 
     // Get content rating (US rating if available)
     const contentRating = movie.release_dates?.results?.find(
@@ -43,7 +43,7 @@ export async function GET(
     );
 
     // Get similar and recommendations (limit to 6 each)
-    const similar = (movie.similar?.results || []).slice(0, 6).map((s: any) => ({
+    const similar = (movie.similar?.results || []).slice(0, 6).map((s) => ({
       id: s.id,
       title: s.title,
       poster_path: s.poster_path,
@@ -51,7 +51,7 @@ export async function GET(
       release_date: s.release_date,
     }));
 
-    const recommendations = (movie.recommendations?.results || []).slice(0, 6).map((r: any) => ({
+    const recommendations = (movie.recommendations?.results || []).slice(0, 6).map((r) => ({
       id: r.id,
       title: r.title,
       poster_path: r.poster_path,
@@ -107,16 +107,16 @@ export async function GET(
       recommendations,
       backdrops,
       credits: movie.credits ? {
-        cast: movie.credits.cast.slice(0, 20).map((c: any) => ({
+        cast: movie.credits.cast.slice(0, 20).map((c) => ({
           id: c.id,
           name: c.name,
           character: c.character,
           profile_path: c.profile_path,
           order: c.order,
         })),
-        crew: movie.credits.crew.filter((c: any) => 
+        crew: movie.credits.crew.filter((c) => 
           ['Director', 'Writer', 'Screenplay', 'Producer', 'Executive Producer', 'Cinematography', 'Original Music Composer'].includes(c.job)
-        ).slice(0, 10).map((c: any) => ({
+        ).slice(0, 10).map((c) => ({
           id: c.id,
           name: c.name,
           job: c.job,

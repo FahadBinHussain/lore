@@ -8,6 +8,7 @@ import { ArrowLeft, Check, ExternalLink, Loader2, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { DetailPageSkeleton } from '@/components/ui/skeleton';
 
 export interface GenericMediaDetail {
   id: string;
@@ -175,11 +176,7 @@ export function GenericMediaDetailPage({
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-base-100 flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (error || !detail) {

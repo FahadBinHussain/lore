@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTVShowDetails, getTMDBImageUrl } from '@/lib/api/tmdb';
+import { TMDBTVShowDetail } from '@/lib/api/tmdb';
 
 export async function GET(
   request: NextRequest,
@@ -24,7 +24,7 @@ export async function GET(
       throw new Error('Failed to fetch TV show details');
     }
 
-    const show = await response.json();
+    const show = (await response.json()) as TMDBTVShowDetail;
 
     // Get content rating (US rating if available)
     const contentRating = show.content_ratings?.results?.find(
@@ -44,7 +44,7 @@ export async function GET(
     );
 
     // Get similar and recommendations (limit to 6 each)
-    const similar = (show.similar?.results || []).slice(0, 6).map((s: any) => ({
+    const similar = (show.similar?.results || []).slice(0, 6).map((s) => ({
       id: s.id,
       name: s.name,
       poster_path: s.poster_path,
@@ -52,7 +52,7 @@ export async function GET(
       first_air_date: s.first_air_date,
     }));
 
-    const recommendations = (show.recommendations?.results || []).slice(0, 6).map((r: any) => ({
+    const recommendations = (show.recommendations?.results || []).slice(0, 6).map((r) => ({
       id: r.id,
       name: r.name,
       poster_path: r.poster_path,
@@ -106,16 +106,16 @@ export async function GET(
       recommendations,
       backdrops,
       credits: show.credits ? {
-        cast: show.credits.cast.slice(0, 20).map((c: any) => ({
+        cast: show.credits.cast.slice(0, 20).map((c) => ({
           id: c.id,
           name: c.name,
           character: c.character,
           profile_path: c.profile_path,
           order: c.order,
         })),
-        crew: show.credits.crew.filter((c: any) => 
+        crew: show.credits.crew.filter((c) => 
           ['Creator', 'Director', 'Writer', 'Executive Producer', 'Producer', 'Screenplay'].includes(c.job)
-        ).slice(0, 10).map((c: any) => ({
+        ).slice(0, 10).map((c) => ({
           id: c.id,
           name: c.name,
           job: c.job,

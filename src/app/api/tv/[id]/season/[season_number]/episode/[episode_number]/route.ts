@@ -125,7 +125,7 @@ export async function POST(
           : new Date();
 
       // First, try to find the episode in our database
-      let dbEpisode = await db
+      const dbEpisode = await db
         .select()
         .from(episodes)
         .where(and(
