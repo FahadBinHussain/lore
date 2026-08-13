@@ -4,7 +4,6 @@ import { BookOpen, Users, Gem } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { collectionItems, collections, episodes as episodesTable, seasons, userMediaProgress, users } from '@/db/schema';
-import { HeroDebugLog } from '@/components/universes/hero-debug-log';
 import { UniverseTimelineCard, type UniverseTimelineEntryDisplay } from '@/components/universes/universe-timeline-card';
 import { getMediaDetailHref, getTimelineItemState, isApiBackedMediaItem } from '@/lib/media/provider-support';
 
@@ -428,22 +427,6 @@ export default async function Page({ params }: UniversePageProps) {
 
   return (
     <div className="min-h-screen bg-base-100 text-base-content font-[family-name:var(--font-manrope)] overflow-x-hidden">
-      <HeroDebugLog
-        universeSlug={universe.slug}
-        universeName={universe.name}
-        bannerImage={universe.bannerImage}
-        coverImage={universe.coverImage}
-        firstBackdropItem={heroCandidate.item ? {
-          id: heroCandidate.item.id,
-          title: heroCandidate.item.title,
-          mediaType: heroCandidate.item.mediaType,
-          source: heroCandidate.item.source,
-          backdropPath: heroCandidate.item.backdropPath,
-          posterPath: heroCandidate.item.posterPath,
-          imageKind: heroCandidate.imageKind,
-        } : null}
-        resolvedHeroImage={heroImage}
-      />
       <main className="pb-32">
         <section className="relative h-[716px] w-full flex items-end overflow-hidden">
           <div className="absolute inset-0 z-0">
