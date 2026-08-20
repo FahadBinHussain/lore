@@ -77,6 +77,8 @@ fallback format: `source: 'manual'` with `curated-{type}-{year}-{slug}` external
 
 agents must not default to `manual` for convenience. API binding is the norm; curated is the exception and must be justified per item.
 
+**TMDB id verification gotcha (2026-08-20):** never trust a TMDB id without checking the fetched title. `116521` = "Runaways" (2012, one-off) and `75006` = The Umbrella Academy — both were wrongly bound to Marvel's Runaways at different times. The correct id is `67466`. When binding/fetching a tv/movie item, always fetch `/tv/{id}`/`/movie/{id}` first and assert the `name`/`title` matches before writing. Search endpoint is unusable with the configured key (401), so verify via direct detail calls or the public search page HTML (`href="/tv/{id}-..."`).
+
 ### Verified API bindings (reference examples)
 
 These items were successfully connected to APIs after verification:
@@ -84,6 +86,7 @@ These items were successfully connected to APIs after verification:
 | Item | Media Type | API | External ID |
 | --- | --- | --- | --- |
 | Black Mirror (series) | tv | tmdb | `42009` |
+| Marvel's Runaways (series) | tv | tmdb | `67466` |
 | Black Mirror: Bandersnatch | movie | tmdb | `569547` |
 | Inside Black Mirror (book) | book | openlibrary | `OL20181820W` |
 | Thronglets (game) | game | igdb | `339816` |
