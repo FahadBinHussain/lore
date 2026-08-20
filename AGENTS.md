@@ -119,9 +119,9 @@ For App Router destinations that perform server-side database work before render
 
 ## Vercel deployment
 
-- Production project: `lore`, owned by the `owning vercel profile` Vercel profile.
+- Production project: `lore` (owned by the owning Vercel profile).
 - Canonical production URL: `https://univrs.vercel.app`.
-- Link and deploy through `mainframe\vercel-account.ps1` with the `owning vercel profile` profile and team `team id`. Do not create another `lore` project under a different profile.
-- **CLI 58.x gotcha (2026-08-12):** the auto-updated Vercel CLI rejects the old `.vercel/repo.json` link format (errors `Root Directory must be a relative path` on deploy, and `--cwd <abs-path>` is no longer accepted). `.vercel/project.json` must hold `{"projectId":"project id","orgId":"team id"}` and deploys must run from the repo directory: `vercel-account.ps1 run owning vercel profile -- deploy --prod --yes --force` (no `--cwd`, no path arg).
+- Link and deploy through the mainframe `vercel-account.ps1` helper with the owning profile and team. Do not create another `lore` project under a different profile.
+- **CLI 58.x gotcha (2026-08-12):** the auto-updated Vercel CLI rejects the old `.vercel/repo.json` link format (errors `Root Directory must be a relative path` on deploy, and `--cwd <abs-path>` is no longer accepted). `.vercel/project.json` must hold the project/org IDs and deploys must run from the repo directory: `vercel-account.ps1 run <profile-email> -- deploy --prod --yes --force` (no `--cwd`, no path arg).
 - Preserve the existing `FahadBinHussain/lore` GitHub connection and project environment configuration.
 - Verify `/`, `/movies`, `/api/movies?page=1`, `/api/universes`, and `/api/auth/providers` before considering a production deployment complete.
