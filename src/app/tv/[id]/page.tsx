@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { 
   ArrowLeft, Star, Clock, Calendar, Globe, 
-  Users, Loader2, Play, Plus, 
+  Users, Loader2, Play,
   Heart, Share2, Check, Tv, Monitor,
   ExternalLink, TrendingUp, Award, Building2,
-  Languages, MapPin, Film, ChevronDown, ChevronUp,
+  Film, ChevronDown, ChevronUp,
   PlayCircle, Image as ImageIcon, Sparkles,
-  Camera, ThumbsUp
+  ThumbsUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -182,7 +183,7 @@ export default function TVShowDetailPage() {
     return () => clearInterval(timer);
   }, [updatingWatched, show?.number_of_episodes]);
 
-  const fetchTVShowDetails = async () => {
+  const fetchTVShowDetails = useCallback(async () => {
     try {
       const idParam = params.id as string;
       
@@ -207,9 +208,9 @@ export default function TVShowDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, router]);
 
-  const fetchWatchedStatus = async () => {
+  const fetchWatchedStatus = useCallback(async () => {
     try {
       const idParam = params.id as string;
       const numericIdMatch = idParam.match(/(\d+)$/);
@@ -223,7 +224,7 @@ export default function TVShowDetailPage() {
     } catch (err) {
       console.error('Failed to fetch watched status:', err);
     }
-  };
+  }, [params.id]);
 
   const handleMarkAsWatched = async () => {
     if (!show) return;
@@ -265,7 +266,7 @@ export default function TVShowDetailPage() {
   };
 
   // Search AniList for matching anime to redirect to site anime page
-  const searchAniList = async () => {
+  const searchAniList = useCallback(async () => {
     if (!show) return;
     
     setAnilistLoading(true);
@@ -285,11 +286,15 @@ export default function TVShowDetailPage() {
     } finally {
       setAnilistLoading(false);
     }
-  };
+  }, [show]);
+
+  // Check if this is Japanese animation - should redirect to anime tab
+  const isJapaneseAnimation = show?.genres?.some(g => g.name === 'Animation') && 
+    show?.origin_country?.some(c => c === 'JP');
 
   useEffect(() => {
     fetchTVShowDetails();
-  }, [params.id]);
+  }, [fetchTVShowDetails, params.id]);
 
   useEffect(() => {
     if (show) {
@@ -300,7 +305,7 @@ export default function TVShowDetailPage() {
         searchAniList();
       }
     }
-  }, [show]);
+  }, [show, fetchWatchedStatus, searchAniList, isJapaneseAnimation]);
 
   const getCreator = () => {
     return show?.credits?.crew.find(person => person.job === 'Creator');
@@ -329,23 +334,11 @@ export default function TVShowDetailPage() {
     return showAllCast ? cast : cast.slice(0, 8);
   };
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return 'Unknown';
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   const getYear = (dateStr: string) => {
     if (!dateStr) return '—';
     return new Date(dateStr).getFullYear();
   };
 
-  // Check if this is Japanese animation - should redirect to anime tab
-  const isJapaneseAnimation = show?.genres?.some(g => g.name === 'Animation') && 
-    show?.origin_country?.some(c => c === 'JP');
   const isAdminView = isAdminRole(session?.user?.role);
 
   if (loading) {
@@ -492,10 +485,13 @@ export default function TVShowDetailPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {show.poster_path ? (
-                  <img 
+                  <Image 
                     src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
                     alt={show.name}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
@@ -729,10 +725,12 @@ export default function TVShowDetailPage() {
                       onClick={() => setSelectedTrailer(video)}
                     >
                       <div className="aspect-video relative bg-muted">
-                        <img 
+                        <Image 
                           src={`https://img.youtube.com/vi/${video.key}/mqdefault.jpg`}
                           alt={video.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="(min-width: 1024px) 33vw, 50vw"
+                          className="object-cover"
                         />
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <PlayCircle className="w-12 h-12 text-primary-foreground" />
@@ -751,10 +749,12 @@ export default function TVShowDetailPage() {
                       onClick={() => setSelectedTrailer(video)}
                     >
                       <div className="aspect-video relative bg-muted">
-                        <img 
+                        <Image 
                           src={`https://img.youtube.com/vi/${video.key}/mqdefault.jpg`}
                           alt={video.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="(min-width: 1024px) 33vw, 50vw"
+                          className="object-cover"
                         />
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <PlayCircle className="w-12 h-12 text-primary-foreground" />
@@ -800,10 +800,12 @@ export default function TVShowDetailPage() {
                     >
                       <div className="aspect-square relative overflow-hidden bg-muted">
                         {actor.profile_path ? (
-                          <img 
+                          <Image 
                             src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
                             alt={actor.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            fill
+                            sizes="(min-width: 1024px) 33vw, 50vw"
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
@@ -900,10 +902,12 @@ export default function TVShowDetailPage() {
                       >
                         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {season.poster_path ? (
-                            <img
+                            <Image
                               src={`https://image.tmdb.org/t/p/w300${season.poster_path}`}
                               alt={season.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              fill
+                              sizes="(min-width: 1024px) 33vw, 50vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20">
@@ -941,12 +945,14 @@ export default function TVShowDetailPage() {
                   {show.backdrops.map((backdrop, idx) => (
                     <div 
                       key={idx}
-                      className="aspect-video rounded-lg overflow-hidden bg-muted hover:scale-105 transition-transform duration-300 cursor-pointer group"
+                      className="relative aspect-video rounded-lg overflow-hidden bg-muted hover:scale-105 transition-transform duration-300 cursor-pointer group"
                     >
-                      <img 
+                      <Image 
                         src={`https://image.tmdb.org/t/p/w780${backdrop.file_path}`}
                         alt={`${show.name} backdrop ${idx + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        sizes="(min-width: 1024px) 33vw, 50vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
                   ))}
@@ -967,10 +973,12 @@ export default function TVShowDetailPage() {
                       <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/50 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {similar.poster_path ? (
-                            <img 
+                            <Image 
                               src={`https://image.tmdb.org/t/p/w300${similar.poster_path}`}
                               alt={similar.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              fill
+                              sizes="(min-width: 1024px) 33vw, 50vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
@@ -1006,10 +1014,12 @@ export default function TVShowDetailPage() {
                       <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-fuchsia-500/50 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {rec.poster_path ? (
-                            <img 
+                            <Image 
                               src={`https://image.tmdb.org/t/p/w300${rec.poster_path}`}
                               alt={rec.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              fill
+                              sizes="(min-width: 1024px) 33vw, 50vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20">
@@ -1181,9 +1191,11 @@ export default function TVShowDetailPage() {
                   {show.networks.map((network) => (
                     <div key={network.id} className="flex items-center gap-3 p-3 bg-muted/70 rounded-xl border border-border">
                       {network.logo_path ? (
-                        <img 
+                        <Image 
                           src={`https://image.tmdb.org/t/p/w92${network.logo_path}`}
                           alt={network.name}
+                          width={32}
+                          height={32}
                           className="h-8 w-auto object-contain invert brightness-0 dark:invert-0 dark:brightness-100"
                         />
                       ) : (
@@ -1209,9 +1221,11 @@ export default function TVShowDetailPage() {
                   {show.production_companies.slice(0, 5).map((company) => (
                     <div key={company.id} className="flex items-center gap-3 p-3 bg-muted/70 rounded-xl border border-border">
                       {company.logo_path ? (
-                        <img 
+                        <Image 
                           src={`https://image.tmdb.org/t/p/w92${company.logo_path}`}
                           alt={company.name}
+                          width={32}
+                          height={32}
                           className="h-8 w-auto object-contain invert brightness-0 dark:invert-0 dark:brightness-100"
                         />
                       ) : (

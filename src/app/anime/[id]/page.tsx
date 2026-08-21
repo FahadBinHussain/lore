@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowLeft, Star, Clock, Calendar,
@@ -80,28 +81,7 @@ export default function AnimeDetailPage() {
   const [updatingWatched, setUpdatingWatched] = useState(false);
   const [selectedTrailer, setSelectedTrailer] = useState<{ id: string; site: string } | null>(null);
 
-  useEffect(() => {
-    fetchAnimeDetails();
-  }, [params.id]);
-
-  useEffect(() => {
-    if (anime) {
-      fetchWatchedStatus();
-    }
-  }, [anime]);
-
-  // Debug: Log trailer data whenever anime changes
-  useEffect(() => {
-    if (anime) {
-      console.log('=== ANIME TRAILER DEBUG ===');
-      console.log('anime.trailer:', anime.trailer);
-      console.log('anime.trailer?.site:', anime.trailer?.site);
-      console.log('Condition result (trailer?.site === "youtube"):', anime.trailer?.site === 'youtube');
-      console.log('=========================');
-    }
-  }, [anime]);
-
-  const fetchAnimeDetails = async () => {
+  const fetchAnimeDetails = useCallback(async () => {
     try {
       const response = await fetch(`/api/anime/${params.id}`);
       if (!response.ok) {
@@ -123,9 +103,9 @@ export default function AnimeDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
 
-  const fetchWatchedStatus = async () => {
+  const fetchWatchedStatus = useCallback(async () => {
     try {
       const response = await fetch(`/api/media/status?mediaId=${params.id}&mediaType=anime`);
       // If not authenticated, silently skip (user can still browse)
@@ -136,11 +116,32 @@ export default function AnimeDetailPage() {
         const data = await response.json();
         setIsWatched(data.isWatched);
       }
-    } catch (err) {
+    } catch {
       // Silently fail - user can still browse without tracking
       console.log('Not logged in, skipping watched status');
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchAnimeDetails();
+  }, [params.id, fetchAnimeDetails]);
+
+  useEffect(() => {
+    if (anime) {
+      fetchWatchedStatus();
+    }
+  }, [anime, fetchWatchedStatus]);
+
+  // Debug: Log trailer data whenever anime changes
+  useEffect(() => {
+    if (anime) {
+      console.log('=== ANIME TRAILER DEBUG ===');
+      console.log('anime.trailer:', anime.trailer);
+      console.log('anime.trailer?.site:', anime.trailer?.site);
+      console.log('Condition result (trailer?.site === "youtube"):', anime.trailer?.site === 'youtube');
+      console.log('=========================');
+    }
+  }, [anime]);
 
   const handleMarkAsWatched = async () => {
     if (!anime) return;
@@ -287,10 +288,13 @@ export default function AnimeDetailPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {anime.image ? (
-                  <img 
+                  <Image 
                     src={anime.image}
                     alt={anime.title}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-primary/70 to-secondary/70 flex items-center justify-center">
@@ -455,9 +459,11 @@ export default function AnimeDetailPage() {
               {anime.characters.map((char) => (
                 <Card key={char.id} className="overflow-hidden bg-card/80 border-border/70">
                   {char.image ? (
-                    <img 
+                    <Image 
                       src={char.image}
                       alt={char.name}
+                      width={400}
+                      height={600}
                       className="w-full aspect-[3/4] object-cover"
                     />
                   ) : (
@@ -539,9 +545,11 @@ export default function AnimeDetailPage() {
                 <Link key={rel.id} href={`/anime/${rel.id}`}>
                   <Card className="overflow-hidden bg-card/80 border-border/70 hover:border-primary/50 transition-all">
                     {rel.coverImage ? (
-                      <img 
+                      <Image 
                         src={rel.coverImage}
                         alt={rel.title}
+                        width={400}
+                        height={600}
                         className="w-full aspect-[2/3] object-cover"
                       />
                     ) : (
@@ -569,9 +577,11 @@ export default function AnimeDetailPage() {
                 <Link key={rec.id} href={`/anime/${rec.id}`}>
                   <Card className="overflow-hidden bg-card/80 border-border/70 hover:border-primary/50 transition-all">
                     {rec.coverImage ? (
-                      <img 
+                      <Image 
                         src={rec.coverImage}
                         alt={rec.title}
+                        width={400}
+                        height={600}
                         className="w-full aspect-[2/3] object-cover"
                       />
                     ) : (

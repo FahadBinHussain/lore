@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { 
-  ArrowLeft, Star, Calendar, Globe, 
-  Users, Loader2, Play, 
+  ArrowLeft, Star, Calendar, 
+  Users, Loader2, 
   Heart, Share2, Check, BookOpen, FileText,
-  ExternalLink, TrendingUp, Award, Building2,
+  ExternalLink, TrendingUp,
   ChevronDown, ChevronUp,
-  PlayCircle, Image as ImageIcon, Sparkles,
+  Image as ImageIcon, Sparkles,
   MapPin, Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -124,40 +125,6 @@ export default function BookDetailPage() {
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [activeTab, setActiveTab] = useState<'about' | 'contents' | 'editions'>('about');
 
-  const fetchBookDetails = async () => {
-    try {
-      const idParam = params.id as string;
-      const fullKey = idParam.startsWith('/works/') ? idParam : `/works/${idParam}`;
-      
-      const response = await fetch(`/api/books/${fullKey}`);
-      if (!response.ok) {
-        throw new Error('Book not found');
-      }
-      const data = await response.json();
-      setBook(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load book');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchReadStatus = async () => {
-    try {
-      const idParam = params.id as string;
-      const numericIdMatch = idParam.match(/(\d+)$/);
-      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
-      
-      const response = await fetch(`/api/media/status?mediaId=${numericId}&mediaType=book`);
-      if (response.ok) {
-        const data = await response.json();
-        setIsRead(data.isWatched);
-      }
-    } catch (err) {
-      console.error('Failed to fetch read status:', err);
-    }
-  };
-
   const handleMarkAsRead = async () => {
     if (!book) return;
     
@@ -192,15 +159,49 @@ export default function BookDetailPage() {
     }
   };
 
+  const fetchBookDetails = useCallback(async () => {
+    try {
+      const idParam = params.id as string;
+      const fullKey = idParam.startsWith('/works/') ? idParam : `/works/${idParam}`;
+      
+      const response = await fetch(`/api/books/${fullKey}`);
+      if (!response.ok) {
+        throw new Error('Book not found');
+      }
+      const data = await response.json();
+      setBook(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load book');
+    } finally {
+      setLoading(false);
+    }
+  }, [params.id]);
+
+  const fetchReadStatus = useCallback(async () => {
+    try {
+      const idParam = params.id as string;
+      const numericIdMatch = idParam.match(/(\d+)$/);
+      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
+      
+      const response = await fetch(`/api/media/status?mediaId=${numericId}&mediaType=book`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsRead(data.isWatched);
+      }
+    } catch (err) {
+      console.error('Failed to fetch read status:', err);
+    }
+  }, [params.id]);
+
   useEffect(() => {
     fetchBookDetails();
-  }, [params.id]);
+  }, [params.id, fetchBookDetails]);
 
   useEffect(() => {
     if (book) {
       fetchReadStatus();
     }
-  }, [book]);
+  }, [book, fetchReadStatus]);
 
   // Compute derived values from raw response
   const coverUrl = book?.covers && book.covers.length > 0
@@ -293,10 +294,13 @@ export default function BookDetailPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {coverUrl ? (
-                  <img 
+                  <Image 
                     src={coverUrl}
                     alt={book.title}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-amber-600 to-orange-600 flex items-center justify-center">
@@ -690,10 +694,12 @@ export default function BookDetailPage() {
                             <CardContent className="p-4">
                               <div className="aspect-[2/3] relative mb-3 rounded-lg overflow-hidden bg-muted">
                                 {similar.cover_id ? (
-                                  <img
+                                  <Image
                                     src={`https://covers.openlibrary.org/b/id/${similar.cover_id}-M.jpg`}
                                     alt={similar.title}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    sizes="(min-width: 1024px) 33vw, 50vw"
+                                    className="object-cover"
                                     loading="lazy"
                                   />
                                 ) : (
@@ -758,10 +764,12 @@ export default function BookDetailPage() {
                           rel="noopener noreferrer"
                           className="relative aspect-[2/3] rounded-lg overflow-hidden group"
                         >
-                          <img
+                          <Image
                             src={`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`}
                             alt={`Cover ${idx + 1}`}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            fill
+                            sizes="(min-width: 1024px) 33vw, 50vw"
+                            className="object-cover group-hover:scale-110 transition-transform duration-300"
                             loading="lazy"
                           />
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

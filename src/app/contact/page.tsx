@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { 
   ArrowRight, Mail, Phone, MapPin, Clock,
@@ -12,7 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
 
 const contactInfo = [
   {
@@ -106,9 +106,11 @@ export default function ContactPage() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 group">
-              <img
-                src="/logo.png?v=3"
+              <Image
+                src="/logo.png"
                 alt="Lore logo"
+                width={40}
+                height={40}
                 className="w-10 h-10 rounded-2xl object-contain bg-transparent shadow-lg shadow-primary/20 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:scale-105"
               />
               <div className="flex flex-col">
@@ -382,9 +384,11 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <Link href="/" className="flex items-center gap-3 mb-4 md:mb-0">
-              <img
-                src="/logo.png?v=3"
+              <Image
+                src="/logo.png"
                 alt="Lore logo"
+                width={40}
+                height={40}
                 className="w-10 h-10 rounded-2xl object-contain bg-transparent shadow-lg shadow-primary/20"
               />
               <span className="font-bold text-xl">Lore</span>

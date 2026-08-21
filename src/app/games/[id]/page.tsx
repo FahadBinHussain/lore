@@ -2,16 +2,17 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { 
   ArrowLeft, Star, Calendar, Globe, 
-  Users, Loader2, Play, 
+  Users, Loader2,
   Heart, Share2, Check, Gamepad2, Monitor,
   ExternalLink, TrendingUp, Award, Building2,
   ChevronDown, ChevronUp,
   PlayCircle, Image as ImageIcon, Sparkles,
   ThumbsUp, Zap, 
-  Video, FileText, MapPin, Clock, Settings
+  Video, Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -97,24 +98,6 @@ interface ExternalGame {
   name: string;
   url: string;
   category: string;
-}
-
-interface MultiplayerMode {
-  campaigncoop: boolean;
-  lancoop: boolean;
-  offlinecoop: boolean;
-  onlinecoop: boolean;
-  splitscreen: boolean;
-}
-
-interface LanguageSupport {
-  id: number;
-  language?: {
-    name: string;
-  };
-  language_support_type?: {
-    name: string;
-  };
 }
 
 interface GameDetails {
@@ -500,10 +483,13 @@ export default function GameDetailPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-48 md:w-64 aspect-[3/4] rounded-xl overflow-hidden shadow-2xl">
                 {game.cover_url ? (
-                  <img 
+                  <Image 
                     src={game.cover_url}
                     alt={game.name}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center">
@@ -686,10 +672,12 @@ export default function GameDetailPage() {
                       onClick={() => setSelectedVideo(video)}
                     >
                       <div className="aspect-video relative bg-slate-800">
-                        <img 
+                        <Image 
                           src={`https://img.youtube.com/vi/${video.video_id}/mqdefault.jpg`}
                           alt={video.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="(min-width: 1024px) 33vw, 50vw"
+                          className="object-cover"
                         />
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <PlayCircle className="w-12 h-12 text-white" />
@@ -715,12 +703,14 @@ export default function GameDetailPage() {
                   {game.screenshots.map((screenshot, idx) => (
                     <div 
                       key={idx}
-                      className="aspect-video rounded-lg overflow-hidden bg-slate-800 hover:scale-105 transition-transform duration-300 cursor-pointer group"
+                      className="relative aspect-video rounded-lg overflow-hidden bg-slate-800 hover:scale-105 transition-transform duration-300 cursor-pointer group"
                     >
-                      <img 
+                      <Image 
                         src={screenshot.url}
                         alt={`${game.name} screenshot ${idx + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        sizes="(min-width: 1024px) 33vw, 50vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
                   ))}
@@ -741,10 +731,12 @@ export default function GameDetailPage() {
                       <Card className="group overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 hover:border-emerald-500/50 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="aspect-[3/4] relative overflow-hidden bg-slate-800">
                           {similar.cover_url ? (
-                            <img 
+                            <Image 
                               src={similar.cover_url}
                               alt={similar.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              fill
+                              sizes="(min-width: 1024px) 33vw, 50vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
@@ -780,12 +772,14 @@ export default function GameDetailPage() {
                   {game.artworks.map((artwork, idx) => (
                     <div 
                       key={idx}
-                      className="aspect-video rounded-lg overflow-hidden bg-slate-800 hover:scale-105 transition-transform duration-300 cursor-pointer group"
+                      className="relative aspect-video rounded-lg overflow-hidden bg-slate-800 hover:scale-105 transition-transform duration-300 cursor-pointer group"
                     >
-                      <img 
+                      <Image 
                         src={artwork.url}
                         alt={`${game.name} artwork ${idx + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        sizes="(min-width: 1024px) 33vw, 50vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
                   ))}

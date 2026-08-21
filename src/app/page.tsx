@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import {
@@ -51,10 +52,12 @@ function MediaCard({ item, href, icon }: { item: MediaItem; href: string; icon: 
       <Card className="overflow-hidden group hover:shadow-md transition-shadow duration-200 cursor-pointer border-border/40">
         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
           {item.image ? (
-            <img
+            <Image
               src={item.image}
               alt={item.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              fill
+              sizes="(min-width: 1024px) 25vw, 50vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -334,9 +337,11 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-2">
-              <img
-                src="/logo.png?v=3"
+              <Image
+                src="/logo.png"
                 alt="Lore logo"
+                width={32}
+                height={32}
                 className="w-8 h-8 object-contain"
               />
               <span className="font-bold text-lg">Lore</span>

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
-  Podcast, Star, ArrowRight,
-  TrendingUp, Flame, Sparkles, Search, Radio, Headphones
+  Podcast, Star, Search, Radio, Headphones
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,7 +46,7 @@ export default function PodcastsPage() {
     }
   };
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -62,7 +62,7 @@ export default function PodcastsPage() {
     } finally {
       setSearching(false);
     }
-  };
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -75,7 +75,7 @@ export default function PodcastsPage() {
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, handleSearch]);
 
   const displayPodcasts = searchQuery ? searchResults : podcasts;
 
@@ -156,10 +156,12 @@ export default function PodcastsPage() {
                   <CardContent className="p-0">
                     <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted">
                       {podcast.image ? (
-                        <img
+                        <Image
                           src={podcast.image}
                           alt={podcast.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          fill
+                          sizes="(min-width: 1024px) 25vw, 50vw"
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
                           loading="lazy"
                         />
                       ) : (

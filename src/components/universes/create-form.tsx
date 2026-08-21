@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { AlertTriangle, Check, FileJson, Loader2, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -927,16 +928,20 @@ export function CreateUniverseForm() {
                           {previewImage ? (
                             previewHref ? (
                               <Link href={previewHref} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                                <img
+                                <Image
                                   src={previewImage}
                                   alt={displayTitle}
+                                  width={48}
+                                  height={64}
                                   className="w-12 h-16 object-cover rounded border hover:opacity-90 transition-opacity"
                                 />
                               </Link>
                             ) : (
-                              <img
+                              <Image
                                 src={previewImage}
                                 alt={displayTitle}
+                                width={48}
+                                height={64}
                                 className="w-12 h-16 object-cover rounded border"
                               />
                             )

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { BookCopy, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -119,10 +120,12 @@ export default function MangaPage() {
                     <CardContent className="p-0">
                       <div className="relative aspect-[3/4] overflow-hidden rounded-t-lg bg-muted">
                         {item.image ? (
-                          <img
+                          <Image
                             src={item.image}
                             alt={item.title}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                            fill
+                            sizes="(min-width: 1024px) 25vw, 50vw"
+                            className="object-cover transition-transform duration-300 group-hover:scale-110"
                             loading="lazy"
                           />
                         ) : (

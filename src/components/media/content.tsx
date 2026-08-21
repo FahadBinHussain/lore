@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, Music, Podcast, MapPin, Plus, Check, Clock, Search, Zap } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, Music, Podcast, MapPin, Check, Clock, Search, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Image from 'next/image';
 import Link from 'next/link';
 
 const iconMap = {
@@ -50,24 +50,8 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
   const [filter, setFilter] = useState('all');
   const [imageLoadErrors, setImageLoadErrors] = useState<Record<number, boolean>>({});
   const Icon = iconMap[icon];
-  const router = useRouter();
 
-  useEffect(() => {
-    setImageLoadErrors({});
-    fetchItems();
-  }, [type]);
-
-  // Refresh data when window regains focus (user navigates back)
-  useEffect(() => {
-    const handleFocus = () => {
-      fetchItems();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [type]);
-
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     console.log('Fetching items for type:', type);
     try {
       const response = await fetch(`/api/media?type=${type}`, {
@@ -81,7 +65,22 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [type]);
+
+  useEffect(() => {
+    setImageLoadErrors({});
+    fetchItems();
+  }, [type, fetchItems]);
+
+  // Refresh data when window regains focus (user navigates back)
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchItems();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [type, fetchItems]);
 
   const getDetailUrl = (mediaType: string, externalId: string) => {
     switch (mediaType) {
@@ -183,10 +182,12 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
               <Card className="overflow-hidden group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer border-0 shadow-md">
                 <div className="aspect-[2/3] relative overflow-hidden bg-muted rounded-t-lg">
                   {item.mediaItem.posterPath && !imageLoadErrors[item.mediaItem.id] ? (
-                    <img 
-                      src={item.mediaItem.posterPath} 
+                    <Image
+                      src={item.mediaItem.posterPath}
                       alt={item.mediaItem.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      fill
+                      sizes="(min-width: 1024px) 25vw, 50vw"
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={() =>
                         setImageLoadErrors((prev) => ({
                           ...prev,

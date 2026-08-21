@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { 
   Tv, Star, ArrowRight, ArrowLeft,
-  TrendingUp, Flame, Sparkles, Search, Monitor,
-  Filter, X, Calendar, Award, Play, Clock
+  TrendingUp, Flame, Sparkles, Search,
+  Filter, X, Award, Play, Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,27 +49,7 @@ export default function TVPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  useEffect(() => {
-    if (!searchQuery) {
-      fetchShows();
-    }
-  }, [category, timeWindow, page, genre, year, sortBy, ratingRange, dateFrom, dateTo]);
-
-  // Debounced search effect
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      const timeoutId = setTimeout(() => {
-        handleSearch();
-      }, 500); // 500ms debounce
-
-      return () => clearTimeout(timeoutId);
-    } else {
-      // Clear search results when search query is empty
-      setSearchResults([]);
-    }
-  }, [searchQuery]);
-
-  const fetchShows = async () => {
+  const fetchShows = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -98,9 +79,9 @@ export default function TVPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, page, timeWindow, genre, year, sortBy, ratingRange, dateFrom, dateTo]);
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -116,7 +97,27 @@ export default function TVPage() {
     } finally {
       setSearching(false);
     }
-  };
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (!searchQuery) {
+      fetchShows();
+    }
+  }, [category, timeWindow, page, genre, year, sortBy, ratingRange, dateFrom, dateTo, fetchShows, searchQuery]);
+
+  // Debounced search effect
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const timeoutId = setTimeout(() => {
+        handleSearch();
+      }, 500); // 500ms debounce
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      // Clear search results when search query is empty
+      setSearchResults([]);
+    }
+  }, [searchQuery, handleSearch]);
 
   const clearFilters = () => {
     setGenre('');
@@ -383,10 +384,12 @@ export default function TVPage() {
                       <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full">
                         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {show.image ? (
-                            <img 
+                            <Image 
                               src={show.image} 
                               alt={show.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              fill
+                              sizes="(min-width: 1024px) 25vw, 50vw"
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">

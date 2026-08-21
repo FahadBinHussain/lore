@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
-  ArrowLeft, Star, Clock, Calendar,
+  ArrowLeft, Clock,
   Play, Eye, EyeOff, Loader2,
-  Monitor, Zap, Check, Plus
+  Zap, Check, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -241,10 +242,13 @@ export default function AnimeSeasonPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {anime.image ? (
-                  <img
+                  <Image
                     src={anime.image}
                     alt={anime.title}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-primary/70 to-secondary/70 flex items-center justify-center">

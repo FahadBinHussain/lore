@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
-  Music, Star, ArrowRight,
-  TrendingUp, Flame, Sparkles, Search, Clock, User
+  Music, Search, Clock, User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,7 +45,7 @@ export default function SoundtracksPage() {
     }
   };
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -62,7 +61,7 @@ export default function SoundtracksPage() {
     } finally {
       setSearching(false);
     }
-  };
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -75,7 +74,7 @@ export default function SoundtracksPage() {
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, handleSearch]);
 
   const displayTracks = searchQuery ? searchResults : tracks;
 

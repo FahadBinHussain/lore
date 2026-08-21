@@ -341,30 +341,6 @@ function pickBestAnimeMatch(results: AniListAnime[], queryTitle: string, queryYe
   return scored[0]?.anime ?? null;
 }
 
-function pickBestGameMatch(results: IGDBGameSearchResult[], queryTitle: string, queryYear?: number): IGDBGameSearchResult | null {
-  if (results.length === 0) return null;
-
-  const scored = results.map((game) => ({
-    game,
-    score: calculateMatchScore(game.name, queryTitle, getYearFromUnix(game.first_release_date), queryYear),
-  }));
-
-  scored.sort((a, b) => b.score - a.score);
-  return scored[0]?.game ?? null;
-}
-
-function pickBestBookMatch(results: OpenLibraryBook[], queryTitle: string, queryYear?: number): OpenLibraryBook | null {
-  if (results.length === 0) return null;
-
-  const scored = results.map((book) => ({
-    book,
-    score: calculateMatchScore(book.title, queryTitle, book.first_publish_year, queryYear),
-  }));
-
-  scored.sort((a, b) => b.score - a.score);
-  return scored[0]?.book ?? null;
-}
-
 function pickBestMangaMatch(results: AniListManga[], queryTitle: string, queryYear?: number): AniListManga | null {
   if (results.length === 0) return null;
 

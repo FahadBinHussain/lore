@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { 
   ArrowLeft, Star, Clock, Calendar, Globe, 
-  Users, Loader2, Play, Plus, 
-  Heart, Share2, Check, Film, Monitor,
+  Users, Loader2, Play,
+  Heart, Share2, Check, Film,
   ExternalLink, TrendingUp, Award, Building2,
-  Languages, MapPin, ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp,
   PlayCircle, Image as ImageIcon, Sparkles,
-  Camera, ThumbsUp, DollarSign
+  Camera, ThumbsUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -147,7 +148,7 @@ export default function MovieDetailPage() {
   const [showAllCast, setShowAllCast] = useState(false);
   const [selectedTrailer, setSelectedTrailer] = useState<Video | null>(null);
 
-  const fetchMovieDetails = async () => {
+  const fetchMovieDetails = useCallback(async () => {
     try {
       const idParam = params.id as string;
       
@@ -172,9 +173,9 @@ export default function MovieDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, router]);
 
-  const fetchWatchedStatus = async () => {
+  const fetchWatchedStatus = useCallback(async () => {
     try {
       const idParam = params.id as string;
       const numericIdMatch = idParam.match(/(\d+)$/);
@@ -195,7 +196,7 @@ export default function MovieDetailPage() {
     } catch (err) {
       console.error('Failed to fetch watched status:', err);
     }
-  };
+  }, [params.id]);
 
   const handleMarkAsWatched = async () => {
     if (!movie) return;
@@ -234,13 +235,13 @@ export default function MovieDetailPage() {
 
   useEffect(() => {
     fetchMovieDetails();
-  }, [params.id]);
+  }, [params.id, fetchMovieDetails]);
 
   useEffect(() => {
     if (movie) {
       fetchWatchedStatus();
     }
-  }, [movie]);
+  }, [movie, fetchWatchedStatus]);
 
   const getDirector = () => {
     return movie?.credits?.crew.find(person => person.job === 'Director');
@@ -386,10 +387,13 @@ export default function MovieDetailPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-32 sm:w-40 md:w-48 lg:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {movie.poster_path ? (
-                  <img 
+                  <Image 
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={movie.title}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
@@ -566,10 +570,12 @@ export default function MovieDetailPage() {
                       onClick={() => setSelectedTrailer(video)}
                     >
                       <div className="aspect-video relative bg-muted">
-                        <img 
+                        <Image 
                           src={`https://img.youtube.com/vi/${video.key}/mqdefault.jpg`}
                           alt={video.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="(min-width: 1024px) 33vw, 50vw"
+                          className="object-cover"
                         />
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <PlayCircle className="w-12 h-12 text-primary-foreground" />
@@ -588,10 +594,12 @@ export default function MovieDetailPage() {
                       onClick={() => setSelectedTrailer(video)}
                     >
                       <div className="aspect-video relative bg-muted">
-                        <img 
+                        <Image 
                           src={`https://img.youtube.com/vi/${video.key}/mqdefault.jpg`}
                           alt={video.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="(min-width: 1024px) 33vw, 50vw"
+                          className="object-cover"
                         />
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <PlayCircle className="w-12 h-12 text-primary-foreground" />
@@ -637,10 +645,12 @@ export default function MovieDetailPage() {
                     >
                       <div className="aspect-square relative overflow-hidden bg-muted">
                         {actor.profile_path ? (
-                          <img 
+                          <Image 
                             src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
                             alt={actor.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            fill
+                            sizes="(min-width: 1024px) 33vw, 50vw"
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
@@ -746,12 +756,14 @@ export default function MovieDetailPage() {
                   {movie.backdrops.map((backdrop, idx) => (
                     <div 
                       key={idx}
-                      className="aspect-video rounded-lg overflow-hidden bg-muted hover:scale-105 transition-transform duration-300 cursor-pointer group"
+                      className="relative aspect-video rounded-lg overflow-hidden bg-muted hover:scale-105 transition-transform duration-300 cursor-pointer group"
                     >
-                      <img 
+                      <Image 
                         src={`https://image.tmdb.org/t/p/w780${backdrop.file_path}`}
                         alt={`${movie.title} backdrop ${idx + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        sizes="(min-width: 1024px) 33vw, 50vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
                   ))}
@@ -772,10 +784,12 @@ export default function MovieDetailPage() {
                       <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/50 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {similar.poster_path ? (
-                            <img 
+                            <Image 
                               src={`https://image.tmdb.org/t/p/w300${similar.poster_path}`}
                               alt={similar.title}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              fill
+                              sizes="(min-width: 1024px) 33vw, 50vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
@@ -811,10 +825,12 @@ export default function MovieDetailPage() {
                       <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-fuchsia-500/50 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {rec.poster_path ? (
-                            <img 
+                            <Image 
                               src={`https://image.tmdb.org/t/p/w300${rec.poster_path}`}
                               alt={rec.title}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              fill
+                              sizes="(min-width: 1024px) 33vw, 50vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20">
@@ -993,9 +1009,11 @@ export default function MovieDetailPage() {
                   {movie.production_companies.slice(0, 5).map((company) => (
                     <div key={company.id} className="flex items-center gap-3 p-3 bg-muted/70 rounded-xl border border-border">
                       {company.logo_path ? (
-                        <img 
+                        <Image 
                           src={`https://image.tmdb.org/t/p/w92${company.logo_path}`}
                           alt={company.name}
+                          width={32}
+                          height={32}
                           className="h-8 w-auto object-contain invert brightness-0 dark:invert-0 dark:brightness-100"
                         />
                       ) : (

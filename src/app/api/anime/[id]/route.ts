@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAnimeDetails, normalizeAnimeForApp, getAnimeStatusBadge, getAnimeFormatBadge, AniListAnime } from '@/lib/api/anilist';
+import { getAnimeDetails, normalizeAnimeForApp, getAnimeStatusBadge, getAnimeFormatBadge } from '@/lib/api/anilist';
 
 export async function GET(
   request: NextRequest,

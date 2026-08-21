@@ -1,11 +1,12 @@
 'use client';
 
 import { signIn, useSession } from 'next-auth/react';
+import Image from 'next/image';
 import { useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function SignInPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
 
@@ -38,9 +39,11 @@ export default function SignInPage() {
             {/* Branding Section */}
             <div className="mb-10">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-8">
-                <img
-                  src="/logo.png?v=3"
+                <Image
+                  src="/logo.png"
                   alt="Lore logo"
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-xl object-contain bg-transparent"
                 />
               </div>
@@ -100,9 +103,11 @@ export default function SignInPage() {
 
       {/* Background Hero */}
       <div className="fixed inset-0 -z-20 opacity-[0.03] grayscale mix-blend-screen pointer-events-none">
-        <img 
+        <Image 
           alt="Cinema and media textures" 
-          className="w-full h-full object-cover" 
+          fill
+          sizes="100vw"
+          className="object-cover" 
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMWfdhly0B7AgoKAtIU_FnqOlJvfW0w7Z6jJnLeYS_KU3YOZLOEjngmPvd7n-0uK2PRIVTJRIV9nIxBeXJAUSDlywT3Xpp4wIPdUfQJqZIVW6KszgHw8mJHo6fPYIhlXjsaMub89jyjl2wmYde1B2A4IXG0cJr8LF39j1KEtwCfdpDg46tZoM6e-QPripA3VkBbb1cfBquW0mmY6ExLoNGdckoN3lXbQ58m1nr8JYrLl_T1QClMowcJt_yh2Xx_d2A37BAqDpA8B2u" 
         />
       </div>

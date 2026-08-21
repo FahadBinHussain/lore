@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
-  ArrowLeft, Star, Clock, Calendar,
-  Check, Play, Eye, EyeOff,
-  Monitor, PlayCircle,
-  ChevronLeft, ChevronRight
+  ArrowLeft, Star, Calendar,
+  Eye, EyeOff,
+  Monitor, PlayCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,7 +46,6 @@ interface ShowBrief {
 
 export default function SeasonDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [season, setSeason] = useState<SeasonDetails | null>(null);
   const [show, setShow] = useState<ShowBrief | null>(null);
   const [loading, setLoading] = useState(true);
@@ -196,10 +195,13 @@ export default function SeasonDetailPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {season.poster_path ? (
-                  <img
+                  <Image
                     src={`https://image.tmdb.org/t/p/w500${season.poster_path}`}
                     alt={season.name}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
@@ -268,9 +270,11 @@ export default function SeasonDetailPage() {
                     <div className="flex-shrink-0 w-48">
                       <Link href={`/tv/${params.id}/season/${params.season_number}/episode/${episode.episode_number}`}>
                         {episode.still_path ? (
-                          <img
+                          <Image
                             src={`https://image.tmdb.org/t/p/w300${episode.still_path}`}
                             alt={episode.name}
+                            width={800}
+                            height={450}
                             className="w-full aspect-video rounded-lg object-cover hover:scale-105 transition-transform duration-300"
                           />
                         ) : (

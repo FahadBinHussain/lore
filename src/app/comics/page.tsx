@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
-  BookOpen, Star, ArrowRight,
-  TrendingUp, Flame, Sparkles, Search
+  BookOpen, Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -47,7 +47,7 @@ export default function ComicsPage() {
     }
   };
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -63,7 +63,7 @@ export default function ComicsPage() {
     } finally {
       setSearching(false);
     }
-  };
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -76,7 +76,7 @@ export default function ComicsPage() {
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, handleSearch]);
 
   const displayComics = searchQuery ? searchResults : comics;
 
@@ -157,10 +157,12 @@ export default function ComicsPage() {
                   <CardContent className="p-0">
                     <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg bg-muted">
                       {comic.image ? (
-                        <img
+                        <Image
                           src={comic.image}
                           alt={comic.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          fill
+                          sizes="(min-width: 1024px) 25vw, 50vw"
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
                           loading="lazy"
                         />
                       ) : (

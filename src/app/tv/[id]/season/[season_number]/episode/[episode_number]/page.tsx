@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowLeft, Star, Clock, Calendar,
-  Check, Play, Eye, EyeOff, Users,
+  Eye, EyeOff, Users,
   Loader2, PlayCircle, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { DetailPageSkeleton } from '@/components/ui/skeleton';
@@ -156,10 +156,6 @@ export default function EpisodeDetailPage() {
     }
   };
 
-  const getYear = (dateString: string) => {
-    return new Date(dateString).getFullYear();
-  };
-
   if (loading) {
     return <DetailPageSkeleton />;
   }
@@ -231,10 +227,13 @@ export default function EpisodeDetailPage() {
               <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-48 md:w-64 aspect-video rounded-xl overflow-hidden shadow-2xl">
                 {episode.still_path ? (
-                  <img
+                  <Image
                     src={`https://image.tmdb.org/t/p/w780${episode.still_path}`}
                     alt={episode.name}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
@@ -364,10 +363,12 @@ export default function EpisodeDetailPage() {
                     <div key={star.id} className="group">
                       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-muted mb-3 group-hover:scale-105 transition-transform duration-300">
                         {star.profile_path ? (
-                          <img
+                          <Image
                             src={`https://image.tmdb.org/t/p/w300${star.profile_path}`}
                             alt={star.name}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="(min-width: 1024px) 33vw, 50vw"
+                            className="object-cover"
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
@@ -399,10 +400,12 @@ export default function EpisodeDetailPage() {
                     <div key={`${member.id}-${member.job}`} className="group">
                       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-muted mb-3 group-hover:scale-105 transition-transform duration-300">
                         {member.profile_path ? (
-                          <img
+                          <Image
                             src={`https://image.tmdb.org/t/p/w300${member.profile_path}`}
                             alt={member.name}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="(min-width: 1024px) 33vw, 50vw"
+                            className="object-cover"
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">

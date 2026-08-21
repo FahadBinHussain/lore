@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, MapPin, Mic, Music, Search, ScanSearch, Star, ArrowRight } from 'lucide-react';
 import { ListSkeleton, MediaGridSkeleton } from '@/components/ui/skeleton';
@@ -130,10 +131,6 @@ export function SearchContent() {
     }
   };
 
-  const handleCategoryClick = (category: string) => {
-    router.push(`/${category.toLowerCase().replace(' ', '')}`);
-  };
-
   const handleItemClick = (item: MediaItem) => {
     const routes: Record<string, string> = {
       movie: `/movies/${item.id}`,
@@ -192,9 +189,9 @@ export function SearchContent() {
                     onClick={() => handleItemClick(item)}
                     className="w-full flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors text-left"
                   >
-                    <div className="w-12 h-16 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
+                    <div className="w-12 h-16 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0 relative">
                       {item.image && (
-                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                        <Image src={item.image} alt={item.title} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -278,10 +275,12 @@ export function SearchContent() {
               >
                 <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 shadow-lg transition-transform duration-500 group-hover:scale-[1.02]">
                   {item.image ? (
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="(min-width: 1024px) 25vw, 50vw"
+                      className="object-cover"
                     />
                   ) : (
                     <div className="w-full h-full bg-surface-container-highest flex items-center justify-center">
@@ -318,10 +317,12 @@ export function SearchContent() {
           {universes.map((universe) => (
             <Link href={`/universes/${universe.id}`} key={universe.id}>
               <div className="relative h-64 rounded-3xl overflow-hidden group cursor-pointer">
-                <img
+                <Image
                   src={universe.image}
                   alt={universe.name}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  fill
+                  sizes="(min-width: 1024px) 25vw, 50vw"
+                  className="absolute inset-0 object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
                 <div className="absolute bottom-6 left-6 right-6">

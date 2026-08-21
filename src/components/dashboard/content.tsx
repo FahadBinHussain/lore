@@ -32,8 +32,6 @@ const CATEGORIES = [
   { name: 'Theme Parks', href: '/dashboard/themeparks', icon: MapPin, key: 'themepark' },
 ] as const;
 
-type CategoryKey = typeof CATEGORIES[number]['key'];
-
 function normalizeTitleForMatch(value?: string | null): string {
   if (!value) return '';
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '');

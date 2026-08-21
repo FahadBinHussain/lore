@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   BookOpen, Star, ArrowRight, ArrowLeft,
-  TrendingUp, Flame, Sparkles, Search
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { MediaGridSkeleton, EmptyState } from '@/components/ui/skeleton';
 
@@ -34,11 +34,7 @@ export default function BooksPage() {
   const [searchResults, setSearchResults] = useState<BookItem[]>([]);
   const [searching, setSearching] = useState(false);
 
-  useEffect(() => {
-    fetchBooks();
-  }, [page]);
-
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(
@@ -52,9 +48,13 @@ export default function BooksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page]);
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  useEffect(() => {
+    fetchBooks();
+  }, [page, fetchBooks, searchQuery]);
+
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -70,7 +70,7 @@ export default function BooksPage() {
     } finally {
       setSearching(false);
     }
-  };
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -83,7 +83,7 @@ export default function BooksPage() {
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, handleSearch]);
 
   const displayBooks = searchQuery ? searchResults : books;
 
@@ -165,10 +165,12 @@ export default function BooksPage() {
                       <CardContent className="p-0">
                         <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg bg-muted">
                           {book.image ? (
-                            <img
+                            <Image
                               src={book.image}
                               alt={book.title}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              fill
+                              sizes="(min-width: 1024px) 25vw, 50vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-300"
                               loading="lazy"
                             />
                           ) : (

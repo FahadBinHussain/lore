@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useSyncExternalStore, useState, type MouseEvent } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
@@ -183,9 +184,11 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group flex-shrink-0">
-            <img
-              src="/logo.png?v=3"
+            <Image
+              src="/logo.png"
               alt="Lore logo"
+              width={40}
+              height={40}
               className="w-8 h-8 sm:w-10 sm:h-10 object-contain bg-transparent transform-none rotate-0 scale-100"
             />
             <div className="flex flex-col">

@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { 
   Film, Star, ArrowRight, ArrowLeft,
   TrendingUp, Flame, Sparkles, Search,
-  Filter, X, Calendar, Award, Play, Clock
+  Filter, X, Award, Play, Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MediaGridSkeleton, EmptyState } from '@/components/ui/skeleton';
@@ -46,27 +47,7 @@ export default function MoviesPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  useEffect(() => {
-    if (!searchQuery) {
-      fetchMovies();
-    }
-  }, [category, timeWindow, page, genre, year, sortBy, ratingRange, dateFrom, dateTo]);
-
-  // Debounced search effect
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      const timeoutId = setTimeout(() => {
-        handleSearch();
-      }, 500); // 500ms debounce
-
-      return () => clearTimeout(timeoutId);
-    } else {
-      // Clear search results when search query is empty
-      setSearchResults([]);
-    }
-  }, [searchQuery]);
-
-  const fetchMovies = async () => {
+  const fetchMovies = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -96,9 +77,15 @@ export default function MoviesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, timeWindow, page, genre, year, sortBy, ratingRange, dateFrom, dateTo]);
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  useEffect(() => {
+    if (!searchQuery) {
+      fetchMovies();
+    }
+  }, [category, timeWindow, page, genre, year, sortBy, ratingRange, dateFrom, dateTo, fetchMovies, searchQuery]);
+
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -114,7 +101,21 @@ export default function MoviesPage() {
     } finally {
       setSearching(false);
     }
-  };
+  }, [searchQuery]);
+
+  // Debounced search effect
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const timeoutId = setTimeout(() => {
+        handleSearch();
+      }, 500); // 500ms debounce
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      // Clear search results when search query is empty
+      setSearchResults([]);
+    }
+  }, [searchQuery, handleSearch]);
 
   const clearFilters = () => {
     setGenre('');
@@ -385,10 +386,12 @@ export default function MoviesPage() {
                       <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full">
                         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {movie.image ? (
-                            <img 
+                            <Image 
                               src={movie.image} 
                               alt={movie.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              fill
+                              sizes="(min-width: 1024px) 25vw, 50vw"
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Play, Eye, EyeOff,
+  ArrowLeft, Play, Eye,
   Loader2, Check, Clock, Zap,
   ChevronLeft, ChevronRight
 } from 'lucide-react';
@@ -30,7 +30,7 @@ export default function AnimeEpisodePage() {
   const [error, setError] = useState<string | null>(null);
   const [isWatched, setIsWatched] = useState(false);
   const [updatingWatched, setUpdatingWatched] = useState(false);
-  const [animeIsWatched, setAnimeIsWatched] = useState(false);
+  const [, setAnimeIsWatched] = useState(false);
 
   const currentEpisodeNumber = parseInt(params.episode_number as string);
 

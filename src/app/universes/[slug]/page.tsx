@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import { and, eq, inArray, or } from 'drizzle-orm';
 import { BookOpen, Users, Gem } from 'lucide-react';
 import { auth } from '@/lib/auth';
@@ -431,7 +432,7 @@ export default async function Page({ params }: UniversePageProps) {
         <section className="relative h-[716px] w-full flex items-end overflow-hidden">
           <div className="absolute inset-0 z-0">
             {heroImage ? (
-              <img src={heroImage} alt={`${universe.name} hero`} className="h-full w-full object-cover" />
+              <Image src={heroImage} alt={`${universe.name} hero`} fill priority sizes="(min-width: 1024px) 33vw, 50vw" className="object-cover" />
             ) : (
               <div className="h-full w-full bg-gradient-to-br from-primary/20 via-transparent to-secondary/20" />
             )}

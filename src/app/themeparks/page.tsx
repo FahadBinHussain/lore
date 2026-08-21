@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
-  MapPin, Star, ArrowRight,
-  TrendingUp, Flame, Sparkles, Search, Clock, Navigation
+  MapPin, Search, Clock, Navigation
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,7 +47,7 @@ export default function ThemeParksPage() {
     }
   };
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -64,7 +63,7 @@ export default function ThemeParksPage() {
     } finally {
       setSearching(false);
     }
-  };
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -77,7 +76,7 @@ export default function ThemeParksPage() {
     }, 500);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, handleSearch]);
 
   const displayAttractions = searchQuery ? searchResults : attractions;
 

@@ -1,5 +1,4 @@
 import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import { UniversesContent } from '@/components/universes/content';
 import { db } from '@/db';
 import { collectionItems, collections, userMediaProgress, users } from '@/db/schema';

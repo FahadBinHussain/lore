@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 type FrameSource = ImageBitmap | HTMLImageElement;
 
@@ -99,7 +99,7 @@ export function LogoScrollSequence() {
     return { width, height, dpr, ctx };
   };
 
-  const drawFrame = (frameIndex: number) => {
+  const drawFrame = useCallback((frameIndex: number) => {
     const frameSource = frameSourcesRef.current[frameIndex];
     if (!frameSource) return;
 
@@ -134,7 +134,7 @@ export function LogoScrollSequence() {
 
     ctx.drawImage(frameSource, offsetX, offsetY, drawWidth, drawHeight);
     currentFrameRef.current = frameIndex;
-  };
+  }, []);
 
   const updateSectionMetrics = () => {
     const container = containerRef.current;
@@ -296,7 +296,7 @@ export function LogoScrollSequence() {
       frameUrlsRef.current = [];
       contextRef.current = null;
     };
-  }, [frameUrls]);
+  }, [frameUrls, drawFrame]);
 
   if (frameUrls.length === 0) {
     return null;

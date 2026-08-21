@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import { ArrowLeft, Check, ExternalLink, Loader2, Star } from 'lucide-react';
@@ -202,9 +203,15 @@ export function GenericMediaDetailPage({
           </Button>
           <Card className="overflow-hidden border-base-content/10 bg-base-200">
             <CardContent className="p-0">
-              <div className="aspect-[2/3] bg-base-300">
+              <div className="aspect-[2/3] relative bg-base-300">
                 {detail.image ? (
-                  <img src={detail.image} alt={detail.title} className="h-full w-full object-cover" />
+                  <Image
+                    src={detail.image}
+                    alt={detail.title}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    className="object-cover"
+                  />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
                     <Icon className="h-20 w-20 text-base-content/30" />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import Image from 'next/image';
 import { X, Upload, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -605,7 +606,7 @@ export function ImportModal({ isOpen, onClose, importType, onImport }: ImportMod
                       />
                       <div className="flex items-center gap-3 flex-1">
                         {posterUrl && (
-                          <img src={posterUrl} alt={title ?? 'Poster'} className="w-12 h-16 object-cover rounded-lg" />
+                          <Image src={posterUrl} alt={title ?? 'Poster'} width={48} height={64} className="w-12 h-16 object-cover rounded-lg" />
                         )}
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2">
@@ -668,7 +669,7 @@ export function ImportModal({ isOpen, onClose, importType, onImport }: ImportMod
                           <input type="checkbox" checked={false} disabled className="w-4 h-4" />
                           <div className="flex items-center gap-3 flex-1">
                             {posterUrl && (
-                              <img src={posterUrl} alt={title ?? 'Poster'} className="w-12 h-16 object-cover rounded-lg" />
+                              <Image src={posterUrl} alt={title ?? 'Poster'} width={48} height={64} className="w-12 h-16 object-cover rounded-lg" />
                             )}
                             <div className="flex-1">
                               <div className="flex items-center gap-2">

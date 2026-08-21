@@ -1,5 +1,4 @@
 import { DefaultSession, DefaultUser } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
 import type { UserRole } from '@/lib/auth/roles';
 
 declare module 'next-auth' {

@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "img.youtube.com",
+      },
+      {
+        protocol: "https",
         hostname: "s4.anilist.co",
       },
       {
@@ -26,6 +30,18 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "*.mzstatic.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cf.geekdo-images.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.listennotes.com",
+      },
+      {
+        protocol: "https",
+        hostname: "comicvine.gamespot.com",
       },
     ],
   },

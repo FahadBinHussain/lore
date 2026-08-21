@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { 
   Zap, Star, ArrowRight, ArrowLeft,
@@ -68,26 +69,7 @@ export default function AnimePage() {
   const [status, setStatus] = useState('');
   const [season, setSeason] = useState('');
 
-  useEffect(() => {
-    if (!searchQuery) {
-      fetchAnime();
-    }
-  }, [category, timeWindow, page, genre, year, sortBy, ratingRange, format, status, season]);
-
-  // Debounced search effect
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      const timeoutId = setTimeout(() => {
-        handleSearch();
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
-    } else {
-      setSearchResults([]);
-    }
-  }, [searchQuery]);
-
-  const fetchAnime = async () => {
+  const fetchAnime = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -115,9 +97,9 @@ export default function AnimePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, timeWindow, page, genre, year, sortBy, ratingRange, format, status, season]);
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
 
     setSearching(true);
@@ -132,7 +114,26 @@ export default function AnimePage() {
     } finally {
       setSearching(false);
     }
-  };
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (!searchQuery) {
+      fetchAnime();
+    }
+  }, [category, timeWindow, page, genre, year, sortBy, ratingRange, format, status, season, fetchAnime, searchQuery]);
+
+  // Debounced search effect
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const timeoutId = setTimeout(() => {
+        handleSearch();
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery, handleSearch]);
 
   const displayAnime = searchQuery ? searchResults : anime;
   
@@ -434,10 +435,12 @@ export default function AnimePage() {
                     <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full">
                       <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                         {show.image ? (
-                          <img 
+                          <Image 
                             src={show.image} 
                             alt={show.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            fill
+                            sizes="(min-width: 1024px) 25vw, 50vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">

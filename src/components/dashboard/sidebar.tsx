@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -61,9 +62,11 @@ export function DashboardSidebar() {
           {/* Header */}
           <div className="p-4 sm:p-6 border-b">
             <Link href="/" className="flex items-center gap-3 mb-2">
-              <img
-                src="/logo.png?v=3"
+              <Image
+                src="/logo.png"
                 alt="Lore logo"
+                width={32}
+                height={32}
                 className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-contain bg-transparent shadow-md shadow-primary/15"
               />
               <div>

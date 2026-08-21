@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   Check,
@@ -177,10 +178,12 @@ export function UniverseTimelineCard({
               {href ? (
                 <Link href={href} scroll className="block h-full w-full">
                   {poster ? (
-                    <img
+                    <Image
                       src={poster}
                       alt={title}
-                      className="h-full w-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
+                      fill
+                      sizes="(min-width: 1024px) 25vw, 50vw"
+                      className="object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
                     />
                   ) : (
                     <div className="h-full w-full bg-base-300 flex items-center justify-center">
@@ -189,10 +192,12 @@ export function UniverseTimelineCard({
                   )}
                 </Link>
               ) : poster ? (
-                <img
+                <Image
                   src={poster}
                   alt={title}
-                  className="h-full w-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
+                  fill
+                  sizes="(min-width: 1024px) 25vw, 50vw"
+                  className="object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
                 />
               ) : (
                 <div className="h-full w-full bg-base-300 flex items-center justify-center">
