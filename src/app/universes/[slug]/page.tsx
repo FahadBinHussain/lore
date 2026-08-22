@@ -4,8 +4,9 @@ import { and, eq, inArray, or } from 'drizzle-orm';
 import { BookOpen, Users, Gem } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { collectionItems, collections, episodes as episodesTable, seasons, userMediaProgress, users } from '@/db/schema';
-import { UniverseTimelineCard, type UniverseTimelineEntryDisplay } from '@/components/universes/universe-timeline-card';
+import { collectionItems, collections, episodes as episodesTable, seasons, userEpisodeProgress, userMediaProgress, users } from '@/db/schema';
+import { UniverseTimelineView, type UniverseMixedEntry, type UniverseReleaseCardData } from '@/components/universes/universe-timeline-view';
+import { UniverseTimelineEntryDisplay } from '@/components/universes/universe-timeline-card';
 import { getMediaDetailHref, getTimelineItemState, isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 interface UniversePageProps {
@@ -29,6 +30,7 @@ interface TimelineMediaItem {
   externalId: string;
   releaseDate: Date | string | null;
   isPlaceholder?: boolean | null;
+  additionalData?: unknown;
 }
 
 type ExpandedEpisodeEntry = {
@@ -420,6 +422,138 @@ export default async function Page({ params }: UniversePageProps) {
   const statusByMediaItemId = new Map(progressRows.map((row) => [row.mediaItemId, row.status]));
   const watchedCount = universe.items.filter((item) => isApiBackedMediaItem(item.mediaItem) && watchedMediaIds.has(item.mediaItem.id)).length;
 
+  const allSeriesEpisodeIds = seriesSeasons.flatMap((season) => season.episodes.map((episode) => episode.id));
+  const episodeProgressRows =
+    Number.isFinite(userId) && allSeriesEpisodeIds.length > 0
+      ? await db.query.userEpisodeProgress.findMany({
+          where: and(
+            eq(userEpisodeProgress.userId, userId),
+            inArray(userEpisodeProgress.episodeId, allSeriesEpisodeIds),
+            eq(userEpisodeProgress.isWatched, true)
+          ),
+          columns: { episodeId: true },
+        })
+      : [];
+  const watchedEpisodeIds = new Set(episodeProgressRows.map((row) => row.episodeId));
+
+  const mixedEntries: UniverseMixedEntry[] = [];
+  for (const item of universe.items) {
+    const mediaItem = item.mediaItem as TimelineMediaItem;
+    const matchedSeasons = seasonsByMediaItemId.get(mediaItem.id) || [];
+    const hasEpisodeData = matchedSeasons.some((season) => season.episodes.some((episode) => toDateKey(episode.airDate)));
+
+    if (hasEpisodeData && isSeriesMediaItem(mediaItem)) {
+      for (const season of matchedSeasons) {
+        for (const episode of season.episodes) {
+          const dateKey = toDateKey(episode.airDate);
+          if (!dateKey) continue;
+          mixedEntries.push({
+            kind: 'episode',
+            key: `episode-${episode.id}`,
+            dateLabel: formatReleaseDate(episode.airDate),
+            badge: `S${season.seasonNumber} EP ${episode.episodeNumber}`,
+            title: episode.name,
+            seriesTitle: mediaItem.title,
+            href: getEpisodeDetailHref(mediaItem, season.seasonNumber, episode.episodeNumber),
+            runtimeLabel: formatRuntime(episode.runtime),
+            watched: watchedEpisodeIds.has(episode.id),
+          });
+        }
+      }
+    } else {
+      const dateKey = toDateKey(mediaItem.releaseDate);
+      if (!dateKey) continue;
+      const curatedInputType = !isApiBackedMediaItem(mediaItem) ? getCuratedInputType(mediaItem.additionalData) : null;
+      mixedEntries.push({
+        kind: 'release',
+        key: `release-${item.id}`,
+        dateLabel: formatReleaseDate(mediaItem.releaseDate),
+        badge: curatedInputType ? formatMediaType(curatedInputType) : formatMediaType(mediaItem.mediaType),
+        title: mediaItem.title,
+        href: getMediaDetailHref(mediaItem),
+        watched: watchedMediaIds.has(mediaItem.id),
+      });
+    }
+  }
+  mixedEntries.sort((a, b) => {
+    const dateA = a.dateLabel;
+    const dateB = b.dateLabel;
+    if (dateA < dateB) return -1;
+    if (dateA > dateB) return 1;
+    return 0;
+  });
+
+  const releaseItems: UniverseReleaseCardData[] = universe.items.map((item, index) => {
+    const reverse = index % 2 === 1;
+    const poster = toImageUrl(item.mediaItem.posterPath, item.mediaItem.source, 'w342');
+    const href = getMediaDetailHref(item.mediaItem);
+    const releaseDateLabel = formatReleaseDate(item.mediaItem.releaseDate);
+    const itemState = getTimelineItemState(item.mediaItem);
+    const isTrackable = itemState === 'trackable';
+    const isCurated = itemState === 'curated';
+    const expandedTimeline = expandedTimelinesByMediaItemId.get(item.mediaItem.id);
+    const curatedInputType = !isTrackable ? getCuratedInputType(item.mediaItem.additionalData) : null;
+    const mediaTypeLabel = curatedInputType ? formatMediaType(curatedInputType) : formatMediaType(item.mediaItem.mediaType);
+    const description = getDisplayDescription(item.mediaItem.description);
+    const timelineItem = item.mediaItem as TimelineMediaItem;
+    const displayEntries: UniverseTimelineEntryDisplay[] | null = expandedTimeline
+      ? expandedTimeline.entries.map((entry) => {
+          if (entry.kind === 'episode') {
+            return {
+              kind: 'episode' as const,
+              id: entry.id,
+              dateLabel: formatReleaseDate(entry.airDate),
+              seasonNumber: entry.seasonNumber,
+              episodeNumber: entry.episodeNumber,
+              title: entry.title,
+              href: entry.href,
+              runtimeLabel: formatRuntime(entry.runtime),
+            };
+          }
+          return {
+            kind: 'release' as const,
+            id: entry.id,
+            dateLabel: formatReleaseDate(entry.releaseDate),
+            title: entry.title,
+            href: entry.href,
+            mediaTypeLabel: formatMediaType(entry.mediaType),
+            groupName: entry.groupName,
+          };
+        })
+      : null;
+
+    return {
+      id: item.id,
+      reverse,
+      releaseDateLabel,
+      href,
+      poster,
+      title: item.mediaItem.title,
+      mediaTypeLabel,
+      isCurated,
+      isTrackable,
+      initialStatus: isTrackable ? statusByMediaItemId.get(item.mediaItem.id) ?? null : null,
+      description,
+      rating: item.mediaItem.rating ? Number(item.mediaItem.rating) : null,
+      mediaId: timelineItem.externalId,
+      mediaType: item.mediaItem.mediaType,
+      posterPath: item.mediaItem.posterPath,
+      releaseDate: toDateKey(item.mediaItem.releaseDate),
+      expandedTimeline: expandedTimeline
+        ? {
+            episodeCount: expandedTimeline.episodeCount,
+            releaseCount: expandedTimeline.releaseCount,
+            entries: displayEntries ?? [],
+          }
+        : null,
+    };
+  });
+
+  const mixedCounts = {
+    episodes: mixedEntries.filter((entry) => entry.kind === 'episode').length,
+    releases: mixedEntries.filter((entry) => entry.kind === 'release').length,
+  };
+
   const heroCandidate = selectHeroCandidate(universe.items);
   const heroImage =
     toImageUrl(universe.bannerImage, 'tmdb', 'w1280') ||
@@ -460,85 +594,7 @@ export default async function Page({ params }: UniversePageProps) {
           </div>
         </section>
 
-        <section className="px-6 md:px-12 py-24 relative max-w-6xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-3xl font-[family-name:var(--font-epilogue)] mb-4">Release Timeline</h2>
-            <div className="h-1 w-20 bg-primary mx-auto rounded-full" />
-          </div>
-          <div className="relative">
-            <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-primary to-transparent -translate-x-1/2 opacity-30" />
-
-            {universe.items.map((item, index) => {
-              const reverse = index % 2 === 1;
-              const poster = toImageUrl(item.mediaItem.posterPath, item.mediaItem.source, 'w342');
-              const href = getMediaDetailHref(item.mediaItem);
-              const releaseDateLabel = formatReleaseDate(item.mediaItem.releaseDate);
-              const itemState = getTimelineItemState(item.mediaItem);
-              const isTrackable = itemState === 'trackable';
-              const isCurated = itemState === 'curated';
-              const expandedTimeline = expandedTimelinesByMediaItemId.get(item.mediaItem.id);
-              const curatedInputType = !isTrackable ? getCuratedInputType(item.mediaItem.additionalData) : null;
-              const mediaTypeLabel = curatedInputType ? formatMediaType(curatedInputType) : formatMediaType(item.mediaItem.mediaType);
-              const description = getDisplayDescription(item.mediaItem.description);
-              const timelineItem = item.mediaItem as TimelineMediaItem;
-              const displayEntries: UniverseTimelineEntryDisplay[] | null = expandedTimeline
-                ? expandedTimeline.entries.map((entry) => {
-                    if (entry.kind === 'episode') {
-                      return {
-                        kind: 'episode' as const,
-                        id: entry.id,
-                        dateLabel: formatReleaseDate(entry.airDate),
-                        seasonNumber: entry.seasonNumber,
-                        episodeNumber: entry.episodeNumber,
-                        title: entry.title,
-                        href: entry.href,
-                        runtimeLabel: formatRuntime(entry.runtime),
-                      };
-                    }
-                    return {
-                      kind: 'release' as const,
-                      id: entry.id,
-                      dateLabel: formatReleaseDate(entry.releaseDate),
-                      title: entry.title,
-                      href: entry.href,
-                      mediaTypeLabel: formatMediaType(entry.mediaType),
-                      groupName: entry.groupName,
-                    };
-                  })
-                : null;
-
-              return (
-                <UniverseTimelineCard
-                  key={item.id}
-                  reverse={reverse}
-                  releaseDateLabel={releaseDateLabel}
-                  href={href}
-                  poster={poster}
-                  title={item.mediaItem.title}
-                  mediaTypeLabel={mediaTypeLabel}
-                  isCurated={isCurated}
-                  isTrackable={isTrackable}
-                  initialStatus={isTrackable ? statusByMediaItemId.get(item.mediaItem.id) ?? null : null}
-                  description={description}
-                  rating={item.mediaItem.rating ? Number(item.mediaItem.rating) : null}
-                  mediaId={timelineItem.externalId}
-                  mediaType={item.mediaItem.mediaType}
-                  posterPath={item.mediaItem.posterPath}
-                  releaseDate={toDateKey(item.mediaItem.releaseDate)}
-                  expandedTimeline={
-                    expandedTimeline
-                      ? {
-                          episodeCount: expandedTimeline.episodeCount,
-                          releaseCount: expandedTimeline.releaseCount,
-                          entries: displayEntries ?? [],
-                        }
-                      : null
-                  }
-                />
-              );
-            })}
-          </div>
-        </section>
+        <UniverseTimelineView releaseItems={releaseItems} mixedEntries={mixedEntries} mixedCounts={mixedCounts} />
 
         <section className="px-6 md:px-12 py-20 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

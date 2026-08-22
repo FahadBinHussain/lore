@@ -125,3 +125,11 @@ For App Router destinations that perform server-side database work before render
 - **CLI 58.x gotcha (2026-08-12):** the auto-updated Vercel CLI rejects the old `.vercel/repo.json` link format (errors `Root Directory must be a relative path` on deploy, and `--cwd <abs-path>` is no longer accepted). `.vercel/project.json` must hold the project/org IDs and deploys must run from the repo directory: `vercel-account.ps1 run <profile-email> -- deploy --prod --yes --force` (no `--cwd`, no path arg).
 - Preserve the existing `FahadBinHussain/lore` GitHub connection and project environment configuration.
 - Verify `/`, `/movies`, `/api/movies?page=1`, `/api/universes`, and `/api/auth/providers` before considering a production deployment complete.
+
+## Universe timeline views (2026-08-21)
+
+`src/app/universes/[slug]/page.tsx` renders two toggleable views via `src/components/universes/universe-timeline-view.tsx`:
+- **Release order** (default): one card per collection item; tv/anime series cards carry an "Expanded airing window" `<details>` (built in `expandedTimelinesByMediaItemId`) listing that series' episodes interleaved only with releases that fall inside its airing window.
+- **Mixed**: a flat, date-ordered list where every tv/anime series is expanded to its episodes (sorted by `airDate`) and interleaved with all other releases by `releaseDate`. Games are NOT excluded — they appear as normal release rows. Watched state = media-level `userMediaProgress.status` for releases, episode-level `userEpisodeProgress.isWatched` for episodes.
+
+Both views are computed server-side in the page and passed to the client component as props (`releaseItems`, `mixedEntries`); the toggle is client-only state. When adding or expanding a universe, remember the release view is item-level while mixed is episode-level — a series with no episode data falls back to a single release row at its `releaseDate`.
