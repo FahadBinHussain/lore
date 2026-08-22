@@ -45,6 +45,7 @@ export type UniverseTimelineEntryDisplay =
     };
 
 export interface UniverseTimelineCardProps {
+  id: number;
   reverse: boolean;
   releaseDateLabel: string;
   href: string | null;
@@ -65,6 +66,9 @@ export interface UniverseTimelineCardProps {
     releaseCount: number;
     entries: UniverseTimelineEntryDisplay[];
   } | null;
+  seasonNumber?: number | null;
+  episodeNumber?: number | null;
+  seriesTitle?: string | null;
 }
 
 function getMediaTypeFallbackIcon(mediaType: string) {
@@ -127,11 +131,15 @@ export function UniverseTimelineCard({
   posterPath,
   releaseDate,
   expandedTimeline,
+  seasonNumber,
+  episodeNumber,
+  seriesTitle,
 }: UniverseTimelineCardProps) {
   const [status, setStatus] = useState<string | null>(initialStatus);
   const [updating, setUpdating] = useState(false);
   const watched = status === 'completed';
   const statusBadge = isTrackable && status && status !== 'completed' ? getStatusBadge(status) : null;
+  const isEpisode = seasonNumber != null && episodeNumber != null;
 
   async function toggleWatched() {
     if (updating) return;
@@ -139,20 +147,34 @@ export function UniverseTimelineCard({
 
     setUpdating(true);
     try {
-      const response = await fetch('/api/media/status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mediaId,
-          mediaType,
-          isWatched: target,
-          title,
-          posterPath,
-          releaseDate,
-        }),
-      });
+      let ok = false;
+      if (isEpisode) {
+        const episodeResponse = await fetch(
+          `/api/tv/${mediaId}/season/${seasonNumber}/episode/${episodeNumber}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_watched: target }),
+          }
+        );
+        ok = episodeResponse.ok;
+      } else {
+        const response = await fetch('/api/media/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mediaId,
+            mediaType,
+            isWatched: target,
+            title,
+            posterPath,
+            releaseDate,
+          }),
+        });
+        ok = response.ok;
+      }
 
-      if (response.ok) {
+      if (ok) {
         setStatus(target ? 'completed' : null);
       }
     } finally {
@@ -207,14 +229,19 @@ export function UniverseTimelineCard({
             </div>
             <div className={`flex-grow ${reverse ? 'md:text-right' : ''}`}>
               {href ? (
-                <Link href={href} scroll className="text-xl font-[family-name:var(--font-epilogue)] mb-2 group-hover:text-primary transition-colors block">
+                <Link href={href} scroll className="text-xl font-[family-name:var(--font-epilogue)] mb-1 group-hover:text-primary transition-colors block">
                   {title}
                 </Link>
               ) : (
-                <h3 className="text-xl font-[family-name:var(--font-epilogue)] mb-2 group-hover:text-primary transition-colors">
+                <h3 className="text-xl font-[family-name:var(--font-epilogue)] mb-1 group-hover:text-primary transition-colors">
                   {title}
                 </h3>
               )}
+              {isEpisode && seriesTitle ? (
+                <p className={`mb-2 text-xs font-bold uppercase tracking-wider text-base-content/50 ${reverse ? 'md:text-right' : ''}`}>
+                  {seriesTitle}
+                </p>
+              ) : null}
               <div className={`mb-2 flex flex-wrap gap-2 ${reverse ? 'md:justify-end' : ''}`}>
                 <span className="inline-block px-2 py-0.5 bg-base-300 text-base-content/70 text-[10px] font-bold rounded">
                   {mediaTypeLabel}

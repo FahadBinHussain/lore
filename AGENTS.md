@@ -128,8 +128,8 @@ For App Router destinations that perform server-side database work before render
 
 ## Universe timeline views (2026-08-21)
 
-`src/app/universes/[slug]/page.tsx` renders two toggleable views via `src/components/universes/universe-timeline-view.tsx`:
+`src/app/universes/[slug]/page.tsx` renders two toggleable views via `src/components/universes/universe-timeline-view.tsx`, both using the SAME alternating `UniverseTimelineCard` UI:
 - **Release order** (default): one card per collection item; tv/anime series cards carry an "Expanded airing window" `<details>` (built in `expandedTimelinesByMediaItemId`) listing that series' episodes interleaved only with releases that fall inside its airing window.
-- **Mixed**: a flat, date-ordered list where every tv/anime series is expanded to its episodes (sorted by `airDate`) and interleaved with all other releases by `releaseDate`. Games are NOT excluded — they appear as normal release rows. Watched state = media-level `userMediaProgress.status` for releases, episode-level `userEpisodeProgress.isWatched` for episodes.
+- **Mixed**: the same alternating card timeline, but every tv/anime series is expanded into individual episode cards (poster = series poster, badge = `S{season} EP {n}`, series title shown as a subtitle) and everything is interleaved by date — episodes by `airDate`, other releases by `releaseDate`. Games are NOT excluded. A series with no episode data falls back to a single release card at its `releaseDate`.
 
-Both views are computed server-side in the page and passed to the client component as props (`releaseItems`, `mixedEntries`); the toggle is client-only state. When adding or expanding a universe, remember the release view is item-level while mixed is episode-level — a series with no episode data falls back to a single release row at its `releaseDate`.
+Both views are computed server-side as `UniverseTimelineCardProps[]` (`releaseItems`, `mixedItems`) and passed to the client component; the toggle is client-only state. Episode cards reuse the same card component: the watched toggle posts to `/api/tv/{id}/season/{s}/episode/{e}` (episode-level) when `seasonNumber`/`episodeNumber` props are set, otherwise to `/api/media/status` (media-level). When adding or expanding a universe, remember the release view is item-level while mixed is episode-level.

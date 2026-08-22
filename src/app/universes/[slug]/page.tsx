@@ -5,8 +5,8 @@ import { BookOpen, Users, Gem } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { collectionItems, collections, episodes as episodesTable, seasons, userEpisodeProgress, userMediaProgress, users } from '@/db/schema';
-import { UniverseTimelineView, type UniverseMixedEntry, type UniverseReleaseCardData } from '@/components/universes/universe-timeline-view';
-import { UniverseTimelineEntryDisplay } from '@/components/universes/universe-timeline-card';
+import { UniverseTimelineView } from '@/components/universes/universe-timeline-view';
+import { UniverseTimelineEntryDisplay, UniverseTimelineCardProps } from '@/components/universes/universe-timeline-card';
 import { getMediaDetailHref, getTimelineItemState, isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 interface UniversePageProps {
@@ -31,6 +31,9 @@ interface TimelineMediaItem {
   releaseDate: Date | string | null;
   isPlaceholder?: boolean | null;
   additionalData?: unknown;
+  posterPath?: string | null;
+  description?: string | null;
+  rating?: string | number | null;
 }
 
 type ExpandedEpisodeEntry = {
@@ -436,54 +439,7 @@ export default async function Page({ params }: UniversePageProps) {
       : [];
   const watchedEpisodeIds = new Set(episodeProgressRows.map((row) => row.episodeId));
 
-  const mixedEntries: UniverseMixedEntry[] = [];
-  for (const item of universe.items) {
-    const mediaItem = item.mediaItem as TimelineMediaItem;
-    const matchedSeasons = seasonsByMediaItemId.get(mediaItem.id) || [];
-    const hasEpisodeData = matchedSeasons.some((season) => season.episodes.some((episode) => toDateKey(episode.airDate)));
-
-    if (hasEpisodeData && isSeriesMediaItem(mediaItem)) {
-      for (const season of matchedSeasons) {
-        for (const episode of season.episodes) {
-          const dateKey = toDateKey(episode.airDate);
-          if (!dateKey) continue;
-          mixedEntries.push({
-            kind: 'episode',
-            key: `episode-${episode.id}`,
-            dateLabel: formatReleaseDate(episode.airDate),
-            badge: `S${season.seasonNumber} EP ${episode.episodeNumber}`,
-            title: episode.name,
-            seriesTitle: mediaItem.title,
-            href: getEpisodeDetailHref(mediaItem, season.seasonNumber, episode.episodeNumber),
-            runtimeLabel: formatRuntime(episode.runtime),
-            watched: watchedEpisodeIds.has(episode.id),
-          });
-        }
-      }
-    } else {
-      const dateKey = toDateKey(mediaItem.releaseDate);
-      if (!dateKey) continue;
-      const curatedInputType = !isApiBackedMediaItem(mediaItem) ? getCuratedInputType(mediaItem.additionalData) : null;
-      mixedEntries.push({
-        kind: 'release',
-        key: `release-${item.id}`,
-        dateLabel: formatReleaseDate(mediaItem.releaseDate),
-        badge: curatedInputType ? formatMediaType(curatedInputType) : formatMediaType(mediaItem.mediaType),
-        title: mediaItem.title,
-        href: getMediaDetailHref(mediaItem),
-        watched: watchedMediaIds.has(mediaItem.id),
-      });
-    }
-  }
-  mixedEntries.sort((a, b) => {
-    const dateA = a.dateLabel;
-    const dateB = b.dateLabel;
-    if (dateA < dateB) return -1;
-    if (dateA > dateB) return 1;
-    return 0;
-  });
-
-  const releaseItems: UniverseReleaseCardData[] = universe.items.map((item, index) => {
+  const releaseItems: UniverseTimelineCardProps[] = universe.items.map((item, index) => {
     const reverse = index % 2 === 1;
     const poster = toImageUrl(item.mediaItem.posterPath, item.mediaItem.source, 'w342');
     const href = getMediaDetailHref(item.mediaItem);
@@ -549,10 +505,95 @@ export default async function Page({ params }: UniversePageProps) {
     };
   });
 
-  const mixedCounts = {
-    episodes: mixedEntries.filter((entry) => entry.kind === 'episode').length,
-    releases: mixedEntries.filter((entry) => entry.kind === 'release').length,
-  };
+  type MixedCardEntry = { dateKey: string; card: UniverseTimelineCardProps };
+  const mixedCardEntries: MixedCardEntry[] = [];
+
+  for (const item of universe.items) {
+    const mediaItem = item.mediaItem as TimelineMediaItem;
+    const isSeries = isSeriesMediaItem(mediaItem);
+    const itemState = getTimelineItemState(mediaItem);
+    const isTrackable = itemState === 'trackable';
+    const isCurated = itemState === 'curated';
+    const poster = toImageUrl(mediaItem.posterPath ?? null, mediaItem.source, 'w342');
+    const seriesHref = getMediaDetailHref(mediaItem);
+    const matchedSeasons = seasonsByMediaItemId.get(mediaItem.id) || [];
+    const hasEpisodeData = matchedSeasons.some((season) => season.episodes.some((episode) => toDateKey(episode.airDate)));
+
+    if (isSeries && hasEpisodeData) {
+      for (const season of matchedSeasons) {
+        for (const episode of season.episodes) {
+          const dateKey = toDateKey(episode.airDate);
+          if (!dateKey) continue;
+          const episodeHref = getEpisodeDetailHref(mediaItem, season.seasonNumber, episode.episodeNumber);
+          mixedCardEntries.push({
+            dateKey,
+            card: {
+              id: episode.id,
+              reverse: false,
+              releaseDateLabel: formatReleaseDate(episode.airDate),
+              href: episodeHref,
+              poster,
+              title: episode.name || `Episode ${episode.episodeNumber}`,
+              mediaTypeLabel: `S${season.seasonNumber} EP ${episode.episodeNumber}`,
+              isCurated: false,
+              isTrackable,
+              initialStatus: isTrackable && watchedEpisodeIds.has(episode.id) ? 'completed' : null,
+              description: getDisplayDescription(episode.overview ?? mediaItem.description ?? null),
+              rating: null,
+              mediaId: mediaItem.externalId,
+              mediaType: mediaItem.mediaType,
+              posterPath: mediaItem.posterPath ?? null,
+              releaseDate: dateKey,
+              expandedTimeline: null,
+              seasonNumber: season.seasonNumber,
+              episodeNumber: episode.episodeNumber,
+              seriesTitle: mediaItem.title,
+            },
+          });
+        }
+      }
+    } else {
+      const dateKey = toDateKey(mediaItem.releaseDate);
+      if (!dateKey) continue;
+      const curatedInputType = !isTrackable ? getCuratedInputType(mediaItem.additionalData) : null;
+      const mediaTypeLabel = curatedInputType ? formatMediaType(curatedInputType) : formatMediaType(mediaItem.mediaType);
+      mixedCardEntries.push({
+        dateKey,
+        card: {
+          id: item.id,
+          reverse: false,
+          releaseDateLabel: formatReleaseDate(mediaItem.releaseDate),
+          href: seriesHref,
+          poster,
+          title: mediaItem.title,
+          mediaTypeLabel,
+          isCurated,
+          isTrackable,
+          initialStatus: isTrackable ? statusByMediaItemId.get(mediaItem.id) ?? null : null,
+          description: getDisplayDescription(mediaItem.description ?? null),
+          rating: mediaItem.rating ? Number(mediaItem.rating) : null,
+          mediaId: mediaItem.externalId,
+          mediaType: mediaItem.mediaType,
+          posterPath: mediaItem.posterPath ?? null,
+          releaseDate: dateKey,
+          expandedTimeline: null,
+          seasonNumber: null,
+          episodeNumber: null,
+          seriesTitle: null,
+        },
+      });
+    }
+  }
+
+  mixedCardEntries.sort((a, b) => {
+    if (a.dateKey < b.dateKey) return -1;
+    if (a.dateKey > b.dateKey) return 1;
+    return 0;
+  });
+  const mixedItems: UniverseTimelineCardProps[] = mixedCardEntries.map((entry, index) => ({
+    ...entry.card,
+    reverse: index % 2 === 1,
+  }));
 
   const heroCandidate = selectHeroCandidate(universe.items);
   const heroImage =
@@ -594,7 +635,7 @@ export default async function Page({ params }: UniversePageProps) {
           </div>
         </section>
 
-        <UniverseTimelineView releaseItems={releaseItems} mixedEntries={mixedEntries} mixedCounts={mixedCounts} />
+        <UniverseTimelineView releaseItems={releaseItems} mixedItems={mixedItems} />
 
         <section className="px-6 md:px-12 py-20 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
