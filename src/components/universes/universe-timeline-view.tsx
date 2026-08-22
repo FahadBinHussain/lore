@@ -9,7 +9,7 @@ interface UniverseTimelineViewProps {
 }
 
 export function UniverseTimelineView({ releaseItems, mixedItems }: UniverseTimelineViewProps) {
-  const [view, setView] = useState<'release' | 'mixed'>('release');
+  const [view, setView] = useState<'release' | 'mixed'>('mixed');
   const items = view === 'release' ? releaseItems : mixedItems;
 
   return (
