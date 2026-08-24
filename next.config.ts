@@ -43,6 +43,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "comicvine.gamespot.com",
       },
+      {
+        protocol: "https",
+        hostname: "t.vndb.org",
+      },
     ],
   },
 };
