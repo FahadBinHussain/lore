@@ -206,6 +206,26 @@ export const MEDIA_PROVIDER_REGISTRY = [
     notes: 'Optional game discovery/art fallback; review commercial and free-tier limits.',
   },
   {
+    id: 'vndb',
+    label: 'VNDB',
+    mediaTypes: ['game'],
+    stage: 'recommended',
+    trackable: false,
+    requiresKey: false,
+    moneyRisk: false,
+    notes: 'Recommended adult visual novel / eroge metadata source; free non-commercial API, explicit adult tags; used as fallback when IGDB has no result.',
+  },
+  {
+    id: 'steam',
+    label: 'Steam',
+    mediaTypes: ['game'],
+    stage: 'recommended',
+    trackable: false,
+    requiresKey: false,
+    moneyRisk: false,
+    notes: 'Recommended keyless fallback for games on the Steam store (storesearch/appdetails); covers many adult titles missing from IGDB.',
+  },
+  {
     id: 'fanarttv',
     label: 'Fanart.tv',
     mediaTypes: ['movie', 'tv'],
@@ -313,6 +333,8 @@ export function normalizeProviderId(value: unknown): string | null {
   if (normalized === 'podcast-index') return 'podcastindex';
   if (normalized === 'google-books') return 'googlebooks';
   if (normalized === 'fanart') return 'fanarttv';
+  if (normalized === 'visualnoveldatabase' || normalized === 'visualnovel') return 'vndb';
+  if (normalized === 'steampowered') return 'steam';
 
   return normalized;
 }
@@ -364,6 +386,10 @@ export function getProviderSourceUrl(provider: unknown, mediaType: unknown, exte
         : `https://anilist.co/anime/${normalizedId}`;
     case 'igdb':
       return `https://www.igdb.com/games/${normalizedId}`;
+    case 'vndb':
+      return `https://vndb.org/${normalizedId.replace(/^vndb-/, '')}`;
+    case 'steam':
+      return `https://store.steampowered.com/app/${normalizedId.replace(/^steam-/, '')}`;
     case 'openlibrary':
       return normalizedId.startsWith('/')
         ? `https://openlibrary.org${normalizedId}`

@@ -192,7 +192,7 @@ export default function GameDetailPage() {
   const idParam = Array.isArray(rawId) ? rawId[0] : rawId;
   const gameId =
     typeof idParam === 'string' && idParam.length > 0
-      ? (idParam.match(/(\d+)$/)?.[1] ?? idParam)
+      ? (idParam.startsWith('vndb-') ? idParam : (idParam.match(/(\d+)$/)?.[1] ?? idParam))
       : null;
 
   useEffect(() => {

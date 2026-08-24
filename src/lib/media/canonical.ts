@@ -69,6 +69,29 @@ async function fetchPosterFromProvider(
       return { posterPath, backdropPath };
     }
 
+    if (provider === 'vndb') {
+      const vndbId = String(externalId).replace(/^vndb-/, '');
+      const resp = await fetch('https://api.vndb.org/kana/vn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filters: ['id', '=', vndbId],
+          fields: 'id,title,image{url,thumbnail},screenshots{url}',
+          results: 1,
+        }),
+      });
+      if (!resp.ok) return { posterPath: null, backdropPath: null };
+      const data = (await resp.json()) as {
+        results?: Array<{ image?: { url: string | null }; screenshots?: Array<{ url: string }> }>;
+      };
+      const vn = data.results?.[0];
+      if (!vn) return { posterPath: null, backdropPath: null };
+      return {
+        posterPath: vn.image?.url || null,
+        backdropPath: vn.screenshots?.[0]?.url || null,
+      };
+    }
+
     if (provider === 'openlibrary') {
       const workResp = await fetch(
         `https://openlibrary.org/works/${externalId}.json`,

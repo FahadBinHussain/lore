@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getVndbGame } from '@/lib/api/vndb';
 
 interface IgdbItem {
   id: number;
@@ -112,6 +113,53 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: idParam } = await params;
+
+  // VNDB-backed game (adult visual novels / eroge not indexed by IGDB)
+  if (idParam.startsWith('vndb-')) {
+    try {
+      const vn = await getVndbGame(idParam);
+      if (!vn) {
+        return NextResponse.json({ error: 'Game not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        id: `vndb-${vn.id}`,
+        name: vn.title,
+        summary: vn.description || '',
+        cover_url: vn.image?.url || null,
+        first_release_date: vn.released ? Math.floor(new Date(`${vn.released}T00:00:00Z`).getTime() / 1000) : undefined,
+        platforms: (vn.platforms || []).map((p, i) => ({ id: i + 1, name: p, logo_url: null })),
+        developers: (vn.developers || []).map((d, i) => ({ id: i + 1, name: d.name, logo_url: null })),
+        publishers: [],
+        genres: (vn.tags || [])
+          .filter((t) => t.category === 'cont' || t.category === 'ero')
+          .slice(0, 12)
+          .map((t, i) => ({ id: i + 1, name: t.name })),
+        similar_games: [],
+        dlcs: [],
+        expansions: [],
+        bundles: [],
+        collections: [],
+        release_dates: vn.released
+          ? [{ id: 1, date: Math.floor(new Date(`${vn.released}T00:00:00Z`).getTime() / 1000), region: 8, platform: vn.platforms?.[0] || null, category: 0, status: 2 }]
+          : [],
+        age_ratings: [],
+        screenshots: (vn.screenshots || []).slice(0, 10).map((s, i) => ({ url: s.url })),
+        artworks: [],
+        videos: [],
+        websites: (vn.extlinks || []).slice(0, 10).map((e, i) => ({ id: i + 1, url: e.url, category: 0 })),
+        keywords: (vn.tags || []).slice(0, 10).map((t, i) => ({ id: i + 1, name: t.name })),
+        game_type: 0,
+        alternative_names: (vn.aliases || []).slice(0, 3).map((a, i) => ({ id: i + 1, name: a })),
+        source: 'vndb',
+        external_id: `vndb-${vn.id}`,
+      });
+    } catch (error) {
+      console.error('VNDB game detail API error:', error);
+      return NextResponse.json({ error: 'Failed to fetch game details' }, { status: 500 });
+    }
+  }
+
   const id = parseInt(idParam);
 
   if (isNaN(id)) {

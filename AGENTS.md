@@ -105,6 +105,44 @@ These items were checked against their respective APIs and confirmed absent:
 
 When in doubt, query the API directly before falling back to manual. Never assume absence without checking.
 
+## VNDB provider (added 2026-08-24)
+
+VNDB (`vndb`) is a recommended game provider for adult visual novels / eroge that IGDB does not index.
+
+### Registry
+- `id: 'vndb'`, `mediaTypes: ['game']`, `stage: 'recommended'`, `trackable: false`, `requiresKey: false`, `moneyRisk: false`
+- externalId format: `vndb-{vndbid}` (e.g. `vndb-v31217`). The `vndb-` prefix is used in detail URLs and search results; the bare vndbid (e.g. `v31217`) is stored in the DB.
+- API: `POST https://api.vndb.org/kana/vn`, JSON body with `filters`, `fields`, `sort`. **No auth required for reads.**
+- Rate limit: 200 req / 5 min, 1s exec time / min. Requests >3s aborted.
+- Source URL: `https://vndb.org/v{n}` (prefix stripped)
+- Normalize alias: `visualnoveldatabase` → `vndb`
+
+### Integration points
+- **Search fallback**: `/api/search` game branch calls IGDB first; if empty, falls back to `searchVndbGames(query)`. Results get `id: 'vndb-{vndbid}'` for routing.
+- **Detail route**: `/api/games/[id]` branches on `vndb-` prefix → calls `getVndbGame(id)` and maps to the same shape as IGDB detail (with empties for IGDB-only fields).
+- **Frontend**: `/games/[id]/page.tsx` preserves `vndb-` prefix in `gameId` extraction (only for vndb, existing numeric extraction unchanged).
+- **Poster backfill**: `canonical.ts` `fetchPosterFromProvider` has a `vndb` case using `image{url,thumbnail}` and `screenshots{url}`.
+
+### Field mapping (VNDB vs IGDB shape)
+- `id`: `vndb-{vndbid}` (string, not numeric)
+- `name`: `title`
+- `cover_url`: `image.url`
+- `first_release_date`: unix seconds from `released` (YYYY-MM-DD)
+- `rating`: VNDB 1-10 scale, multiplied by 10 for display
+- `summary`: `description`
+- `platforms`: array of `{id, name, logo_url: null}` from `platforms[]`
+- `developers`: from `developers{name}` (array of `{id, name, logo_url: null}`)
+- `genres`: from `tags` filtered by `category === 'cont' || 'ero'`, mapped as `{id, name}`
+- `screenshots`: from `screenshots{url}`
+- `websites`: from `extlinks{label,url}`
+- `source`: `'vndb'`, `external_id`: `vndb-{vndbid}`
+
+### Gotchas
+- `minage` is a `/release` field, NOT a `/vn` field. Do not request it on VN queries.
+- `publishers` does not exist on `/vn` — use `developers` only.
+- VNDB search is fuzzy via `searchrank` sort; the short title "Camp with Mom" matches the long VNDB title via aliases/release titles.
+- The VNDB API returns 400 for invalid field names. Always check fields against `/kana/schema`.
+
 ### Running one-off TypeScript scripts
 
 This repository does not install `tsx` or `ts-node`, and the current Node 24 environment can fail when `tsx` tries to initialize its loader worker. For repository scripts, bundle the entry point with `npx --yes esbuild@0.25.10 <script> --bundle --platform=node --format=cjs --outfile=<temporary.cjs>`, then run the bundle with `node --env-file=.env --env-file=.env.local <temporary.cjs>`. Remove the temporary bundle afterward.

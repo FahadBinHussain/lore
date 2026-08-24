@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { searchMovies, searchTVShows, getTMDBImageUrl } from '@/lib/api/tmdb';
 import { searchBooks, getOpenLibraryCoverUrl } from '@/lib/api/openlibrary';
 import { searchGames, getIGDBAccessToken, getIGDBCoverUrl } from '@/lib/api/igdb';
+import { searchVndbGames, getVndbCoverUrl } from '@/lib/api/vndb';
 import { searchBoardGames } from '@/lib/api/bgg';
 import { searchComics } from '@/lib/api/comicvine';
 import { searchPodcasts } from '@/lib/api/listennotes';
@@ -154,6 +155,20 @@ export async function GET(request: NextRequest) {
           rating: g.rating ? g.rating / 10 : undefined,
           description: g.summary,
         })));
+
+        // VNDB fallback: covers adult visual novels / eroge that IGDB does not index
+        if (games.length === 0) {
+          const vndbGames = await searchVndbGames(query);
+          results.push(...vndbGames.map((v) => ({
+            id: `vndb-${v.id}`,
+            title: v.title,
+            type: 'game',
+            image: getVndbCoverUrl(v),
+            year: v.released?.slice(0, 4),
+            description: v.description,
+            genre: v.tags?.filter((t) => t.category === 'cont').slice(0, 3).map((t) => t.name).join(', ') || v.platforms?.slice(0, 3).join(', '),
+          })));
+        }
       } catch (error) {
         console.error('IGDB search error:', error);
       }
