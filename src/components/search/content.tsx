@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, MapPin, Mic, Music, Search, ScanSearch, Star, ArrowRight } from 'lucide-react';
+import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, MapPin, Mic, Music, Search, ScanSearch, Star, ArrowRight, Clapperboard } from 'lucide-react';
 import { ListSkeleton, MediaGridSkeleton } from '@/components/ui/skeleton';
 
 interface MediaItem {
@@ -25,30 +25,7 @@ interface Universe {
   category: string;
 }
 
-// Sample universes data
-const universes: Universe[] = [
-  {
-    id: '1',
-    name: 'The Orion Frontier',
-    description: 'A multi-generational saga of human expansion across the stars.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD8ZmsQITuZkcMHh-dNydgZW5rb-Ky3pqPQ8SPpuYXs5PA_Y6PE1W-_N0MpjTHCJmSbzivlr4YbO9J7WnowmHDtQ9q8aV_HAy4KcTNhJxeaqcs0F4Jap5LvL3Ir9a6Vrdirxa7jmutqTtqou3QkLBDeHBvq0hKFi9Wh5P0pT27Z66S0_qIewECsHW_cdQgCb_CkLKB9XL3ABNrEUSKKF8o3qJ7Di2GpS4SrKRHYkdAP3us23wGpM3p-JtXY0oyN7NOV9rp-HLDiDJEq',
-    category: 'Epic Space Opera',
-  },
-  {
-    id: '2',
-    name: 'Echoes of Valoria',
-    description: 'A world where magic is a dying resource and kingdoms are built on forgotten shadows.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAyn6bTXw5w5W9b2CebZ5Gwkr0M2yPNM_5VBGMU8S6LK1jHKqsGOccTF2s7BbeXiHeMi__BSX-WsrGA5M9LMTSpqBs2JfnkBFoPuCaXZwfc8btPH_sc4eFl6TlysU_E0UDlISbc8LG3uekaDtCH8u0yOhcTtGblNliDv60vISTWM4Ii8neHdwOYgMnk9e62Ma6yCilisptFPjr5tOWAtmyJZCO9UmqFcLCFObubsVHsvVPZhY92EngaEoRFKXTuQtUHTV77WPIx26xa',
-    category: 'Dark Fantasy',
-  },
-  {
-    id: '3',
-    name: 'Neon Syndicate',
-    description: 'Underground warring factions fighting for control of the digital afterlife.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDtaTcwr1Va7uO5OBVINEnkZGz-i3CVWu1U05_6zkC9VqVF_ENGp-if7aU62E-P3w9BVXGUS1QRbnb5zOmjhE0hscc9bmVARnxpBYXNJvmTKZbu1apkATWY5achUw5LVSc4dYMXRRhDf_bUtkCv6wT96nhVsF8P3gNHCRLFJJRwXZdOPYgmbHOAwQm8A9Gk5PEWeeLM6QX9KwTRhEMDxVVkaVVyJBX6dTnxPywfhJwUfCwhRLSc2PvIXWmnMN8pR6wignzfpuDsmKes',
-    category: 'Cyberpunk Crime',
-  },
-];
+// Featured universes are fetched from /api/universes elsewhere — search keeps only media search here.
 
 export function SearchContent() {
   const [query, setQuery] = useState('');
@@ -116,18 +93,18 @@ export function SearchContent() {
 
   const getCategoryIcon = (type: string) => {
     switch (type) {
-      case 'movie': return <Film className="text-lg" />;
-      case 'tv': return <Tv className="text-lg" />;
-      case 'anime': return <span className="text-lg">capture</span>;
-      case 'manga': return <BookCopy className="text-lg" />;
-      case 'game': return <Gamepad2 className="text-lg" />;
-      case 'book': return <BookOpen className="text-lg" />;
-      case 'comic': return <BookCopy className="text-lg" />;
-      case 'boardgame': return <Dice6 className="text-lg" />;
-      case 'podcast': return <Mic className="text-lg" />;
-      case 'soundtrack': return <Music className="text-lg" />;
-      case 'themepark': return <MapPin className="text-lg" />;
-      default: return <Film className="text-lg" />;
+      case 'movie': return <Film className="h-4 w-4" />;
+      case 'tv': return <Tv className="h-4 w-4" />;
+      case 'anime': return <Clapperboard className="h-4 w-4" />;
+      case 'manga': return <BookCopy className="h-4 w-4" />;
+      case 'game': return <Gamepad2 className="h-4 w-4" />;
+      case 'book': return <BookOpen className="h-4 w-4" />;
+      case 'comic': return <BookCopy className="h-4 w-4" />;
+      case 'boardgame': return <Dice6 className="h-4 w-4" />;
+      case 'podcast': return <Mic className="h-4 w-4" />;
+      case 'soundtrack': return <Music className="h-4 w-4" />;
+      case 'themepark': return <MapPin className="h-4 w-4" />;
+      default: return <Film className="h-4 w-4" />;
     }
   };
 
@@ -301,43 +278,6 @@ export function SearchContent() {
             ))}
           </div>
         )}
-      </section>
-
-      {/* Featured Universes Section */}
-      <section>
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="font-headline text-2xl font-bold tracking-tight">Featured Universes</h2>
-          <Link href="/universes">
-            <button className="p-2 rounded-full bg-surface-container-high border border-outline-variant/10 text-on-surface-variant hover:text-primary transition-colors">
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {universes.map((universe) => (
-            <Link href={`/universes/${universe.id}`} key={universe.id}>
-              <div className="relative h-64 rounded-3xl overflow-hidden group cursor-pointer">
-                <Image
-                  src={universe.image}
-                  alt={universe.name}
-                  fill
-                  sizes="(min-width: 1024px) 25vw, 50vw"
-                  className="absolute inset-0 object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider border border-primary/30">
-                      {universe.category}
-                    </span>
-                  </div>
-                  <h3 className="font-headline text-xl font-bold text-white">{universe.name}</h3>
-                  <p className="text-white/60 text-xs mt-1 line-clamp-2">{universe.description}</p>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
       </section>
 
       {/* Background Elements */}

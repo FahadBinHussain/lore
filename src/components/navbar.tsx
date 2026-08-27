@@ -143,6 +143,7 @@ export function Navbar() {
   const { data: session, status } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [universesPendingFrom, setUniversesPendingFrom] = useState<string | null>(null);
+  const [themeFilter, setThemeFilter] = useState('');
   const pathname = usePathname();
   const theme = useSyncExternalStore(subscribeTheme, getClientTheme, getServerTheme);
   const avatarUrl = normalizeAvatarUrl(session?.user?.image);
@@ -199,159 +200,129 @@ export function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-4">
-            <Link
-              href="/movies"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Movies
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/tv"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              TV Shows
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/anime"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Anime
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/manga"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Manga
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/games"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Games
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/books"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Books
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/comics"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Comics
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/boardgames"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Board Games
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/soundtracks"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Soundtracks
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/podcasts"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Podcasts
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/themeparks"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Theme Parks
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
+          {/* Desktop Navigation — single source of truth, premium grouped */}
+          <nav className="hidden lg:flex items-center gap-1" aria-label="Primary">
+            {[
+              { href: '/movies', label: 'Movies' },
+              { href: '/tv', label: 'TV' },
+              { href: '/anime', label: 'Anime' },
+              { href: '/games', label: 'Games' },
+              { href: '/books', label: 'Books' },
+            ].map((item) => {
+              const active = pathname === item.href || pathname.startsWith(item.href + '/');
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors relative ${active ? 'text-foreground bg-muted' : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'}`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'h-8 rounded-full px-3 text-sm font-medium' })}
+              >
+                Explore
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-56">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs uppercase tracking-widest text-muted-foreground">More</DropdownMenuLabel>
+                  {[
+                    { href: '/manga', label: 'Manga' },
+                    { href: '/comics', label: 'Comics' },
+                    { href: '/boardgames', label: 'Board Games' },
+                    { href: '/soundtracks', label: 'Soundtracks' },
+                    { href: '/podcasts', label: 'Podcasts' },
+                    { href: '/themeparks', label: 'Theme Parks' },
+                  ].map((item) => {
+                    const active = pathname === item.href || pathname.startsWith(item.href + '/');
+                    return (
+                      <DropdownMenuLinkItem
+                        key={item.href}
+                        render={<Link href={item.href} />}
+                        closeOnClick
+                        className={active ? 'bg-muted text-foreground' : ''}
+                      >
+                        {item.label}
+                      </DropdownMenuLinkItem>
+                    );
+                  })}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Link
               href="/universes"
-              className={`text-sm font-medium transition-colors relative group inline-flex items-center gap-1.5 ${
-                universesActive || universesPending ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-              }`}
               aria-current={universesActive ? 'page' : undefined}
               aria-busy={universesPending}
               onClick={handlePendingUniversesClick}
               onNavigate={() => setUniversesPendingFrom(pathname)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${universesActive || universesPending ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'}`}
             >
               Universes
               <span className="relative size-3.5" aria-hidden="true">
                 <LoaderCircle className={`absolute inset-0 size-3.5 animate-spin transition-opacity ${universesPending ? 'opacity-100' : 'opacity-0'}`} />
               </span>
-              <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 transition-all duration-300 ${
-                universesActive || universesPending ? 'w-full' : 'w-0 group-hover:w-full'
-              }`} />
             </Link>
             <Link
               href="/search"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+              aria-current={pathname === '/search' ? 'page' : undefined}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${pathname === '/search' ? 'text-foreground bg-muted' : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'}`}
             >
               Search
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
             </Link>
           </nav>
 
-          {/* Medium Screen Navigation */}
-          <nav className="hidden md:flex lg:hidden items-center gap-4">
-            <Link
-              href="/movies"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Movies
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/tv"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              TV Shows
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
-              href="/games"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              Games
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
-            </Link>
+          {/* Tablet Navigation — compact */}
+          <nav className="hidden md:flex lg:hidden items-center gap-1" aria-label="Primary">
+            {[
+              { href: '/movies', label: 'Movies' },
+              { href: '/tv', label: 'TV' },
+              { href: '/games', label: 'Games' },
+            ].map((item) => {
+              const active = pathname === item.href || pathname.startsWith(item.href + '/');
+              return (
+                <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={`rounded-full px-3 py-1.5 text-sm font-medium ${active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                  {item.label}
+                </Link>
+              );
+            })}
+            <DropdownMenu>
+              <DropdownMenuTrigger className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'h-8 rounded-full px-3' })}>Browse</DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-56">
+                {[
+                  { href: '/anime', label: 'Anime' },
+                  { href: '/books', label: 'Books' },
+                  { href: '/manga', label: 'Manga' },
+                  { href: '/comics', label: 'Comics' },
+                  { href: '/boardgames', label: 'Board Games' },
+                  { href: '/soundtracks', label: 'Soundtracks' },
+                  { href: '/podcasts', label: 'Podcasts' },
+                  { href: '/themeparks', label: 'Theme Parks' },
+                ].map((i) => (
+                  <DropdownMenuLinkItem key={i.href} render={<Link href={i.href} />} closeOnClick>
+                    {i.label}
+                  </DropdownMenuLinkItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Link
               href="/universes"
-              className={`text-sm font-medium transition-colors relative group inline-flex items-center gap-1.5 ${
-                universesActive || universesPending ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-              }`}
               aria-current={universesActive ? 'page' : undefined}
               aria-busy={universesPending}
               onClick={handlePendingUniversesClick}
               onNavigate={() => setUniversesPendingFrom(pathname)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium ${universesActive || universesPending ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Universes
               <span className="relative size-3.5" aria-hidden="true">
                 <LoaderCircle className={`absolute inset-0 size-3.5 animate-spin transition-opacity ${universesPending ? 'opacity-100' : 'opacity-0'}`} />
               </span>
-              <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 transition-all duration-300 ${
-                universesActive || universesPending ? 'w-full' : 'w-0 group-hover:w-full'
-              }`} />
             </Link>
-            <Link
-              href="/search"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
+            <Link href="/search" className={`rounded-full px-3 py-1.5 text-sm font-medium ${pathname === '/search' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
               Search
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 group-hover:w-full transition-all duration-300" />
             </Link>
           </nav>
 
@@ -371,22 +342,39 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-56 max-h-80 overflow-y-auto"
+                className="w-72 p-0 overflow-hidden"
               >
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {DAISYUI_THEMES.map((themeName) => (
-                    <DropdownMenuItem
-                      key={themeName}
-                      className="capitalize"
-                      onClick={() => applyTheme(themeName)}
-                    >
-                      <span>{themeName}</span>
-                      {theme === themeName && <Check className="ml-auto h-4 w-4" />}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuGroup>
+                <div className="p-2 border-b border-border/50 sticky top-0 bg-popover z-10">
+                  <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-2 pt-1 pb-2">Select Theme · {DAISYUI_THEMES.length}</div>
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <input
+                      placeholder="Filter themes…"
+                      value={themeFilter}
+                      onChange={(e) => setThemeFilter(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      className="w-full rounded-md border border-input bg-muted/50 pl-8 pr-3 py-1.5 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    />
+                  </div>
+                </div>
+                <div className="max-h-80 overflow-y-auto p-1">
+                  <DropdownMenuGroup>
+                    {(themeFilter ? DAISYUI_THEMES.filter((t) => t.toLowerCase().includes(themeFilter.toLowerCase())) : DAISYUI_THEMES).map((themeName) => (
+                      <DropdownMenuItem
+                        key={themeName}
+                        className="capitalize gap-2"
+                        onClick={() => applyTheme(themeName)}
+                      >
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{ background: DARK_THEMES.has(themeName) ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.3)' }} aria-hidden />
+                        <span>{themeName}</span>
+                        {theme === themeName && <Check className="ml-auto h-4 w-4 text-primary" />}
+                      </DropdownMenuItem>
+                    ))}
+                    {themeFilter && DAISYUI_THEMES.filter((t) => t.toLowerCase().includes(themeFilter.toLowerCase())).length === 0 && (
+                      <div className="px-3 py-6 text-center text-sm text-muted-foreground">No themes match “{themeFilter}”</div>
+                    )}
+                  </DropdownMenuGroup>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -542,6 +530,9 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               className="md:hidden"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -549,117 +540,79 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu — grouped, premium */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border/50">
-            <div className="flex flex-col space-y-4">
-              <Link
-                href="/movies"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Movies
-              </Link>
-              <Link
-                href="/tv"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                TV Shows
-              </Link>
-              <Link
-                href="/anime"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Anime
-              </Link>
-              <Link
-                href="/manga"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Manga
-              </Link>
-              <Link
-                href="/games"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Games
-              </Link>
-              <Link
-                href="/books"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Books
-              </Link>
-              <Link
-                href="/comics"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Comics
-              </Link>
-              <Link
-                href="/boardgames"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Board Games
-              </Link>
-              <Link
-                href="/soundtracks"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Soundtracks
-              </Link>
-              <Link
-                href="/podcasts"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Podcasts
-              </Link>
-              <Link
-                href="/themeparks"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Theme Parks
-              </Link>
-              <Link
-                href="/universes"
-                className={`text-sm font-medium transition-colors inline-flex items-center gap-2 ${
-                  universesActive || universesPending ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                }`}
-                aria-current={universesActive ? 'page' : undefined}
-                aria-busy={universesPending}
-                onClick={(event) => {
-                  handlePendingUniversesClick(event);
-                  if (!event.defaultPrevented) setMobileMenuOpen(false);
-                }}
-                onNavigate={() => setUniversesPendingFrom(pathname)}
-              >
-                Universes
-                <span className="relative size-4" aria-hidden="true">
-                  <LoaderCircle className={`absolute inset-0 size-4 animate-spin transition-opacity ${universesPending ? 'opacity-100' : 'opacity-0'}`} />
-                </span>
-              </Link>
-              <Link
-                href="/search"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Search
-              </Link>
-
-              <div className="pt-4 border-t border-border/50">
-                <p className="text-xs text-muted-foreground text-center">
-                  Use the user menu above to sign in or access your dashboard
-                </p>
+          <div id="mobile-nav" className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 animate-in fade-in slide-in-from-top-1 duration-200">
+            <div className="px-4 py-4 space-y-5 max-h-[calc(100dvh-4rem)] overflow-y-auto">
+              <div>
+                <div className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Watch</div>
+                <div className="grid grid-cols-2 gap-1">
+                  {[
+                    { href: '/movies', label: 'Movies' },
+                    { href: '/tv', label: 'TV Shows' },
+                    { href: '/anime', label: 'Anime' },
+                    { href: '/universes', label: 'Universes', extra: universesActive || universesPending },
+                  ].map((item) => {
+                    const active = pathname === item.href || pathname.startsWith(item.href + '/');
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        aria-current={active ? 'page' : undefined}
+                        onClick={(e) => {
+                          if (item.href === '/universes') {
+                            handlePendingUniversesClick(e as unknown as MouseEvent<HTMLAnchorElement>);
+                            if ((e as unknown as { defaultPrevented: boolean }).defaultPrevented) return;
+                          }
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${active || (item as { extra?: boolean }).extra ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <div className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Read & Play</div>
+                <div className="grid grid-cols-2 gap-1">
+                  {[
+                    { href: '/manga', label: 'Manga' },
+                    { href: '/books', label: 'Books' },
+                    { href: '/comics', label: 'Comics' },
+                    { href: '/games', label: 'Games' },
+                    { href: '/boardgames', label: 'Board Games' },
+                  ].map((item) => {
+                    const active = pathname === item.href || pathname.startsWith(item.href + '/');
+                    return (
+                      <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)} className={`rounded-lg px-3 py-2.5 text-sm font-medium ${active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <div className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Listen & Visit</div>
+                <div className="grid grid-cols-2 gap-1">
+                  {[
+                    { href: '/soundtracks', label: 'Soundtracks' },
+                    { href: '/podcasts', label: 'Podcasts' },
+                    { href: '/themeparks', label: 'Theme Parks' },
+                    { href: '/search', label: 'Search' },
+                  ].map((item) => {
+                    const active = pathname === item.href;
+                    return (
+                      <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)} className={`rounded-lg px-3 py-2.5 text-sm font-medium ${active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="pt-3 border-t border-border/50">
+                <p className="text-xs text-muted-foreground text-center">Sign in to track universes and sync progress</p>
               </div>
             </div>
           </div>
