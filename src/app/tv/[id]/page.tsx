@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { CommentsSection } from '@/components/media/comments-section';
 import {
   FacebookBrandIcon,
   InstagramBrandIcon,
@@ -1244,6 +1245,18 @@ export default function TVShowDetailPage() {
             )}
           </div>
         </div>
+
+        {show ? (
+          <div className="mx-auto max-w-7xl px-6 pb-12 md:px-12">
+            <CommentsSection
+              mediaId={String(show.id)}
+              mediaType="tv"
+              title={show.name}
+              posterPath={show.poster_path}
+              releaseDate={show.first_air_date ?? null}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );

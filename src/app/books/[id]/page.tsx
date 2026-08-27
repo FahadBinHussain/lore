@@ -26,6 +26,7 @@ import {
 } from '@/components/icons/social-icons';
 import { cn } from '@/lib/utils';
 import { DetailPageSkeleton } from '@/components/ui/skeleton';
+import { CommentsSection } from '@/components/media/comments-section';
 
 // Raw OpenLibrary response interface
 interface OpenLibraryDateTime {
@@ -981,6 +982,18 @@ export default function BookDetailPage() {
             </Card>
           </div>
         </div>
+
+        {book ? (
+          <div className="mx-auto max-w-7xl px-6 pb-12 md:px-12">
+            <CommentsSection
+              mediaId={params.id as string}
+              mediaType="book"
+              title={book.title}
+              posterPath={book.covers?.[0] ? `https://covers.openlibrary.org/b/id/${book.covers[0]}-L.jpg` : null}
+              releaseDate={null}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );

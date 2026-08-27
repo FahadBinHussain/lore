@@ -11,7 +11,8 @@ import {
   decimal, 
   pgEnum,
   index,
-  uniqueIndex
+  uniqueIndex,
+  AnyPgColumn
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -344,6 +345,21 @@ export const collectionFollowers = pgTable('collection_followers', {
   uniqueIndex('coll_followers_idx').on(table.collectionId, table.userId),
 ]);
 
+// ==================== COMMENTS ====================
+
+export const comments = pgTable('comments', {
+  id: serial('id').primaryKey(),
+  mediaItemId: integer('media_item_id').references(() => mediaItems.id, { onDelete: 'cascade' }).notNull(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  parentId: integer('parent_id').references((): AnyPgColumn => comments.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('comments_mediaItemId_idx').on(table.mediaItemId),
+  index('comments_userId_idx').on(table.userId),
+]);
+
 // ==================== USER COLLECTION PROGRESS ====================
 
 export const userCollectionProgress = pgTable('user_collection_progress', {
@@ -397,6 +413,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   collections: many(collections),
   collectionProgress: many(userCollectionProgress),
   episodeProgress: many(userEpisodeProgress),
+  comments: many(comments),
 }));
 
 export const mediaItemsRelations = relations(mediaItems, ({ many }) => ({
@@ -404,6 +421,7 @@ export const mediaItemsRelations = relations(mediaItems, ({ many }) => ({
   mediaProgress: many(userMediaProgress),
   seasons: many(seasons),
   externalIds: many(mediaExternalIds),
+  comments: many(comments),
 }));
 
 export const mediaExternalIdsRelations = relations(mediaExternalIds, ({ one }) => ({
@@ -430,4 +448,11 @@ export const collectionItemsRelations = relations(collectionItems, ({ one }) => 
 export const userMediaProgressRelations = relations(userMediaProgress, ({ one }) => ({
   user: one(users, { fields: [userMediaProgress.userId], references: [users.id] }),
   mediaItem: one(mediaItems, { fields: [userMediaProgress.mediaItemId], references: [mediaItems.id] }),
+}));
+
+export const commentsRelations = relations(comments, ({ one, many }) => ({
+  user: one(users, { fields: [comments.userId], references: [users.id] }),
+  mediaItem: one(mediaItems, { fields: [comments.mediaItemId], references: [mediaItems.id] }),
+  parent: one(comments, { fields: [comments.parentId], references: [comments.id], relationName: 'commentReplies' }),
+  replies: many(comments, { relationName: 'commentReplies' }),
 }));
