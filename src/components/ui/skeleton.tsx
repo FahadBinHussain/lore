@@ -33,21 +33,27 @@ export function MediaGridSkeleton({ count = 12 }: { count?: number }) {
 
 export function DetailPageSkeleton() {
   return (
-    <div className="min-h-screen">
-      <SkeletonBase className="h-[400px] w-full rounded-none" />
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="flex gap-8">
-          <SkeletonBase className="w-48 h-72 rounded-xl flex-shrink-0" />
-          <div className="flex-1 space-y-4">
+    <div className="min-h-screen bg-background">
+      <SkeletonBase className="h-[50vh] min-h-[400px] w-full rounded-none" />
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
             <SkeletonBase className="h-8 w-2/3" />
-            <SkeletonBase className="h-4 w-1/3" />
             <SkeletonBase className="h-4 w-full" />
             <SkeletonBase className="h-4 w-full" />
             <SkeletonBase className="h-4 w-3/4" />
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-3 pt-2">
               <SkeletonBase className="h-10 w-32 rounded-lg" />
               <SkeletonBase className="h-10 w-32 rounded-lg" />
             </div>
+            <div className="grid grid-cols-2 gap-4 pt-6">
+              <SkeletonBase className="h-24 rounded-xl" />
+              <SkeletonBase className="h-24 rounded-xl" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <SkeletonBase className="h-48 rounded-2xl" />
+            <SkeletonBase className="h-32 rounded-2xl" />
           </div>
         </div>
       </div>

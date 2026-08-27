@@ -1616,7 +1616,7 @@ function shouldUseStreamingPreview(value: unknown): boolean {
   return value === true || value === 'true' || value === 1 || value === '1';
 }
 
-export async function resolvePreviewItem(
+async function resolvePreviewItem(
   index: number,
   item: UniversePasteItem,
   state: PreviewResolverState
