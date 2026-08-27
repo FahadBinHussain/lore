@@ -26,6 +26,7 @@ import {
   YouTubeBrandIcon,
 } from '@/components/icons/social-icons';
 import { cn } from '@/lib/utils';
+import { CommentsSection } from '@/components/media/comments-section';
 
 interface Platform {
   id: number;
@@ -1136,6 +1137,18 @@ export default function GameDetailPage() {
             )}
           </div>
         </div>
+
+        {game ? (
+          <div className="mx-auto max-w-7xl px-6 pb-12 md:px-12">
+            <CommentsSection
+              mediaId={String(game.id)}
+              mediaType="game"
+              title={game.name}
+              posterPath={game.cover_url ?? null}
+              releaseDate={game.first_release_date ? new Date(game.first_release_date * 1000).toISOString().split('T')[0] : null}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );

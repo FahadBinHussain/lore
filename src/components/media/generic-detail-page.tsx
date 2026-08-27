@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DetailPageSkeleton } from '@/components/ui/skeleton';
+import { CommentsSection } from '@/components/media/comments-section';
 
 export interface GenericMediaDetail {
   id: string;
@@ -299,6 +300,14 @@ export function GenericMediaDetailPage({
               ) : null}
             </CardContent>
           </Card>
+
+          <CommentsSection
+            mediaId={detail.id}
+            mediaType={mediaType}
+            title={detail.title}
+            posterPath={detail.image ?? null}
+            releaseDate={detail.releaseDate ?? null}
+          />
         </section>
       </section>
     </main>

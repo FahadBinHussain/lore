@@ -14,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { DetailPageSkeleton } from '@/components/ui/skeleton';
+import { CommentsSection } from '@/components/media/comments-section';
 
 interface AnimeCharacter {
   id: number;
@@ -599,6 +600,18 @@ export default function AnimeDetailPage() {
           </div>
         )}
       </div>
+
+      {anime ? (
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <CommentsSection
+            mediaId={String(anime.id)}
+            mediaType="anime"
+            title={anime.title}
+            posterPath={anime.image ?? null}
+            releaseDate={anime.seasonYear ? `${anime.seasonYear}-01-01` : null}
+          />
+        </div>
+      ) : null}
 
       {/* Footer */}
       <footer className="border-t border-border/50 py-8 mt-12">

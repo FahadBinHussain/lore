@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { CommentsSection } from '@/components/media/comments-section';
 import {
   FacebookBrandIcon,
   InstagramBrandIcon,
@@ -1032,6 +1033,18 @@ export default function MovieDetailPage() {
             )}
           </div>
         </div>
+
+        {movie ? (
+          <div className="mx-auto max-w-7xl px-6 pb-12 md:px-12">
+            <CommentsSection
+              mediaId={String(movie.id)}
+              mediaType="movie"
+              title={movie.title}
+              posterPath={movie.poster_path}
+              releaseDate={movie.release_date ?? null}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );
