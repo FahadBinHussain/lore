@@ -270,18 +270,18 @@ export function GenericMediaDetailPage({
           {detail.chips && detail.chips.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {detail.chips.map((chip) => (
-                <Badge key={chip} variant="secondary">
+                <Badge key={chip} variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium">
                   {chip}
                 </Badge>
               ))}
             </div>
           ) : null}
 
-          <Card className="border-base-content/10 bg-base-200/60">
-            <CardContent className="space-y-6 p-6">
+          <Card className="rounded-2xl border-border/50 bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-sm">
+            <CardContent className="space-y-6 p-6 sm:p-7">
               <div>
-                <h2 className="mb-3 text-xl font-bold">Overview</h2>
-                <p className="whitespace-pre-line leading-7 text-base-content/80">
+                <h2 className="mb-3 text-xl font-bold tracking-tight">Overview</h2>
+                <p className="whitespace-pre-line leading-7 text-muted-foreground">
                   {description || 'No description available yet.'}
                 </p>
               </div>
@@ -291,9 +291,9 @@ export function GenericMediaDetailPage({
                   {detail.fields
                     .filter((field) => field.value !== null && field.value !== undefined && String(field.value).trim() !== '')
                     .map((field) => (
-                      <div key={field.label} className="rounded-lg border border-base-content/10 bg-base-100 p-4">
-                        <div className="text-xs font-bold uppercase tracking-widest text-base-content/50">{field.label}</div>
-                        <div className="mt-1 font-medium">{field.value}</div>
+                      <div key={field.label} className="rounded-xl border border-border/50 bg-muted/40 p-4">
+                        <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">{field.label}</div>
+                        <div className="mt-1.5 text-sm font-medium leading-snug">{field.value}</div>
                       </div>
                     ))}
                 </div>
