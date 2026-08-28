@@ -67,6 +67,7 @@ export default function EpisodeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [updatingWatched, setUpdatingWatched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [overviewExpanded, setOverviewExpanded] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -225,7 +226,7 @@ export default function EpisodeDetailPage() {
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
             {/* Episode Still */}
             <div className="flex-shrink-0 relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-60 group-hover:opacity-100 transition duration-500" />
               <div className="relative w-48 md:w-64 aspect-video rounded-xl overflow-hidden shadow-2xl">
                 {episode.still_path ? (
                   <Image
@@ -269,9 +270,23 @@ export default function EpisodeDetailPage() {
                   )}
                 </div>
                 {episode.overview && (
-                  <p className="text-xl text-muted-foreground italic font-light max-w-2xl">
-                    {episode.overview}
-                  </p>
+                  <div className="max-w-2xl">
+                    <p className={cn(
+                      "text-base md:text-lg leading-relaxed text-foreground/85",
+                      !overviewExpanded && "line-clamp-3"
+                    )}>
+                      {episode.overview}
+                    </p>
+                    {episode.overview.length > 160 && (
+                      <button
+                        type="button"
+                        onClick={() => setOverviewExpanded((v) => !v)}
+                        className="mt-1.5 inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                      >
+                        {overviewExpanded ? 'Show less' : 'Read more'}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
