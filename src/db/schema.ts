@@ -349,7 +349,8 @@ export const collectionFollowers = pgTable('collection_followers', {
 
 export const comments = pgTable('comments', {
   id: serial('id').primaryKey(),
-  mediaItemId: integer('media_item_id').references(() => mediaItems.id, { onDelete: 'cascade' }).notNull(),
+  mediaItemId: integer('media_item_id').references(() => mediaItems.id, { onDelete: 'cascade' }),
+  episodeId: integer('episode_id').references(() => episodes.id, { onDelete: 'cascade' }),
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   parentId: integer('parent_id').references((): AnyPgColumn => comments.id, { onDelete: 'cascade' }),
   content: text('content').notNull(),
@@ -357,6 +358,7 @@ export const comments = pgTable('comments', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => [
   index('comments_mediaItemId_idx').on(table.mediaItemId),
+  index('comments_episodeId_idx').on(table.episodeId),
   index('comments_userId_idx').on(table.userId),
 ]);
 
@@ -401,6 +403,7 @@ export const seasonsRelations = relations(seasons, ({ one, many }) => ({
 export const episodesRelations = relations(episodes, ({ one, many }) => ({
   season: one(seasons, { fields: [episodes.seasonId], references: [seasons.id] }),
   userProgress: many(userEpisodeProgress),
+  comments: many(comments),
 }));
 
 export const userEpisodeProgressRelations = relations(userEpisodeProgress, ({ one }) => ({
@@ -453,6 +456,7 @@ export const userMediaProgressRelations = relations(userMediaProgress, ({ one })
 export const commentsRelations = relations(comments, ({ one, many }) => ({
   user: one(users, { fields: [comments.userId], references: [users.id] }),
   mediaItem: one(mediaItems, { fields: [comments.mediaItemId], references: [mediaItems.id] }),
+  episode: one(episodes, { fields: [comments.episodeId], references: [episodes.id] }),
   parent: one(comments, { fields: [comments.parentId], references: [comments.id], relationName: 'commentReplies' }),
   replies: many(comments, { relationName: 'commentReplies' }),
 }));

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { DetailPageSkeleton } from '@/components/ui/skeleton';
+import { CommentsSection } from '@/components/media/comments-section';
 
 interface EpisodeDetails {
   id: number;
@@ -349,7 +350,6 @@ export default function EpisodeDetailPage() {
       {(episode.guest_stars?.length > 0 || episode.crew?.length > 0) && (
         <div className="px-6 md:px-12 pb-12">
           <div className="max-w-7xl mx-auto">
-            {/* Guest Stars */}
             {episode.guest_stars && episode.guest_stars.length > 0 && (
               <section className="mb-12">
                 <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-4">
@@ -386,7 +386,6 @@ export default function EpisodeDetailPage() {
               </section>
             )}
 
-            {/* Crew */}
             {episode.crew && episode.crew.length > 0 && (
               <section>
                 <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-4">
@@ -425,6 +424,23 @@ export default function EpisodeDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Comments */}
+      {episode ? (
+        <div className="px-6 md:px-12 pb-16">
+          <div className="max-w-7xl mx-auto">
+            <CommentsSection
+              mediaId={(params.id as string).match(/(\d+)$/)?.[1] ?? (params.id as string)}
+              mediaType="tv"
+              episodeKey={`${(params.id as string).match(/(\d+)$/)?.[1] ?? (params.id as string)}-${params.season_number}-${params.episode_number}`}
+              episodeSource="tmdb"
+              title={episode.name}
+              posterPath={episode.still_path ? `https://image.tmdb.org/t/p/w342${episode.still_path}` : null}
+              releaseDate={episode.air_date ?? null}
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
