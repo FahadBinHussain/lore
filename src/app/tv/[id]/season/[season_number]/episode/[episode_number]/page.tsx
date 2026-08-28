@@ -225,23 +225,24 @@ export default function EpisodeDetailPage() {
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-10">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
             {/* Episode Still */}
-            <div className="flex-shrink-0 relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-60 group-hover:opacity-100 transition duration-500" />
-              <div className="relative w-48 md:w-64 aspect-video rounded-xl overflow-hidden shadow-2xl">
-                {episode.still_path ? (
-                  <Image
-                    src={`https://image.tmdb.org/t/p/w780${episode.still_path}`}
-                    alt={episode.name}
-                    fill
-                    priority
-                    sizes="(min-width: 1024px) 33vw, 50vw"
-                    className="object-cover transform group-hover:scale-105 transition duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
-                    <PlayCircle className="w-16 h-16 text-primary-foreground/80" />
-                  </div>
-                )}
+            <div className="flex-shrink-0 relative group w-fit">
+              <div className="rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 p-[1.5px] shadow-[0_0_28px_-6px_rgba(167,139,250,0.5)] transition-shadow duration-500 group-hover:shadow-[0_0_36px_-4px_rgba(167,139,250,0.65)]">
+                <div className="relative w-48 md:w-64 aspect-video rounded-[14px] overflow-hidden bg-black/40">
+                  {episode.still_path ? (
+                    <Image
+                      src={`https://image.tmdb.org/t/p/w780${episode.still_path}`}
+                      alt={episode.name}
+                      fill
+                      priority
+                      sizes="(min-width: 1024px) 33vw, 50vw"
+                      className="object-cover transform group-hover:scale-105 transition duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
+                      <PlayCircle className="w-16 h-16 text-primary-foreground/80" />
+                    </div>
+                  )}
+                </div>
               </div>
               {episode.is_watched && (
                 <div className="absolute -top-3 -right-3 bg-green-500 text-foreground font-bold px-3 py-1 rounded-lg shadow-lg text-sm flex items-center gap-1">
