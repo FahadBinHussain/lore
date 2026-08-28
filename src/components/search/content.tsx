@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, MapPin, Mic, Music, Search, ScanSearch, Star, ArrowRight, Clapperboard } from 'lucide-react';
+import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, MapPin, Mic, Music, Search, ScanSearch, Star, Clapperboard } from 'lucide-react';
 import { ListSkeleton, MediaGridSkeleton } from '@/components/ui/skeleton';
 
 interface MediaItem {
@@ -15,14 +15,6 @@ interface MediaItem {
   year?: string;
   rating?: number;
   genre?: string;
-}
-
-interface Universe {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  category: string;
 }
 
 // Featured universes are fetched from /api/universes elsewhere — search keeps only media search here.

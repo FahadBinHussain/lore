@@ -36,6 +36,8 @@ interface CommentRow {
 interface CommentsSectionProps {
   mediaId: string;
   mediaType: string;
+  episodeKey?: string | null;
+  episodeSource?: string | null;
   title?: string | null;
   posterPath?: string | null;
   releaseDate?: string | null;
@@ -68,7 +70,7 @@ function displayName(c: CommentRow): string {
   return c.userName || c.userUsername || c.userEmail || `User #${c.userId}`;
 }
 
-export function CommentsSection({ mediaId, mediaType, title, posterPath, releaseDate }: CommentsSectionProps) {
+export function CommentsSection({ mediaId, mediaType, episodeKey, episodeSource, title, posterPath, releaseDate }: CommentsSectionProps) {
   const { data: session, status } = useSession();
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,8 +91,11 @@ export function CommentsSection({ mediaId, mediaType, title, posterPath, release
     setLoading(true);
     setError(null);
     try {
+      const params = episodeKey
+        ? `episodeKey=${encodeURIComponent(episodeKey)}&episodeSource=${encodeURIComponent(episodeSource || 'tmdb')}`
+        : `mediaId=${encodeURIComponent(mediaId)}&mediaType=${encodeURIComponent(mediaType)}`;
       const res = await fetch(
-        `/api/media/comments?mediaId=${encodeURIComponent(mediaId)}&mediaType=${encodeURIComponent(mediaType)}`,
+        `/api/media/comments?${params}`,
         { cache: 'no-store' }
       );
       if (!res.ok) throw new Error('Failed to load comments');
@@ -101,7 +106,7 @@ export function CommentsSection({ mediaId, mediaType, title, posterPath, release
     } finally {
       setLoading(false);
     }
-  }, [mediaId, mediaType]);
+  }, [mediaId, mediaType, episodeKey, episodeSource]);
 
   useEffect(() => {
     fetchComments();
@@ -133,9 +138,9 @@ export function CommentsSection({ mediaId, mediaType, title, posterPath, release
           mediaType,
           content: text,
           parentId: replyTo?.id ?? null,
-          title: title ?? undefined,
-          posterPath: posterPath ?? undefined,
-          releaseDate: releaseDate ?? undefined,
+          ...(episodeKey
+            ? { episodeKey, episodeSource: episodeSource || 'tmdb' }
+            : { title: title ?? undefined, posterPath: posterPath ?? undefined, releaseDate: releaseDate ?? undefined }),
         }),
       });
       const data = await res.json().catch(() => ({}));
