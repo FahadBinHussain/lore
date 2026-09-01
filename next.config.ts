@@ -43,6 +43,18 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "comicvine.gamespot.com",
       },
+      {
+        protocol: "https",
+        hostname: "shared.akamai.steamstatic.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.akamai.steamstatic.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.cloudflare.steamstatic.com",
+      },
     ],
   },
 };
