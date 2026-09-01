@@ -1,12 +1,14 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { and, eq, inArray, or } from 'drizzle-orm';
-import { BookOpen, Users, Gem } from 'lucide-react';
+import { BookOpen, Users, Gem, Lock } from 'lucide-react';
 import { auth } from '@/lib/auth';
+import { isAdminRole } from '@/lib/auth/roles';
 import { db } from '@/db';
 import { collectionItems, collections, episodes as episodesTable, seasons, userEpisodeProgress, userMediaProgress, users } from '@/db/schema';
 import { UniverseTimelineView } from '@/components/universes/universe-timeline-view';
 import { UniverseTimelineEntryDisplay, UniverseTimelineCardProps } from '@/components/universes/universe-timeline-card';
+import { UniverseVisibilityToggle } from '@/components/universes/visibility-toggle';
 import { getMediaDetailHref, getTimelineItemState, isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 interface UniversePageProps {
@@ -273,6 +275,7 @@ function getDisplayDescription(description: string | null): string {
 
 export default async function Page({ params }: UniversePageProps) {
   const session = await auth();
+  const viewerIsAdmin = session?.user ? isAdminRole(session.user.role) : false;
 
   let userId = Number.parseInt(session?.user?.id || '', 10);
   if (!Number.isFinite(userId) && session?.user?.email) {
@@ -290,7 +293,11 @@ export default async function Page({ params }: UniversePageProps) {
 
   const universe = await db.query.collections.findFirst({
     where: and(
-      eq(collections.visibility, 'public'),
+      viewerIsAdmin
+        ? undefined
+        : Number.isNaN(userId)
+          ? eq(collections.visibility, 'public')
+          : or(eq(collections.visibility, 'public'), eq(collections.createdBy, userId)),
       Number.isNaN(maybeId) ? eq(collections.slug, slug) : or(eq(collections.slug, slug), eq(collections.id, maybeId))
     ),
     with: {
@@ -303,6 +310,8 @@ export default async function Page({ params }: UniversePageProps) {
   });
 
   if (!universe) notFound();
+
+  const canEdit = viewerIsAdmin || universe.createdBy === userId;
 
   const seriesMediaItemIds = universe.items
     .map((item) => item.mediaItem)
@@ -614,9 +623,18 @@ export default async function Page({ params }: UniversePageProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-base-100 via-base-100/60 to-transparent" />
           </div>
           <div className="relative z-10 px-6 md:px-12 pb-16 max-w-4xl">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
               <span className="px-3 py-1 bg-primary/20 text-primary text-[10px] font-bold tracking-widest uppercase rounded-sm">Curated Universe</span>
+              {universe.visibility !== 'public' ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/15 text-amber-600 text-[10px] font-bold tracking-widest uppercase rounded-sm">
+                  <Lock className="h-2.5 w-2.5" />
+                  Private
+                </span>
+              ) : null}
               {universe.creator?.name ? <span className="text-base-content/70 text-xs font-medium">by {universe.creator.name}</span> : null}
+              {canEdit ? (
+                <UniverseVisibilityToggle universeId={universe.id} currentVisibility={universe.visibility} />
+              ) : null}
             </div>
             <h1 className="text-5xl md:text-7xl font-bold font-[family-name:var(--font-epilogue)] mb-6 tracking-tight">{universe.name}</h1>
             <p className="text-lg text-base-content/80 leading-relaxed mb-8 max-w-2xl">{universe.description || 'Explore this universe timeline in release order.'}</p>

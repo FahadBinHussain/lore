@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { AlertTriangle, Check, FileJson, Loader2, Sparkles } from 'lucide-react';
+import { AlertTriangle, Check, FileJson, Loader2, Sparkles, Globe, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -132,6 +132,7 @@ type UniversePreviewStreamEvent =
 interface CreateUniverseFormData {
   name: string;
   description: string;
+  visibility: 'public' | 'private';
   jsonPayload: string;
 }
 
@@ -416,6 +417,7 @@ export function CreateUniverseForm() {
   const [formData, setFormData] = useState<CreateUniverseFormData>({
     name: '',
     description: '',
+    visibility: 'public',
     jsonPayload: '',
   });
 
@@ -714,6 +716,7 @@ export function CreateUniverseForm() {
         body: JSON.stringify({
           name: formData.name.trim(),
           description: formData.description.trim(),
+          visibility: formData.visibility,
           selectedItems: selectedPayloadItems,
         }),
       });
@@ -763,6 +766,31 @@ export function CreateUniverseForm() {
               placeholder="Describe this universe collection..."
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Visibility</Label>
+            <div className="inline-flex rounded-lg border border-border bg-muted p-1">
+              <button
+                type="button"
+                onClick={() => handleInputChange('visibility', 'public')}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${formData.visibility === 'public' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                <Globe className="h-3.5 w-3.5" />
+                Public
+              </button>
+              <button
+                type="button"
+                onClick={() => handleInputChange('visibility', 'private')}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${formData.visibility === 'private' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                <Lock className="h-3.5 w-3.5" />
+                Private
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Public universes are visible to everyone. Private ones are only visible to you and admins.
+            </p>
           </div>
 
           <div className="space-y-2">
