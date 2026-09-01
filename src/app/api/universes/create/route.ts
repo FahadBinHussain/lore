@@ -39,6 +39,7 @@ interface UniverseResolvedItemPayload {
 interface UniverseCreateJsonBody {
   name?: unknown;
   description?: unknown;
+  visibility?: unknown;
   selectedItems?: unknown;
 }
 
@@ -195,11 +196,13 @@ function parseSelectedItems(value: unknown): UniverseResolvedItemPayload[] {
 function parseCreatePayloadFromJson(body: UniverseCreateJsonBody) {
   const name = normalizeOptionalString(body.name) || '';
   const description = normalizeOptionalString(body.description);
+  const visibility = normalizeOptionalString(body.visibility);
   const selectedItems = parseSelectedItems(body.selectedItems);
 
   return {
     name,
     description,
+    visibility,
     selectedItems,
   };
 }
@@ -215,6 +218,7 @@ async function parseCreatePayload(request: NextRequest) {
   const formData = await request.formData();
   const name = normalizeOptionalString(formData.get('name')) || '';
   const description = normalizeOptionalString(formData.get('description'));
+  const visibility = normalizeOptionalString(formData.get('visibility'));
   const rawSelectedItems = formData.get('selectedItems');
 
   let selectedItems: UniverseResolvedItemPayload[] = [];
@@ -229,6 +233,7 @@ async function parseCreatePayload(request: NextRequest) {
   return {
     name,
     description,
+    visibility,
     selectedItems,
   };
 }
@@ -391,7 +396,10 @@ export async function POST(request: NextRequest) {
       coverImage: null,
       bannerImage: null,
       createdBy: creatorId,
-      visibility: 'public',
+      visibility:
+        payload.visibility === 'public' || payload.visibility === 'private' || payload.visibility === 'unlisted'
+          ? payload.visibility
+          : 'public',
       isFeatured: false,
       viewCount: 0,
       itemCount: orderedMediaItemIds.length,

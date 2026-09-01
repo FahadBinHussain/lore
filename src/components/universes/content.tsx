@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Trash2, Film, Tv, Clapperboard, Gamepad2, BookOpen, Library, BookA, Mic, Music, Dices, FerrisWheel, LayoutGrid, PenLine, ArrowRight, User, Plus } from 'lucide-react';
+import { Loader2, Trash2, Film, Tv, Clapperboard, Gamepad2, BookOpen, Library, BookA, Mic, Music, Dices, FerrisWheel, LayoutGrid, PenLine, ArrowRight, User, Plus, Lock } from 'lucide-react';
 import { isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 interface Universe {
@@ -14,6 +14,8 @@ interface Universe {
   description: string;
   bannerImage: string | null;
   coverImage: string | null;
+  visibility?: 'public' | 'private' | 'unlisted';
+  canEdit?: boolean;
   items: Array<{
     mediaItem: {
       id: number;
@@ -417,6 +419,14 @@ export function UniversesContent({
                       <div className="absolute top-3 right-3 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1.5 rounded-full">
                         <span className="text-xs font-bold">{progress}% done</span>
                       </div>
+
+                      {/* Private badge */}
+                      {universe.visibility && universe.visibility !== 'public' ? (
+                        <div className="absolute top-12 right-3 bg-surface-container-lowest/60 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1">
+                          <Lock className="w-3 h-3 text-amber-600" />
+                          <span className="text-[10px] font-bold uppercase tracking-tight text-amber-600">Private</span>
+                        </div>
+                      ) : null}
 
                       {/* Total titles badge */}
                       <div className="absolute bottom-3 left-3 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1.5 rounded-full">

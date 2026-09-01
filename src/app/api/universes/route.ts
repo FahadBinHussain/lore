@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { collections, collectionItems, users, userMediaProgress } from '@/db/schema';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, or } from 'drizzle-orm';
 import { isAdminRole } from '@/lib/auth/roles';
 import { isApiBackedMediaItem } from '@/lib/media/provider-support';
 
@@ -28,8 +28,17 @@ export async function GET() {
 
   try {
 
+    // Public universes always shown. Private/unlisted are only visible to the
+    // owner (createdBy) or admin. An admin sees everything.
+    let visibilityWhere = undefined;
+    if (!viewerIsAdmin) {
+      visibilityWhere = userId !== null
+        ? or(eq(collections.visibility, 'public'), eq(collections.createdBy, userId))
+        : eq(collections.visibility, 'public');
+    }
+
     const allCollections = await db.query.collections.findMany({
-      where: eq(collections.visibility, 'public'),
+      where: visibilityWhere,
       orderBy: desc(collections.createdAt),
       with: {
         items: {
@@ -97,6 +106,8 @@ export async function GET() {
         totalItems,
         untrackableCount,
         canDelete: viewerIsAdmin,
+        canEdit: userId !== null && (viewerIsAdmin || collection.createdBy === userId),
+        visibility: collection.visibility,
       };
     });
 
