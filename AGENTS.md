@@ -1,5 +1,9 @@
 # Lore Agent Rules
 
+## Never commit universe research to the repo
+
+Universe research notes (research skill dumps, franchise markdown, media index files, wiki scrapes) **must never be committed to this repo**. Keep them local/out of repo (e.g. `C:\tmp`) or in a private research store. The `research/` dir is gitignored and exists only as scratch space. If research files are ever found in git history, purge them with a history rewrite, not just a delete commit.
+
 ## Universe creation workflow
 
 When creating a new universe or expanding an existing one, agents **must** use the `research` skill (installed from `mattpocock/skills@research`) to find all media items across the franchise. Do not rely on manual lists alone — `research` spins up a background agent that investigates against primary sources (Wikipedia, official sites, first-party APIs) and writes findings to a markdown file with citations. It covers movies, TV, games, books, comics, spin-offs, mobile, browser, and regional releases that manual curation misses.
