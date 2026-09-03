@@ -46,3 +46,6 @@ next-env.d.ts
 *.json
 .vercel
 .env*
+
+# universe research notes - never commit
+/research/
