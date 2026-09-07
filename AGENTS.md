@@ -29,9 +29,11 @@ Before creating or expanding a universe, agents **must** inspect the database fi
 
 A universe **must** contain **every official media item** found for that franchise. Do not skip, prune, or limit the list based on perceived size, popularity, or importance. Include **all** official entries: main series, sequels, spin-offs, crossovers, short films, web series, mobile games, comics, books, soundtracks, and regional exclusives. If it is officially released media under the franchise name, it belongs in the universe. Size is not a concern — completeness is.
 
-Items in a universe **must** be ordered by **release order** — the order in which each media item was first released to the public. When inserting items, set `release_order` and `chronological_order` based on actual release dates, not alphabetical or arbitrary order.
+Items in a universe carry two orderings, which mean different things — never copy one into the other:
 
-**Release order rule:** sort by the item's original release date (earliest first). This is the canonical viewing/reading order for the franchise.
+**Release order rule (`release_order`, required):** sort by the item's original public release date (earliest first). This is the canonical viewing/reading order for the franchise. Never alphabetical or arbitrary.
+
+**Chronological order rule (`chronological_order`, nullable, reserved for a future chrono view):** sort by in-story timeline position — where the story sits inside the fictional chronology, not when it was released (e.g. Captain America: The First Avenger released 2011 but its story is 1940s, so it sorts near the start). For tv/anime series the story position is the series' overall placement; episode-level interleaving stays computed from `episodes.air_date` at view time. When the story placement is unknown, ambiguous (most games, anthologies, timeless shorts), or disputed — leave it NULL. A NULL means "unplaced", which a future chrono view can render as its own section; a copied release date would silently lie about story order.
 
 ## API connections
 
