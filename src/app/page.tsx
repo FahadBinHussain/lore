@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -16,6 +16,18 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MediaGridSkeleton, EmptyState, ErrorState } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { LogoScrollSequence } from '@/components/home/logo-scroll-sequence';
+import {
+  FilmIcon,
+  TvIcon,
+  ClapperboardIcon,
+  GamepadIcon,
+  BookOpenIcon,
+  MusicIcon,
+  PodcastIcon,
+  PuzzleIcon,
+  type AnimatedIconHandle,
+  type AnimatedTabIconProps,
+} from '@/components/home/AnimatedTabIcons';
 
 interface MediaItem {
   id: number;
@@ -45,6 +57,40 @@ const MEDIA_TABS: { key: MediaTabKey; label: string; icon: typeof Film; href: st
   { key: 'podcasts', label: 'Podcasts', icon: Podcast, href: '/podcasts' },
   { key: 'themeparks', label: 'Theme Parks', icon: ThemeParkIcon, href: '/themeparks' },
 ];
+
+const ANIMATED_TAB_ICONS: Record<string, React.ComponentType<AnimatedTabIconProps>> = {
+  Film: FilmIcon,
+  Tv: TvIcon,
+  Clapperboard: ClapperboardIcon,
+  Gamepad2: GamepadIcon,
+  BookOpen: BookOpenIcon,
+  Music: MusicIcon,
+  Podcast: PodcastIcon,
+  Puzzle: PuzzleIcon,
+};
+
+function TabIcon({
+  icon: Icon,
+  index,
+  iconRefs,
+}: {
+  icon: typeof Film;
+  index: number;
+  iconRefs: React.MutableRefObject<(AnimatedIconHandle | null)[]>;
+}) {
+  const Animated = ANIMATED_TAB_ICONS[Icon.displayName ?? Icon.name];
+  if (!Animated) {
+    return <Icon className="w-3.5 h-3.5" />;
+  }
+  return (
+    <Animated
+      className="w-3.5 h-3.5 flex items-center justify-center"
+      ref={(el) => {
+        iconRefs.current[index] = el;
+      }}
+    />
+  );
+}
 
 function MediaCard({ item, href, icon }: { item: MediaItem; href: string; icon: typeof Film }) {
   return (
@@ -167,6 +213,7 @@ export default function HomePage() {
   });
 
   const [activeTab, setActiveTab] = useState<MediaTabKey>('movies');
+  const tabIconRefs = useRef<(AnimatedIconHandle | null)[]>([]);
   const isAuthenticated = status === 'authenticated';
 
   const fetchMedia = useCallback(async (key: MediaTabKey) => {
@@ -255,13 +302,19 @@ export default function HomePage() {
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as MediaTabKey)} className="w-full">
             <div className="mb-6 overflow-x-auto no-scrollbar scroll-px-6 -mx-1 px-1">
               <TabsList className="inline-flex min-w-max h-auto items-center rounded-full bg-muted p-1 gap-0.5 border border-border/40">
-                {MEDIA_TABS.map(({ key, label, icon: Icon }) => (
+                {MEDIA_TABS.map(({ key, label, icon: Icon }, index) => (
                   <TabsTrigger
                     key={key}
                     value={key}
                     className="shrink-0 flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3.5 py-1.5 rounded-full data-[state=active]:bg-card data-[state=active]:shadow-sm font-medium"
+                    onMouseEnter={() => tabIconRefs.current[index]?.startAnimation()}
+                    onMouseLeave={() => tabIconRefs.current[index]?.stopAnimation()}
                   >
-                    <Icon className="w-3.5 h-3.5" />
+                    <TabIcon
+                      icon={Icon}
+                      index={index}
+                      iconRefs={tabIconRefs}
+                    />
                     {label}
                   </TabsTrigger>
                 ))}
