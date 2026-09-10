@@ -548,7 +548,7 @@ export default async function Page({ params }: UniversePageProps) {
               isTrackable,
               initialStatus: isTrackable && watchedEpisodeIds.has(episode.id) ? 'completed' : null,
               description: getDisplayDescription(episode.overview ?? mediaItem.description ?? null),
-              rating: null,
+              rating: mediaItem.rating ? Number(mediaItem.rating) : null,
               mediaId: mediaItem.externalId,
               mediaType: mediaItem.mediaType,
               posterPath: mediaItem.posterPath ?? null,
