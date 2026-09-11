@@ -27,6 +27,7 @@ import {
 } from '@/components/icons/social-icons';
 import { cn } from '@/lib/utils';
 import { CommentsSection } from '@/components/media/comments-section';
+import { GalleryLightbox } from '@/components/media/gallery-lightbox';
 
 interface Platform {
   id: number;
@@ -769,22 +770,14 @@ export default function GameDetailPage() {
                   <ImageIcon className="w-6 h-6 text-purple-400" />
                   Artworks
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {game.artworks.map((artwork, idx) => (
-                    <div 
-                      key={idx}
-                      className="relative aspect-video rounded-lg overflow-hidden bg-slate-800 hover:scale-105 transition-transform duration-300 cursor-pointer group"
-                    >
-                      <Image 
-                        src={artwork.url}
-                        alt={`${game.name} artwork ${idx + 1}`}
-                        fill
-                        sizes="(min-width: 1024px) 33vw, 50vw"
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
-                  ))}
-                </div>
+                <GalleryLightbox
+                  title={game.name}
+                  gridClassName="grid grid-cols-2 md:grid-cols-3 gap-4"
+                  images={game.artworks.map((artwork) => ({
+                    src: artwork.url,
+                    full: artwork.url.replace(/\/t_[^/]+\//, '/t_original/'),
+                  }))}
+                />
               </section>
             )}
 
