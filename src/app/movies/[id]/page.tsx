@@ -641,30 +641,29 @@ export default function MovieDetailPage() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {getDisplayCast().map((actor) => (
-                    <Card 
-                      key={actor.id} 
-                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/50 transition-all duration-300 hover:transform hover:scale-105"
-                    >
-                      <div className="aspect-square relative overflow-hidden bg-muted">
-                        {actor.profile_path ? (
-                          <Image 
-                            src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
-                            alt={actor.name}
-                            fill
-                            sizes="(min-width: 1024px) 33vw, 50vw"
-                            className="object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
-                            <Users className="w-12 h-12 text-muted-foreground/70" />
-                          </div>
-                        )}
-                      </div>
-                      <CardContent className="p-3">
-                        <p className="font-semibold text-sm text-foreground truncate">{actor.name}</p>
-                        <p className="text-xs text-muted-foreground/80 truncate">{actor.character}</p>
-                      </CardContent>
-                    </Card>
+                    <Link key={actor.id} href={`/people/${actor.id}`} className="block">
+                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/50 transition-all duration-300 hover:transform hover:scale-105">
+                        <div className="aspect-square relative overflow-hidden bg-muted">
+                          {actor.profile_path ? (
+                            <Image 
+                              src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                              alt={actor.name}
+                              fill
+                              sizes="(min-width: 1024px) 33vw, 50vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
+                              <Users className="w-12 h-12 text-muted-foreground/70" />
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <p className="font-semibold text-sm text-foreground truncate">{actor.name}</p>
+                          <p className="text-xs text-muted-foreground/80 truncate">{actor.character}</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   ))}
                 </div>
               </section>
@@ -679,69 +678,79 @@ export default function MovieDetailPage() {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {getDirector() && (
-                    <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-amber-500/30 transition-all duration-300">
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                          <Film className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-foreground font-semibold">{getDirector()?.name}</p>
-                          <p className="text-primary text-sm">Director</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <Link href={`/people/${getDirector()!.id}`} className="block">
+                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-amber-500/50 hover:scale-[1.02] transition-all duration-300">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                            <Film className="w-6 h-6 text-primary-foreground" />
+                          </div>
+                          <div>
+                            <p className="text-foreground font-semibold">{getDirector()?.name}</p>
+                            <p className="text-primary text-sm">Director</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   )}
                   {getWriters().slice(0, 2).map((writer) => (
-                    <Card key={writer.id} className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/30 transition-all duration-300">
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-                          <Users className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-foreground font-semibold">{writer.name}</p>
-                          <p className="text-primary text-sm">{writer.job}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <Link key={writer.id} href={`/people/${writer.id}`} className="block">
+                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/50 hover:scale-[1.02] transition-all duration-300">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+                            <Users className="w-6 h-6 text-primary-foreground" />
+                          </div>
+                          <div>
+                            <p className="text-foreground font-semibold">{writer.name}</p>
+                            <p className="text-primary text-sm">{writer.job}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   ))}
                   {getCinematographer() && (
-                    <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/30 transition-all duration-300">
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                          <Camera className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-foreground font-semibold">{getCinematographer()?.name}</p>
-                          <p className="text-accent text-sm">Cinematography</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <Link href={`/people/${getCinematographer()!.id}`} className="block">
+                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/50 hover:scale-[1.02] transition-all duration-300">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                            <Camera className="w-6 h-6 text-primary-foreground" />
+                          </div>
+                          <div>
+                            <p className="text-foreground font-semibold">{getCinematographer()?.name}</p>
+                            <p className="text-accent text-sm">Cinematography</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   )}
                   {getComposer() && (
-                    <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-pink-500/30 transition-all duration-300">
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
-                          <Award className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-foreground font-semibold">{getComposer()?.name}</p>
-                          <p className="text-secondary text-sm">Original Music</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <Link href={`/people/${getComposer()!.id}`} className="block">
+                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-pink-500/50 hover:scale-[1.02] transition-all duration-300">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+                            <Award className="w-6 h-6 text-primary-foreground" />
+                          </div>
+                          <div>
+                            <p className="text-foreground font-semibold">{getComposer()?.name}</p>
+                            <p className="text-secondary text-sm">Original Music</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   )}
                   {getProducers().slice(0, 2).map((producer) => (
-                    <Card key={producer.id} className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/30 transition-all duration-300">
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                          <TrendingUp className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-foreground font-semibold">{producer.name}</p>
-                          <p className="text-primary text-sm">{producer.job}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <Link key={producer.id} href={`/people/${producer.id}`} className="block">
+                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/50 hover:scale-[1.02] transition-all duration-300">
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                            <TrendingUp className="w-6 h-6 text-primary-foreground" />
+                          </div>
+                          <div>
+                            <p className="text-foreground font-semibold">{producer.name}</p>
+                            <p className="text-primary text-sm">{producer.job}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   ))}
                 </div>
               </section>
