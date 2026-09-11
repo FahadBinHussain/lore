@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
@@ -23,9 +24,21 @@ export function GalleryLightbox({
   gridClassName = 'grid grid-cols-2 md:grid-cols-4 gap-4',
 }: GalleryLightboxProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+
   const isOpen = activeIndex !== null;
 
-  const close = useCallback(() => setActiveIndex(null), []);
+  const openImage = useCallback((idx: number, el: HTMLElement | null) => {
+    triggerRef.current = el;
+    setActiveIndex(idx);
+  }, []);
+
+  const close = useCallback(() => {
+    setActiveIndex(null);
+    requestAnimationFrame(() => triggerRef.current?.focus({ preventScroll: true }));
+    triggerRef.current = null;
+  }, []);
+
   const showPrev = useCallback(
     () => setActiveIndex((i) => (i === null ? i : (i - 1 + images.length) % images.length)),
     [images.length]
@@ -62,7 +75,7 @@ export function GalleryLightbox({
           <button
             key={idx}
             type="button"
-            onClick={() => setActiveIndex(idx)}
+            onClick={(e) => openImage(idx, e.currentTarget)}
             aria-label={`Open ${title} photo ${idx + 1} of ${images.length}`}
             className="relative aspect-video rounded-lg overflow-hidden bg-muted hover:scale-105 transition-transform duration-300 cursor-pointer group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
           >
@@ -77,73 +90,74 @@ export function GalleryLightbox({
         ))}
       </div>
 
-      {active && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={`${title} photo viewer`}
-          onClick={close}
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col animate-in fade-in duration-200"
-        >
-          <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6 shrink-0">
-            <p className="text-sm text-white/80 truncate">
-              {title}
-              <span className="text-white/50 ml-2 tabular-nums">
-                {(activeIndex ?? 0) + 1} / {images.length}
-              </span>
-            </p>
-            <button
-              type="button"
-              onClick={close}
-              aria-label="Close photo viewer"
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 hover:scale-110 active:scale-95 transition-all duration-200 text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <figure
-            onClick={(e) => e.stopPropagation()}
-            className="relative flex-1 min-h-0 flex items-center justify-center px-4 md:px-16"
+      {active &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${title} photo viewer`}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) close();
+            }}
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-200"
           >
             <img
               src={active.full ?? active.src}
               alt={`${title} photo ${(activeIndex ?? 0) + 1}`}
-              className="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[88vh] max-w-[92vw] w-auto h-auto object-contain rounded-lg shadow-2xl select-none"
             />
+
+            <button
+              type="button"
+              onClick={close}
+              aria-label="Close photo viewer (Esc)"
+              className="absolute top-4 right-4 p-2.5 rounded-full bg-white/10 hover:bg-white/25 hover:scale-110 active:scale-95 transition-all duration-200 text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
             {images.length > 1 && (
               <>
                 <button
                   type="button"
-                  onClick={showPrev}
-                  aria-label="Previous photo"
-                  className="absolute left-2 md:left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 hover:scale-110 active:scale-95 transition-all duration-200 text-white"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showPrev();
+                  }}
+                  aria-label="Previous photo (Left arrow)"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/10 hover:bg-white/25 hover:scale-110 active:scale-95 transition-all duration-200 text-white"
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <ChevronLeft className="w-7 h-7" />
                 </button>
                 <button
                   type="button"
-                  onClick={showNext}
-                  aria-label="Next photo"
-                  className="absolute right-2 md:right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 hover:scale-110 active:scale-95 transition-all duration-200 text-white"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showNext();
+                  }}
+                  aria-label="Next photo (Right arrow)"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/10 hover:bg-white/25 hover:scale-110 active:scale-95 transition-all duration-200 text-white"
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <ChevronRight className="w-7 h-7" />
                 </button>
               </>
             )}
-          </figure>
 
-          {active.width && active.height && (
-            <p
-              onClick={(e) => e.stopPropagation()}
-              className="text-center text-xs text-white/40 py-2 shrink-0 tabular-nums"
-            >
-              {active.width} × {active.height}
-            </p>
-          )}
-        </div>
-      )}
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-1.5 rounded-full bg-black/60 border border-white/10 text-xs text-white/80 tabular-nums select-none">
+              <span className="max-w-[40vw] truncate">{title}</span>
+              <span className="text-white/50">
+                {(activeIndex ?? 0) + 1} / {images.length}
+              </span>
+              {active.width && active.height && (
+                <span className="text-white/40">
+                  {active.width} × {active.height}
+                </span>
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 }
