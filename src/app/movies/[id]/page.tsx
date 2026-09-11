@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CommentsSection } from '@/components/media/comments-section';
+import { GalleryLightbox } from '@/components/media/gallery-lightbox';
 import {
   FacebookBrandIcon,
   InstagramBrandIcon,
@@ -753,22 +754,15 @@ export default function MovieDetailPage() {
                   <ImageIcon className="w-6 h-6 text-secondary" />
                   Gallery
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {movie.backdrops.map((backdrop, idx) => (
-                    <div 
-                      key={idx}
-                      className="relative aspect-video rounded-lg overflow-hidden bg-muted hover:scale-105 transition-transform duration-300 cursor-pointer group"
-                    >
-                      <Image 
-                        src={`https://image.tmdb.org/t/p/w780${backdrop.file_path}`}
-                        alt={`${movie.title} backdrop ${idx + 1}`}
-                        fill
-                        sizes="(min-width: 1024px) 33vw, 50vw"
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
-                  ))}
-                </div>
+                <GalleryLightbox
+                  title={movie.title}
+                  images={movie.backdrops.map((b) => ({
+                    src: `https://image.tmdb.org/t/p/w780${b.file_path}`,
+                    full: `https://image.tmdb.org/t/p/original${b.file_path}`,
+                    width: b.width,
+                    height: b.height,
+                  }))}
+                />
               </section>
             )}
 
