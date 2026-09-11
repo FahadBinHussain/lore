@@ -181,3 +181,22 @@ Both views are computed server-side as `UniverseTimelineCardProps[]` (`releaseIt
 ## Watch-order Q&A rule (user standing order, 2026-09-06)
 
 The user watches in **mixed-universe order** and does **every item** (movies, episodes, one-shots, games — Sony X-Men/Spider-Man and games included). Whenever they ask "what's next / what are the next N / did we miss any", answer in **mixed order**: tv/anime series expanded to episode level, everything interleaved by date (episodes by `airDate`, other releases by `releaseDate`). Never answer from `collection_items.release_order` (that lumps whole series into blocks and hides interleaved episodes — e.g. AoS S02 starts 2014-09, long before Agent Carter/Daredevil). Verify dates from the DB (`episodes.air_date`, `media_items.release_date`) instead of memory, and cross-check `user_media_progress`/`user_episode_progress` for what is actually `completed` so nothing already-watched is re-suggested and nothing unwatched is skipped.
+
+## Direct psql access (no VPN running)
+
+When Proton/mihomo is NOT running, connect with `psql.exe` straight to the Neon pooler — no `socks5-fwd` relay needed (the relay is only for when the VPN hijacks routing; its upstream socks `7891` is dead without the VPN anyway, so a relay failure + `7891` closed = VPN is off, go direct).
+
+- Password: take it from `.env.local`'s `DATABASE_URL` and **URL-decode it** (`[uri]::UnescapeDataString`). The literal in the URL may be percent-encoded (`%21` etc.) and won't match if passed raw inside a URI keyword string; pass it via `$env:PGPASSWORD` instead of embedding.
+- Do NOT pass `options='endpoint=…'` when hitting the pooler hostname directly — SNI already identifies the endpoint and Neon rejects with `Inconsistent project name inferred from SNI … and project option`. The `options=endpoint=` form is only for the relay path (`host=127.0.0.1`).
+- Do NOT use the psql URI form with `?…&channel_binding=require` built by string surgery — `password authentication failed` usually means the password wasn't URL-decoded, not that the endpoint is wrong.
+
+Working invocation (2026-09-11):
+
+```powershell
+$raw=(Get-Content .env.local -Encoding UTF8 | Select-String '^DATABASE_URL=').Line
+$url=$raw -replace '^DATABASE_URL=','' -replace '^"','' -replace '"$',''
+$env:PGPASSWORD=[uri]::UnescapeDataString([regex]::Match($url,'://[^:]+:([^@]+)@').Groups[1].Value)
+& 'C:\Users\Admin\scoop\apps\postgresql\current\bin\psql.exe' "host=<pooler-host> port=5432 user=neondb_owner dbname=neondb sslmode=require connect_timeout=20" -c "SELECT 1;"
+```
+
+Quick triage when a DB connection fails: `Test-NetConnection 127.0.0.1 -Port 7891` — false means no local proxy is up, so the failure is NOT VPN interception; use the direct path above.
