@@ -193,7 +193,7 @@ export function getTMDBImageUrl(path: string | null, size: string = 'w500'): str
 
 export async function searchMovies(query: string, page: number = 1): Promise<TMDBSearchResponse<TMDBMovie>> {
   const response = await fetch(
-    `${TMDB_BASE_URL}/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}`,
+      `${TMDB_BASE_URL}/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}&include_adult=true`,
     { next: { revalidate: 3600 } }
   );
   
@@ -206,7 +206,7 @@ export async function searchMovies(query: string, page: number = 1): Promise<TMD
 
 export async function searchTVShows(query: string, page: number = 1): Promise<TMDBSearchResponse<TMDBTVShow>> {
   const response = await fetch(
-    `${TMDB_BASE_URL}/search/tv?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}`,
+      `${TMDB_BASE_URL}/search/tv?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}&include_adult=true`,
     { next: { revalidate: 3600 } }
   );
   
