@@ -71,17 +71,23 @@ use `ensureCanonicalMediaItem` with the correct `source` and `externalId` for ea
 **What NOT to do:**
 - the original Black Mirror universe had 33 manual episode entries like "Black Mirror: The National Anthem", "Black Mirror: San Junipero" — all were removed. the single series entry is sufficient.
 
-### Allowed `manual` fallback
+### `manual` is a transitional state only (standing rule, 2026-09-17)
 
-Only when an item is genuinely absent from the relevant API:
-- cancelled/unreleased game with no IGDB entry
-- regional-only release with no TMDB/AniList entry
-- web-only short, limited-run theme park experience, or one-off board game with no BGG entry
-- verified by querying the API directly and confirming zero results
+**Every item must be bound to a real API source. Always.** `manual`/`curated` is never an endpoint — it is a placeholder that means "not yet bound, no source found *so far*". The project is slowly transitioning every existing manual item to a real binding as sources surface; a manual row is a debt to be repaid, not a settled answer.
 
-fallback format: `source: 'manual'` with `curated-{type}-{year}-{slug}` external id.
+Rules:
+- Do not default to `manual` for convenience. Exhaust the supported APIs first, then any plausible third-party source, then — and only then — write it as manual with documented proof of the checks run.
+- Manual is permitted only in these transitional cases (all requiring "verified absent from the relevant API *at the time*"):
+  - cancelled/unreleased game with no IGDB entry
+  - regional-only release with no TMDB/AniList entry
+  - web-only short, limited-run theme park experience, or one-off board game with no BGG entry
+  - an item no tracked source covers yet (e.g. a catalog with no API — reached only via crawlable HTML indexes)
+- When a new provider is added to `MEDIA_PROVIDER_REGISTRY`, or a source is discovered for a manual item, **re-bind that item immediately**: update `source`/`external_id` on the canonical `media_item` (keeping its id and all progress rows), and remove its `manual`/`curated-*` tag. Never leave a known-bindable item on manual.
+- When asked to review or expand a universe, re-check its manual items against current sources as part of the same pass — coverage grows over time and yesterdays's "absent" is often today's bound row.
 
-agents must not default to `manual` for convenience. API binding is the norm; curated is the exception and must be justified per item.
+fallback format (only while still transitional): `source: 'manual'` with `curated-{type}-{year}-{slug}` external id.
+
+agents must not default to `manual` for convenience. API binding is the norm; manual is the exception and must be justified per item, with a note of what was checked and when.
 
 **TMDB id verification gotcha (2026-08-20):** never trust a TMDB id without checking the fetched title. `116521` = "Runaways" (2012, one-off) and `75006` = The Umbrella Academy — both were wrongly bound to Marvel's Runaways at different times. The correct id is `67466`. When binding/fetching a tv/movie item, always fetch `/tv/{id}`/`/movie/{id}` first and assert the `name`/`title` matches before writing. Search endpoint is unusable with the configured key (401), so verify via direct detail calls or the public search page HTML (`href="/tv/{id}-..."`).
 
@@ -98,9 +104,9 @@ These items were successfully connected to APIs after verification:
 | Thronglets (game) | game | igdb | `339816` |
 | Nohzdyve (game) | game | igdb | `123624` |
 
-### Confirmed manual-only items (API absence verified)
+### Manual items (transitional — re-bind when a source appears)
 
-These items were checked against their respective APIs and confirmed absent:
+These items were checked against their respective APIs and confirmed absent **at the time of the check**. They are outstanding debts, not permanent answers: revisit them whenever a new provider is added or coverage is questioned.
 
 | Item | Media Type | Why manual |
 | --- | --- | --- |
