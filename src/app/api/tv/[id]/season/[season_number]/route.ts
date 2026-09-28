@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db/index';
 import { userEpisodeProgress, episodes } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
+import { resolveTvShow, resolveTvSeason } from '@/lib/media/tv-episode-resolver';
 
 interface TMDBSeasonDetail {
   id: number;
@@ -58,31 +59,39 @@ export async function GET(
       try {
         const userId = parseInt(session.user.id);
 
-        // Check watched status for each episode
-        for (const episode of season.episodes || []) {
-          const dbEpisode = await db
-            .select()
-            .from(episodes)
-            .where(and(
-              eq(episodes.externalId, `${showId}-${seasonNumber}-${episode.episode_number}`),
-              eq(episodes.source, 'tmdb')
-            ))
-            .limit(1);
+        // Resolve the canonical season row for this show, then read watch
+        // status per episode number — never by external_id string, which can
+        // match a duplicate stub row instead of the canonical one.
+        const mediaItem = await resolveTvShow(showId);
+        const seasonRow = await resolveTvSeason(mediaItem.id, showId, seasonNumber);
 
-          if (dbEpisode.length > 0) {
-            const watchStatus = await db
-              .select()
+        const seasonEpisodes = await db
+          .select({ id: episodes.id, episodeNumber: episodes.episodeNumber })
+          .from(episodes)
+          .where(eq(episodes.seasonId, seasonRow.id));
+
+        const episodeIds = seasonEpisodes.map((row) => row.id);
+        const progressRows = episodeIds.length
+          ? await db
+              .select({ episodeId: userEpisodeProgress.episodeId, isWatched: userEpisodeProgress.isWatched })
               .from(userEpisodeProgress)
               .where(and(
                 eq(userEpisodeProgress.userId, userId),
-                eq(userEpisodeProgress.episodeId, dbEpisode[0].id)
+                inArray(userEpisodeProgress.episodeId, episodeIds)
               ))
-              .limit(1);
+          : [];
 
-            watchedEpisodes[episode.episode_number] = watchStatus.length > 0 && watchStatus[0].isWatched;
-          } else {
-            watchedEpisodes[episode.episode_number] = false;
-          }
+        const watchedById = new Map(
+          progressRows.map((row) => [row.episodeId, row.isWatched])
+        );
+        const idByEpisodeNumber = new Map(
+          seasonEpisodes.map((row) => [row.episodeNumber, row.id])
+        );
+
+        for (const episode of season.episodes || []) {
+          const dbEpisodeId = idByEpisodeNumber.get(episode.episode_number);
+          watchedEpisodes[episode.episode_number] =
+            dbEpisodeId !== undefined && watchedById.get(dbEpisodeId) === true;
         }
       } catch {
         // If database tables don't exist yet, just set all episodes as unwatched

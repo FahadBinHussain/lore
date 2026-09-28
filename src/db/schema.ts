@@ -212,6 +212,8 @@ export const episodes = pgTable('episodes', {
   stillPath: text('still_path'),
   airDate: date('air_date'),
   runtime: integer('runtime'), // minutes
+  rating: decimal('rating', { precision: 3, scale: 1 }), // TMDB vote_average, 0-10
+  voteCount: integer('vote_count'),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -393,6 +395,81 @@ export const activityLog = pgTable('activity_log', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// ==================== ARTIST TRACKING ====================
+
+export const artists = pgTable('artists', {
+  id: serial('id').primaryKey(),
+  provider: varchar('provider', { length: 50 }).notNull(),
+  externalId: varchar('external_id', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 255 }).notNull(),
+  name: varchar('name', { length: 500 }).notNull(),
+  imageUrl: text('image_url'),
+  biography: text('biography'),
+  birthYear: integer('birth_year'),
+  deathYear: integer('death_year'),
+  sourceUrl: text('source_url'),
+  metadata: jsonb('metadata'),
+  seedRev: varchar('seed_rev', { length: 50 }),
+  lastSyncedAt: timestamp('last_synced_at'),
+  artworkCount: integer('artwork_count'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('artists_provider_external_idx').on(table.provider, table.externalId),
+  uniqueIndex('artists_provider_slug_idx').on(table.provider, table.slug),
+  index('artists_name_idx').on(table.name),
+]);
+
+export const artworks = pgTable('artworks', {
+  id: serial('id').primaryKey(),
+  artistId: integer('artist_id').references(() => artists.id, { onDelete: 'cascade' }).notNull(),
+  provider: varchar('provider', { length: 50 }).notNull(),
+  externalId: varchar('external_id', { length: 255 }).notNull(),
+  title: varchar('title', { length: 1000 }).notNull(),
+  year: integer('year'),
+  width: integer('width'),
+  height: integer('height'),
+  imageUrl: text('image_url'),
+  paintingUrl: text('painting_url'),
+  metadata: jsonb('metadata'),
+  seedRev: varchar('seed_rev', { length: 50 }),
+  lastSyncedAt: timestamp('last_synced_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('artworks_provider_external_idx').on(table.provider, table.externalId),
+  index('artworks_artist_idx').on(table.artistId),
+  index('artworks_title_idx').on(table.title),
+]);
+
+export const userArtistProgress = pgTable('user_artist_progress', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  artistId: integer('artist_id').references(() => artists.id, { onDelete: 'cascade' }).notNull(),
+  isExplored: boolean('is_explored').default(false).notNull(),
+  isAuto: boolean('is_auto').default(false).notNull(),
+  exploredAt: timestamp('explored_at'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('user_artist_progress_user_artist_idx').on(table.userId, table.artistId),
+  index('user_artist_progress_user_idx').on(table.userId),
+]);
+
+export const userArtworkProgress = pgTable('user_artwork_progress', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  artworkId: integer('artwork_id').references(() => artworks.id, { onDelete: 'cascade' }).notNull(),
+  isExplored: boolean('is_explored').default(false).notNull(),
+  exploredAt: timestamp('explored_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('user_artwork_progress_user_artwork_idx').on(table.userId, table.artworkId),
+  index('user_artwork_progress_user_idx').on(table.userId),
+]);
+
 // ==================== RELATIONS ====================
 
 export const seasonsRelations = relations(seasons, ({ one, many }) => ({
@@ -417,6 +494,23 @@ export const usersRelations = relations(users, ({ many }) => ({
   collectionProgress: many(userCollectionProgress),
   episodeProgress: many(userEpisodeProgress),
   comments: many(comments),
+  artistProgress: many(userArtistProgress),
+  artworkProgress: many(userArtworkProgress),
+}));
+
+export const artistsRelations = relations(artists, ({ many }) => ({
+  progress: many(userArtistProgress),
+  artworks: many(artworks),
+}));
+
+export const userArtistProgressRelations = relations(userArtistProgress, ({ one }) => ({
+  user: one(users, { fields: [userArtistProgress.userId], references: [users.id] }),
+  artist: one(artists, { fields: [userArtistProgress.artistId], references: [artists.id] }),
+}));
+
+export const userArtworkProgressRelations = relations(userArtworkProgress, ({ one }) => ({
+  user: one(users, { fields: [userArtworkProgress.userId], references: [users.id] }),
+  artwork: one(artworks, { fields: [userArtworkProgress.artworkId], references: [artworks.id] }),
 }));
 
 export const mediaItemsRelations = relations(mediaItems, ({ many }) => ({

@@ -30,6 +30,7 @@ async function fetchPosterFromProvider(
       const clientId = process.env.IGDB_CLIENT_ID;
       const clientSecret = process.env.IGDB_CLIENT_SECRET;
       if (!clientId || !clientSecret) return { posterPath: null, backdropPath: null };
+      const igdbId = String(externalId).replace(/^igdb-/, '');
 
       const tokenResp = await fetch('https://id.twitch.tv/oauth2/token', {
         method: 'POST',
@@ -50,7 +51,7 @@ async function fetchPosterFromProvider(
           Authorization: `Bearer ${tokenData.access_token}`,
           'Content-Type': 'text/plain',
         },
-        body: `fields id,cover.image_id,artworks.image_id; where id = ${externalId}; limit 1;`,
+        body: `fields id,cover.image_id,artworks.image_id; where id = ${igdbId}; limit 1;`,
       });
       if (!gameResp.ok) return { posterPath: null, backdropPath: null };
       const gameData = (await gameResp.json()) as Array<{

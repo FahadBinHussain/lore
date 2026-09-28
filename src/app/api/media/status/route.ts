@@ -5,6 +5,7 @@ import { userMediaProgress, mediaItems, userEpisodeProgress, episodes, seasons, 
 import { eq, and, sql } from 'drizzle-orm';
 import { ensureCanonicalMediaItem, findMediaItemByExternalMapping } from '@/lib/media/canonical';
 import { getPrimaryProviderForMediaType } from '@/lib/media/provider-registry';
+import { resolveTvSeason, resolveTvEpisode } from '@/lib/media/tv-episode-resolver';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -69,7 +70,9 @@ export async function GET(request: NextRequest) {
         !Number.isNaN(requestedSeasonNumber) &&
         !Number.isNaN(requestedEpisodeNumber)
       ) {
-        const episodeSource = mediaType === 'anime' ? 'anilist' : 'tmdb';
+        // Keyed by (media item, season number, episode number) — unique across
+        // the whole table after the episode-keying dedupe, so a source filter
+        // here would only hide progress stored under another convention.
         const episodeProgress = await db
           .select({ id: userEpisodeProgress.id })
           .from(userEpisodeProgress)
@@ -80,8 +83,7 @@ export async function GET(request: NextRequest) {
             eq(userEpisodeProgress.isWatched, true),
             eq(seasons.mediaItemId, mediaItem.id),
             eq(seasons.seasonNumber, requestedSeasonNumber),
-            eq(episodes.episodeNumber, requestedEpisodeNumber),
-            eq(episodes.source, episodeSource)
+            eq(episodes.episodeNumber, requestedEpisodeNumber)
           ))
           .limit(1);
 
@@ -172,7 +174,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { mediaId, mediaType, isWatched, title, posterPath, releaseDate, totalEpisodes } = body;
+    const { mediaId, mediaType, isWatched, title, posterPath, releaseDate, totalEpisodes, source: bodySource } = body;
     
     console.log('Received status update request:', { mediaId, mediaType, isWatched, title });
 
@@ -180,7 +182,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'mediaId and mediaType required' }, { status: 400 });
     }
 
-    const preferredSource = getPrimaryProviderForMediaType(mediaType) || (mediaType === 'anime' ? 'anilist' : 'tmdb');
+    const preferredSource = (bodySource as string) || getPrimaryProviderForMediaType(mediaType) || (mediaType === 'anime' ? 'anilist' : 'tmdb');
 
     const ensuredItem = await ensureCanonicalMediaItem({
       externalId: mediaId,
@@ -320,64 +322,32 @@ export async function POST(request: NextRequest) {
                   }>;
                 };
 
-                const seasonExternalId = `${mediaId}-${seasonNum}`;
-                let seasonRecord = await db.query.seasons.findFirst({
-                  where: and(
-                    eq(seasons.externalId, seasonExternalId),
-                    eq(seasons.source, 'tmdb')
-                  ),
-                });
-
                 const episodeCount = seasonData.episodes?.length || 0;
 
-                if (!seasonRecord) {
-                  const [createdSeason] = await db.insert(seasons).values({
-                    mediaItemId,
-                    externalId: seasonExternalId,
-                    source: 'tmdb',
-                    seasonNumber: seasonNum,
-                    name: seasonData.name || `Season ${seasonNum}`,
-                    overview: seasonData.overview || null,
-                    posterPath: seasonData.poster_path || null,
-                    airDate: seasonData.air_date || null,
+                // Resolve the canonical season row by (media item, season number)
+                // so the cascade never creates a duplicate `{showId}-{season}`
+                // season next to an existing enriched import.
+                const seasonRecord = await resolveTvSeason(mediaItemId, numericMediaId, seasonNum, {
+                  name: seasonData.name,
+                  overview: seasonData.overview,
+                  posterPath: seasonData.poster_path,
+                  airDate: seasonData.air_date,
+                  episodeCount,
+                });
+
+                await db.update(seasons)
+                  .set({
+                    name: seasonData.name || seasonRecord.name,
+                    overview: seasonData.overview || seasonRecord.overview,
+                    posterPath: seasonData.poster_path || seasonRecord.posterPath,
+                    airDate: seasonData.air_date || seasonRecord.airDate,
                     episodeCount,
-                  }).returning();
-                  seasonRecord = createdSeason;
-                } else {
-                  await db.update(seasons)
-                    .set({
-                      name: seasonData.name || seasonRecord.name,
-                      overview: seasonData.overview || seasonRecord.overview,
-                      posterPath: seasonData.poster_path || seasonRecord.posterPath,
-                      airDate: seasonData.air_date || seasonRecord.airDate,
-                      episodeCount,
-                      updatedAt: new Date(),
-                    })
-                    .where(eq(seasons.id, seasonRecord.id));
-                }
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(seasons.id, seasonRecord.id));
 
                 for (const ep of seasonData.episodes || []) {
-                  const episodeExternalId = `${mediaId}-${seasonNum}-${ep.episode_number}`;
-                  const existingEpisode = await db.query.episodes.findFirst({
-                    where: and(
-                      eq(episodes.externalId, episodeExternalId),
-                      eq(episodes.source, 'tmdb')
-                    ),
-                  });
-
-                  if (!existingEpisode) {
-                    await db.insert(episodes).values({
-                      seasonId: seasonRecord.id,
-                      externalId: episodeExternalId,
-                      source: 'tmdb',
-                      episodeNumber: ep.episode_number,
-                      name: ep.name || `Episode ${ep.episode_number}`,
-                      overview: ep.overview || null,
-                      stillPath: ep.still_path || null,
-                      airDate: ep.air_date || null,
-                      runtime: ep.runtime || null,
-                    });
-                  }
+                  await resolveTvEpisode(seasonRecord.id, numericMediaId, seasonNum, ep.episode_number);
                 }
               }
             }

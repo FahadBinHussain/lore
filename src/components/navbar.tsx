@@ -208,6 +208,7 @@ export function Navbar() {
               { href: '/anime', label: 'Anime' },
               { href: '/games', label: 'Games' },
               { href: '/books', label: 'Books' },
+              { href: '/artists', label: 'Artists' },
             ].map((item) => {
               const active = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
@@ -237,6 +238,7 @@ export function Navbar() {
                     { href: '/soundtracks', label: 'Soundtracks' },
                     { href: '/podcasts', label: 'Podcasts' },
                     { href: '/themeparks', label: 'Theme Parks' },
+                    { href: '/artists', label: 'Artists' },
                   ].map((item) => {
                     const active = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
@@ -552,6 +554,7 @@ export function Navbar() {
                     { href: '/tv', label: 'TV Shows' },
                     { href: '/anime', label: 'Anime' },
                     { href: '/universes', label: 'Universes', extra: universesActive || universesPending },
+                    { href: '/artists', label: 'Artists' },
                   ].map((item) => {
                     const active = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (

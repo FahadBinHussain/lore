@@ -49,6 +49,7 @@ type ExpandedEpisodeEntry = {
   href: string | null;
   airDate: Date | string | null;
   runtime: number | null;
+  rating: number | null;
 };
 
 type ExpandedReleaseEntry = {
@@ -358,6 +359,7 @@ export default async function Page({ params }: UniversePageProps) {
             href: getEpisodeDetailHref(mediaItem, season.seasonNumber, episode.episodeNumber),
             airDate: episode.airDate,
             runtime: episode.runtime,
+            rating: episode.rating ? Number(episode.rating) : null,
           };
           return [entry];
         })
@@ -473,6 +475,7 @@ export default async function Page({ params }: UniversePageProps) {
               title: entry.title,
               href: entry.href,
               runtimeLabel: formatRuntime(entry.runtime),
+              rating: entry.rating,
             };
           }
           return {
@@ -548,7 +551,7 @@ export default async function Page({ params }: UniversePageProps) {
               isTrackable,
               initialStatus: isTrackable && watchedEpisodeIds.has(episode.id) ? 'completed' : null,
               description: getDisplayDescription(episode.overview ?? mediaItem.description ?? null),
-              rating: mediaItem.rating ? Number(mediaItem.rating) : null,
+              rating: episode.rating ? Number(episode.rating) : (mediaItem.rating ? Number(mediaItem.rating) : null),
               mediaId: mediaItem.externalId,
               mediaType: mediaItem.mediaType,
               posterPath: mediaItem.posterPath ?? null,

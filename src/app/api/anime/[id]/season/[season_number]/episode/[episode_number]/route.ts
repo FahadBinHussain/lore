@@ -63,11 +63,12 @@ export async function POST(
           .where(eq(mediaItems.id, mediaItem.id));
       }
 
-      // Ensure season row exists
+      // Ensure season row exists — resolved by (media item, season number)
+      // regardless of source, so a show whose episodes were seeded under a
+      // different convention never gets a second season row created.
       let season = await db.query.seasons.findFirst({
         where: and(
           eq(seasons.mediaItemId, mediaItem.id),
-          eq(seasons.source, 'anilist'),
           eq(seasons.seasonNumber, seasonNumber)
         ),
       });
@@ -84,19 +85,19 @@ export async function POST(
         season = createdSeason;
       }
 
-      // Ensure episode row exists
-      const episodeExternalId = `${animeId}-${seasonNumber}-${episodeNumber}`;
+      // Ensure episode row exists — keyed by (season, episode number), never by
+      // external_id string (see tv-episode-resolver.ts for why).
       let episode = await db.query.episodes.findFirst({
         where: and(
-          eq(episodes.externalId, episodeExternalId),
-          eq(episodes.source, 'anilist')
+          eq(episodes.seasonId, season.id),
+          eq(episodes.episodeNumber, episodeNumber)
         ),
       });
 
       if (!episode) {
         const [createdEpisode] = await db.insert(episodes).values({
           seasonId: season.id,
-          externalId: episodeExternalId,
+          externalId: `${animeId}-${seasonNumber}-${episodeNumber}`,
           source: 'anilist',
           episodeNumber,
           name: `Episode ${episodeNumber}`,

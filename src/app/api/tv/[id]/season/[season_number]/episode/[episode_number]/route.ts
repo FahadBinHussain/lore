@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db/index';
-import { userEpisodeProgress, episodes, seasons, mediaItems, userMediaProgress } from '@/db/schema';
+import { userEpisodeProgress, userMediaProgress, episodes, seasons } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
+import { resolveTvShow, resolveTvSeason, resolveTvEpisode } from '@/lib/media/tv-episode-resolver';
 
 export async function GET(
   request: NextRequest,
@@ -39,29 +40,22 @@ export async function GET(
       try {
         const userId = parseInt(session.user.id);
 
-        // Try to find the episode in our database
-        const dbEpisode = await db
+        // Resolve the canonical episode row by (show, season, episode number),
+        // never by external_id string — see tv-episode-resolver.ts.
+        const mediaItem = await resolveTvShow(showId);
+        const season = await resolveTvSeason(mediaItem.id, showId, seasonNumber);
+        const dbEpisode = await resolveTvEpisode(season.id, showId, seasonNumber, episodeNumber);
+
+        const watchStatus = await db
           .select()
-          .from(episodes)
+          .from(userEpisodeProgress)
           .where(and(
-            eq(episodes.externalId, `${showId}-${seasonNumber}-${episodeNumber}`),
-            eq(episodes.source, 'tmdb')
+            eq(userEpisodeProgress.userId, userId),
+            eq(userEpisodeProgress.episodeId, dbEpisode.id)
           ))
           .limit(1);
 
-        if (dbEpisode.length > 0) {
-          // Check if user has watched this episode
-          const watchStatus = await db
-            .select()
-            .from(userEpisodeProgress)
-            .where(and(
-              eq(userEpisodeProgress.userId, userId),
-              eq(userEpisodeProgress.episodeId, dbEpisode[0].id)
-            ))
-            .limit(1);
-
-          isWatched = watchStatus.length > 0 && watchStatus[0].isWatched;
-        }
+        isWatched = watchStatus.length > 0 && watchStatus[0].isWatched;
       } catch (dbError) {
         // If database tables don't exist yet, episode is not watched
         console.log('Database error when checking watched status:', dbError);
@@ -97,7 +91,6 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; season_number: string; episode_number: string }> }
 ) {
-  console.log('POST episode route called with params:', await params);
   const { id: idParam, season_number: seasonNumberParam, episode_number: episodeNumberParam } = await params;
   const numericIdMatch = idParam.match(/(\d+)$/);
   const showId = numericIdMatch ? parseInt(numericIdMatch[1]) : parseInt(idParam);
@@ -124,172 +117,13 @@ export async function POST(
           ? new Date(watched_at)
           : new Date();
 
-      // First, try to find the episode in our database
-      const dbEpisode = await db
-        .select()
-        .from(episodes)
-        .where(and(
-          eq(episodes.externalId, `${showId}-${seasonNumber}-${episodeNumber}`),
-          eq(episodes.source, 'tmdb')
-        ))
-        .limit(1);
-
-      let episodeId: number;
-
-      if (dbEpisode.length === 0) {
-        // Episode doesn't exist, create it
-        // First, we need to ensure the season exists
-        let seasonRecord = await db
-          .select()
-          .from(seasons)
-          .where(and(
-            eq(seasons.externalId, `${showId}-${seasonNumber}`),
-            eq(seasons.source, 'tmdb')
-          ))
-          .limit(1);
-
-        if (seasonRecord.length === 0) {
-          // Season doesn't exist, create it
-          // We need to get the media item ID
-          let mediaItem = await db
-            .select()
-            .from(mediaItems)
-            .where(and(
-              eq(mediaItems.externalId, showId.toString()),
-              eq(mediaItems.source, 'tmdb')
-            ))
-            .limit(1);
-
-          if (mediaItem.length === 0) {
-            // Fetch show details from TMDB
-            const showResponse = await fetch(
-              `https://api.themoviedb.org/3/tv/${showId}?api_key=${process.env.TMDB_API_KEY}`
-            );
-
-            let showData = null;
-            if (showResponse.ok) {
-              showData = await showResponse.json();
-              console.log('Fetched show data for', showId, showData?.name);
-            } else {
-              console.log('Failed to fetch show data for', showId, 'status:', showResponse.status);
-            }
-
-            // Create the media item
-            const newMediaItem = await db
-              .insert(mediaItems)
-              .values([{
-                externalId: showId.toString(),
-                source: 'tmdb',
-                mediaType: 'tv',
-                title: showData?.name || showData?.title || `TV Show ${showId}`,
-                description: showData?.overview || null,
-                posterPath: showData?.poster_path || null,
-                backdropPath: showData?.backdrop_path || null,
-                releaseDate: showData?.first_air_date || null,
-                rating: showData?.vote_average || null,
-                voteCount: showData?.vote_count || 0,
-                genres: Array.isArray(showData?.genres)
-                  ? showData.genres.map((genre: { name?: string }) => genre?.name).filter(Boolean)
-                  : null,
-                runtime: null,
-                pageCount: null,
-                developer: null,
-                publisher: null,
-                author: null,
-                isbn: null,
-                platforms: null,
-                networks: Array.isArray(showData?.networks)
-                  ? showData.networks.map((network: { name?: string }) => network?.name).filter(Boolean)
-                  : null,
-                seasons: showData?.number_of_seasons || null,
-                totalEpisodes: showData?.number_of_episodes || null,
-                status: showData?.status || null,
-                isPlaceholder: !showData,
-                tagline: showData?.tagline || null,
-                popularity: showData?.popularity || null,
-                additionalData: null,
-              }])
-              .returning();
-
-            mediaItem = newMediaItem;
-          } else if (mediaItem[0].isPlaceholder) {
-            // Update placeholder media item with real data
-            const showResponse = await fetch(
-              `https://api.themoviedb.org/3/tv/${showId}?api_key=${process.env.TMDB_API_KEY}`
-            );
-
-            let showData = null;
-            if (showResponse.ok) {
-              showData = await showResponse.json();
-              console.log('Fetched show data for existing placeholder', showId, showData?.name);
-            } else {
-              console.log('Failed to fetch show data for existing placeholder', showId, 'status:', showResponse.status);
-            }
-
-            if (showData) {
-              await db
-                .update(mediaItems)
-                .set({
-                  title: showData.name || showData.title || mediaItem[0].title,
-                  description: showData.overview || mediaItem[0].description,
-                  posterPath: showData.poster_path || mediaItem[0].posterPath,
-                  backdropPath: showData.backdrop_path || mediaItem[0].backdropPath,
-                  releaseDate: showData.first_air_date || mediaItem[0].releaseDate,
-                  rating: showData.vote_average || mediaItem[0].rating,
-                  voteCount: showData.vote_count || mediaItem[0].voteCount,
-                  genres: Array.isArray(showData.genres)
-                    ? showData.genres.map((genre: { name?: string }) => genre?.name).filter(Boolean)
-                    : mediaItem[0].genres,
-                  networks: Array.isArray(showData.networks)
-                    ? showData.networks.map((network: { name?: string }) => network?.name).filter(Boolean)
-                    : mediaItem[0].networks,
-                  seasons: showData.number_of_seasons || mediaItem[0].seasons,
-                  totalEpisodes: showData.number_of_episodes || mediaItem[0].totalEpisodes,
-                  status: showData.status || mediaItem[0].status,
-                  isPlaceholder: false,
-                  tagline: showData.tagline || mediaItem[0].tagline,
-                  popularity: showData.popularity || mediaItem[0].popularity,
-                })
-                .where(eq(mediaItems.id, mediaItem[0].id));
-
-              // Update the mediaItem in memory
-              mediaItem[0] = { ...mediaItem[0], ...showData, isPlaceholder: false };
-            }
-          }
-
-          // Create season
-          const newSeason = await db
-            .insert(seasons)
-            .values({
-              mediaItemId: mediaItem[0].id,
-              externalId: `${showId}-${seasonNumber}`,
-              source: 'tmdb',
-              seasonNumber: seasonNumber,
-              name: `Season ${seasonNumber}`,
-              episodeCount: 0, // We'll update this later
-            })
-            .returning();
-
-          seasonRecord = newSeason;
-        }
-
-        // Create episode
-        const newEpisode = await db
-          .insert(episodes)
-          .values({
-            seasonId: seasonRecord[0].id,
-            externalId: `${showId}-${seasonNumber}-${episodeNumber}`,
-            source: 'tmdb',
-            episodeNumber: episodeNumber,
-            name: `Episode ${episodeNumber}`,
-            overview: null,
-          })
-          .returning();
-
-        episodeId = newEpisode[0].id;
-      } else {
-        episodeId = dbEpisode[0].id;
-      }
+      // Resolve the canonical episode row by (show, season, episode number).
+      // Creating through the resolver keeps the enriched `tmdb-episode-*`
+      // convention and can never spawn a duplicate season.
+      const mediaItem = await resolveTvShow(showId);
+      const season = await resolveTvSeason(mediaItem.id, showId, seasonNumber);
+      const episode = await resolveTvEpisode(season.id, showId, seasonNumber, episodeNumber);
+      const episodeId = episode.id;
 
       // Now update or create user progress
       const existingProgress = await db
@@ -324,94 +158,80 @@ export async function POST(
       }
 
       // Recompute parent show status from DB episode progress (anime parity behavior)
-      const mediaItem = await db
-        .select()
-        .from(mediaItems)
+      const watchedCountResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(userEpisodeProgress)
+        .innerJoin(episodes, eq(userEpisodeProgress.episodeId, episodes.id))
+        .innerJoin(seasons, eq(episodes.seasonId, seasons.id))
         .where(and(
-          eq(mediaItems.externalId, showId.toString()),
-          eq(mediaItems.source, 'tmdb'),
-          eq(mediaItems.mediaType, 'tv')
+          eq(userEpisodeProgress.userId, userId),
+          eq(userEpisodeProgress.isWatched, true),
+          eq(seasons.mediaItemId, mediaItem.id)
+        ));
+
+      const totalCountResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(episodes)
+        .innerJoin(seasons, eq(episodes.seasonId, seasons.id))
+        .where(eq(seasons.mediaItemId, mediaItem.id));
+
+      const watchedCount = Number(watchedCountResult[0]?.count || 0);
+      const totalCount = Number(totalCountResult[0]?.count || 0);
+      const shouldBeCompleted = totalCount > 0 && watchedCount === totalCount;
+
+      const existingMediaProgress = await db
+        .select()
+        .from(userMediaProgress)
+        .where(and(
+          eq(userMediaProgress.userId, userId),
+          eq(userMediaProgress.mediaItemId, mediaItem.id)
         ))
         .limit(1);
 
-      if (mediaItem.length > 0) {
-        const mediaItemId = mediaItem[0].id;
-
-        const watchedCountResult = await db
-          .select({ count: sql<number>`count(*)` })
-          .from(userEpisodeProgress)
-          .innerJoin(episodes, eq(userEpisodeProgress.episodeId, episodes.id))
-          .innerJoin(seasons, eq(episodes.seasonId, seasons.id))
-          .where(and(
-            eq(userEpisodeProgress.userId, userId),
-            eq(userEpisodeProgress.isWatched, true),
-            eq(seasons.mediaItemId, mediaItemId)
-          ));
-
-        const totalCountResult = await db
-          .select({ count: sql<number>`count(*)` })
-          .from(episodes)
-          .innerJoin(seasons, eq(episodes.seasonId, seasons.id))
-          .where(eq(seasons.mediaItemId, mediaItemId));
-
-        const watchedCount = Number(watchedCountResult[0]?.count || 0);
-        const totalCount = Number(totalCountResult[0]?.count || 0);
-        const shouldBeCompleted = totalCount > 0 && watchedCount === totalCount;
-
-        const existingMediaProgress = await db
-          .select()
-          .from(userMediaProgress)
-          .where(and(
-            eq(userMediaProgress.userId, userId),
-            eq(userMediaProgress.mediaItemId, mediaItemId)
-          ))
-          .limit(1);
-
-        if (shouldBeCompleted) {
-          if (existingMediaProgress.length > 0) {
-            await db.update(userMediaProgress)
-              .set({
-                status: 'completed',
-                currentProgress: watchedCount,
-                completedAt: watchedAtDate,
-                lastActivityAt: watchedAtDate,
-                updatedAt: new Date(),
-              })
-              .where(eq(userMediaProgress.id, existingMediaProgress[0].id));
-          } else {
-            await db.insert(userMediaProgress).values({
-              userId,
-              mediaItemId,
+      if (shouldBeCompleted) {
+        if (existingMediaProgress.length > 0) {
+          await db.update(userMediaProgress)
+            .set({
               status: 'completed',
               currentProgress: watchedCount,
               completedAt: watchedAtDate,
               lastActivityAt: watchedAtDate,
-            });
-          }
-        } else if (watchedCount > 0) {
-          if (existingMediaProgress.length > 0) {
-            await db.update(userMediaProgress)
-              .set({
-                status: 'in_progress',
-                currentProgress: watchedCount,
-                completedAt: null,
-                lastActivityAt: watchedAtDate,
-                updatedAt: new Date(),
-              })
-              .where(eq(userMediaProgress.id, existingMediaProgress[0].id));
-          } else {
-            await db.insert(userMediaProgress).values({
-              userId,
-              mediaItemId,
+              updatedAt: new Date(),
+            })
+            .where(eq(userMediaProgress.id, existingMediaProgress[0].id));
+        } else {
+          await db.insert(userMediaProgress).values({
+            userId,
+            mediaItemId: mediaItem.id,
+            status: 'completed',
+            currentProgress: watchedCount,
+            completedAt: watchedAtDate,
+            lastActivityAt: watchedAtDate,
+          });
+        }
+      } else if (watchedCount > 0) {
+        if (existingMediaProgress.length > 0) {
+          await db.update(userMediaProgress)
+            .set({
               status: 'in_progress',
               currentProgress: watchedCount,
+              completedAt: null,
               lastActivityAt: watchedAtDate,
-            });
-          }
-        } else if (existingMediaProgress.length > 0) {
-          await db.delete(userMediaProgress)
+              updatedAt: new Date(),
+            })
             .where(eq(userMediaProgress.id, existingMediaProgress[0].id));
+        } else {
+          await db.insert(userMediaProgress).values({
+            userId,
+            mediaItemId: mediaItem.id,
+            status: 'in_progress',
+            currentProgress: watchedCount,
+            lastActivityAt: watchedAtDate,
+          });
         }
+      } else if (existingMediaProgress.length > 0) {
+        await db.delete(userMediaProgress)
+          .where(eq(userMediaProgress.id, existingMediaProgress[0].id));
       }
 
       return NextResponse.json({ success: true, is_watched });

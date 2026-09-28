@@ -33,6 +33,7 @@ export type UniverseTimelineEntryDisplay =
       title: string;
       href: string | null;
       runtimeLabel: string | null;
+      rating: number | null;
     }
   | {
       kind: 'release';
@@ -324,6 +325,12 @@ export function UniverseTimelineCard({
                             </div>
                             {entry.runtimeLabel ? (
                               <span className="mt-1 block text-xs text-base-content/50">{entry.runtimeLabel}</span>
+                            ) : null}
+                            {entry.rating ? (
+                              <span className="mt-1 flex items-center gap-1 text-xs font-semibold text-amber-500">
+                                <Star className="w-3 h-3 fill-current" />
+                                {entry.rating.toFixed(1)}
+                              </span>
                             ) : null}
                           </>
                         ) : (
