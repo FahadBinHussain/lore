@@ -625,9 +625,9 @@ async function main() {
   // ---------------------------------------------------------------- apply
   console.log('\napplying...');
 
-  const creator = await db.query.users.findFirst({ where: eq(users.email, 'fahadbinhussain001@gmail.com') });
+  const creator = (process.env.CREATOR_EMAIL ? await db.query.users.findFirst({ where: eq(users.email, process.env.CREATOR_EMAIL) }) : null) || await db.query.users.findFirst();
   if (!creator) {
-    console.error('!! creator user fahadbinhussain001@gmail.com not found — aborting');
+    console.error('!! no user found in database — aborting');
     process.exit(1);
   }
 

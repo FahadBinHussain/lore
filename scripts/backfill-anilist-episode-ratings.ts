@@ -102,7 +102,7 @@ async function fetchAnilistMedia(anilistId: number): Promise<{ titles: string[];
 
 async function tmdbSearch(query: string): Promise<Array<{ id: number; name: string }>> {
   const data = await fetchJson(
-    `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&page=1&include_adult=true`,
+    `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&page=1`,
     undefined,
     3
   );
