@@ -129,25 +129,25 @@ export function SearchContent() {
         {/* Search Bar */}
         <div className="w-full max-w-2xl relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full blur-xl opacity-50 group-hover:opacity-100 transition duration-1000"></div>
-          <div className="relative flex items-center bg-surface-container-high rounded-full px-6 py-5 border border-outline-variant/20 shadow-2xl">
-            <Search className="text-on-surface-variant mr-4" />
+          <div className="relative flex items-center bg-base-200 rounded-full px-6 py-4 border border-base-content/15 shadow-xl">
+            <Search className="text-base-content/60 mr-4" />
             <input
               type="text"
-              className="bg-transparent border-none focus:ring-0 text-on-surface placeholder-on-surface-variant w-full font-body text-lg"
+              className="bg-transparent border-none focus:outline-none focus:ring-0 text-base-content placeholder:text-base-content/40 w-full font-body text-lg"
               placeholder="Search universes, media, or archives..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
             <div className="flex items-center gap-2">
-              <kbd className="hidden md:flex items-center justify-center bg-surface-container-highest border border-outline-variant/30 text-on-surface-variant px-2 py-1 rounded-lg text-xs font-sans">⌘</kbd>
-              <kbd className="hidden md:flex items-center justify-center bg-surface-container-highest border border-outline-variant/30 text-on-surface-variant px-2 py-1 rounded-lg text-xs font-sans">K</kbd>
+              <kbd className="hidden md:flex items-center justify-center bg-base-300 border border-base-content/15 text-base-content/70 px-2 py-1 rounded-lg text-xs font-sans">⌘</kbd>
+              <kbd className="hidden md:flex items-center justify-center bg-base-300 border border-base-content/15 text-base-content/70 px-2 py-1 rounded-lg text-xs font-sans">K</kbd>
             </div>
           </div>
         </div>
 
         {/* Search Results */}
         {showResults && (
-          <div className="w-full max-w-2xl mt-4 bg-surface-container rounded-2xl border border-outline-variant/20 shadow-2xl overflow-hidden">
+          <div className="w-full max-w-2xl mt-4 bg-base-100 rounded-2xl border border-base-content/15 shadow-2xl overflow-hidden">
             {loading ? (
               <ListSkeleton count={4} />
             ) : results.length > 0 ? (
@@ -156,23 +156,23 @@ export function SearchContent() {
                   <button
                     key={item.id}
                     onClick={() => handleItemClick(item)}
-                    className="w-full flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors text-left"
+                    className="w-full flex items-center gap-4 p-4 hover:bg-base-200 transition-colors text-left"
                   >
-                    <div className="w-12 h-16 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0 relative">
+                    <div className="w-12 h-16 rounded-lg overflow-hidden bg-base-300 flex-shrink-0 relative">
                       {item.image && (
                         <Image src={item.image} alt={item.title} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-on-surface truncate">{item.title}</h3>
-                      <p className="text-sm text-on-surface-variant">{item.genre} • {item.year}</p>
+                      <h3 className="font-medium text-base-content truncate">{item.title}</h3>
+                      <p className="text-sm text-base-content/70">{item.genre} • {item.year}</p>
                     </div>
                     {getCategoryIcon(item.type)}
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="py-12 text-center text-on-surface-variant">
+              <div className="py-12 text-center text-base-content/70">
                 No results found. Try a different search term.
               </div>
             )}
@@ -182,43 +182,43 @@ export function SearchContent() {
         {/* Discover Buttons */}
         <div className="flex flex-wrap justify-center gap-3 mt-12">
           <Link href="/movies">
-            <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-full transition-all border border-outline-variant/10">
+            <button className="flex items-center gap-2 px-6 py-3 bg-base-200 hover:bg-base-300 text-base-content rounded-full transition-all border border-base-content/15 shadow-sm">
               <Film className="text-lg" />
               <span className="text-sm font-medium">Movies</span>
             </button>
           </Link>
           <Link href="/tv">
-            <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-full transition-all border border-outline-variant/10">
+            <button className="flex items-center gap-2 px-6 py-3 bg-base-200 hover:bg-base-300 text-base-content rounded-full transition-all border border-base-content/15 shadow-sm">
               <Tv className="text-lg" />
               <span className="text-sm font-medium">TV Shows</span>
             </button>
           </Link>
           <Link href="/games">
-            <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-full transition-all border border-outline-variant/10">
+            <button className="flex items-center gap-2 px-6 py-3 bg-base-200 hover:bg-base-300 text-base-content rounded-full transition-all border border-base-content/15 shadow-sm">
               <Gamepad2 className="text-lg" />
               <span className="text-sm font-medium">Games</span>
             </button>
           </Link>
           <Link href="/books">
-            <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-full transition-all border border-outline-variant/10">
+            <button className="flex items-center gap-2 px-6 py-3 bg-base-200 hover:bg-base-300 text-base-content rounded-full transition-all border border-base-content/15 shadow-sm">
               <BookOpen className="text-lg" />
               <span className="text-sm font-medium">Books</span>
             </button>
           </Link>
           <Link href="/anime">
-            <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-full transition-all border border-outline-variant/10">
+            <button className="flex items-center gap-2 px-6 py-3 bg-base-200 hover:bg-base-300 text-base-content rounded-full transition-all border border-base-content/15 shadow-sm">
               <ScanSearch className="text-lg" />
               <span className="text-sm font-medium">Anime</span>
             </button>
           </Link>
           <Link href="/manga">
-            <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-full transition-all border border-outline-variant/10">
+            <button className="flex items-center gap-2 px-6 py-3 bg-base-200 hover:bg-base-300 text-base-content rounded-full transition-all border border-base-content/15 shadow-sm">
               <BookCopy className="text-lg" />
               <span className="text-sm font-medium">Manga</span>
             </button>
           </Link>
           <Link href="/podcasts">
-            <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-full transition-all border border-outline-variant/10">
+            <button className="flex items-center gap-2 px-6 py-3 bg-base-200 hover:bg-base-300 text-base-content rounded-full transition-all border border-base-content/15 shadow-sm">
               <Mic className="text-lg" />
               <span className="text-sm font-medium">Podcasts</span>
             </button>
@@ -229,7 +229,7 @@ export function SearchContent() {
       {/* Trending Section */}
       <section className="mb-20">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="font-headline text-2xl font-bold tracking-tight">Trending in your circle</h2>
+          <h2 className="font-headline text-2xl font-bold tracking-tight text-base-content">Trending in your circle</h2>
           <Link href="#" className="text-primary text-sm font-medium hover:underline">View All</Link>
         </div>
         {trendingLoading ? (
@@ -252,20 +252,20 @@ export function SearchContent() {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-surface-container-highest flex items-center justify-center">
+                    <div className="w-full h-full bg-base-300 flex items-center justify-center">
                       {getCategoryIcon(item.type)}
                     </div>
                   )}
-                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1">
-                    <Star className="text-yellow-400 text-xs" fill="currentColor" />
+                  <div className="absolute top-3 right-3 badge bg-base-100/85 backdrop-blur-md border border-base-content/15 px-2 py-1 rounded-lg flex items-center gap-1 text-base-content shadow-sm">
+                    <Star className="text-warning text-xs" fill="currentColor" />
                     <span className="text-[10px] font-bold">{item.rating}</span>
                   </div>
-                  <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg">
+                  <div className="absolute bottom-3 left-3 badge bg-base-100/85 backdrop-blur-md border border-base-content/15 px-2 py-1 rounded-lg text-base-content shadow-sm">
                     <span className="text-[10px] font-medium uppercase">{item.type}</span>
                   </div>
                 </div>
-                <h3 className="font-bold text-on-surface text-base line-clamp-1">{item.title}</h3>
-                <p className="text-on-surface-variant text-xs mt-1">{item.year}</p>
+                <h3 className="font-bold text-base-content text-base line-clamp-1">{item.title}</h3>
+                <p className="text-base-content/70 text-xs mt-1">{item.year}</p>
               </div>
             ))}
           </div>

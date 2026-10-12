@@ -82,10 +82,10 @@ export default function SoundtracksPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
       <section className="relative py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-blue-500/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
         <div className="relative w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge variant="outline" className="mb-4 bg-indigo-500/10 text-indigo-500 border-indigo-500/30">
+            <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/30">
               <Music className="w-3 h-3 mr-1" />
               Soundtracks
             </Badge>
@@ -108,7 +108,7 @@ export default function SoundtracksPage() {
                 placeholder="Search soundtracks by title, artist, or composer..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-3 text-lg rounded-xl border-2 focus:border-indigo-500/50"
+                className="pl-12 pr-4 py-3 text-lg rounded-xl border-2 focus:border-primary"
               />
             </div>
           </form>
@@ -154,12 +154,12 @@ export default function SoundtracksPage() {
                 <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:scale-105">
                   <CardContent className="p-0">
                     <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/20 dark:to-blue-900/20">
-                        <Music className="w-16 h-16 text-indigo-500" />
+                      <div className="w-full h-full flex items-center justify-center bg-base-200">
+                        <Music className="w-16 h-16 text-base-content/40" />
                       </div>
                     </div>
                     <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-primary transition-colors">
                         {track.title}
                       </h3>
                       {track.artist && (

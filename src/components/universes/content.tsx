@@ -1,10 +1,36 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Trash2, Film, Tv, Clapperboard, Gamepad2, BookOpen, Library, BookA, Mic, Music, Dices, FerrisWheel, LayoutGrid, PenLine, ArrowRight, User, Plus, Lock } from 'lucide-react';
+import {
+  Loader2,
+  Trash2,
+  Film,
+  Tv,
+  Clapperboard,
+  Gamepad2,
+  BookOpen,
+  Library,
+  BookA,
+  Mic,
+  Music,
+  Dices,
+  FerrisWheel,
+  LayoutGrid,
+  PenLine,
+  ArrowRight,
+  ArrowDown,
+  User,
+  Plus,
+  Lock,
+  Search,
+  X,
+  Sparkles,
+  Globe2,
+  Layers,
+} from 'lucide-react';
 import { isApiBackedMediaItem } from '@/lib/media/provider-support';
 
 interface Universe {
@@ -173,18 +199,7 @@ function MediaTypeIcon({ type, className }: { type: string; className?: string }
     manual: PenLine,
   };
   const Icon = icons[type] || LayoutGrid;
-  return <Icon className={className} />;
-}
-
-function getVariant(index: number): 'primary' | 'secondary' | 'tertiary' {
-  const variants: Array<'primary' | 'secondary' | 'tertiary'> = ['primary', 'secondary', 'tertiary', 'primary', 'secondary'];
-  return variants[index % variants.length];
-}
-
-function variantTextClass(variant: 'primary' | 'secondary' | 'tertiary'): string {
-  if (variant === 'secondary') return 'text-secondary';
-  if (variant === 'tertiary') return 'text-tertiary';
-  return 'text-primary';
+  return <Icon className={`${className || ''} transition-transform duration-300 group-hover:scale-110`} />;
 }
 
 export function UniversesContent({
@@ -197,6 +212,8 @@ export function UniversesContent({
   const [error, setError] = useState<string | null>(null);
   const [deletingUniverseId, setDeletingUniverseId] = useState<number | null>(null);
   const [canCreateUniverse, setCanCreateUniverse] = useState<boolean>(initialCanCreateUniverse);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'most-titles' | 'progress' | 'alphabetical'>('most-titles');
 
   const totalUniverses = universes.length;
   const totalTitles = universes.reduce((sum, u) => sum + (u.totalItems || u.items.length), 0);
@@ -268,97 +285,173 @@ export function UniversesContent({
     }
   }, []);
 
+  const filteredUniverses = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const list = universes.filter((u) => {
+      if (!q) return true;
+      return (
+        u.name.toLowerCase().includes(q) ||
+        (u.description && u.description.toLowerCase().includes(q))
+      );
+    });
+
+    list.sort((a, b) => {
+      if (sortBy === 'alphabetical') {
+        return a.name.localeCompare(b.name);
+      }
+      if (sortBy === 'progress') {
+        return (b.progress || 0) - (a.progress || 0);
+      }
+      return (b.totalItems || b.items.length) - (a.totalItems || a.items.length);
+    });
+
+    return list;
+  }, [universes, searchQuery, sortBy]);
+
   return (
-    <div className="bg-background text-on-background font-body selection:bg-primary/30">
-      <main>
-        {/* Hero */}
-        <section className="relative overflow-hidden bg-background">
-          <div className="mx-auto max-w-7xl px-6 md:px-12 pt-16 pb-8 md:pt-24 md:pb-12">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
-              {/* Left: title + subtitle */}
-              <div className="max-w-2xl">
-                <span className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-primary uppercase mb-4">
-                  <span className="h-px w-6 bg-primary" />
-                  Explore the Archive
-                </span>
-                <h1 className="text-5xl md:text-7xl font-headline font-extrabold tracking-tight text-on-background mb-4 leading-[0.95]">
-                  The{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-tertiary">
-                    Multiverse
-                  </span>
-                </h1>
-                <p className="text-on-surface-variant text-base md:text-lg max-w-lg leading-relaxed mb-6">
-                  Track every legend across interconnected worlds — movies, games, anime, and beyond.
-                </p>
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={scrollToGrid}
-                    className="inline-flex items-center gap-2 bg-primary text-on-primary-fixed font-bold px-6 py-2.5 rounded-full text-sm hover:scale-105 transition-transform"
+    <div className="bg-base-100 text-base-content font-body selection:bg-primary/30 min-h-screen">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-32">
+        {/* DaisyUI Hero Component */}
+        <section className="hero bg-base-200/60 rounded-3xl border border-base-200/80 p-6 sm:p-10 lg:p-12 mb-10 shadow-sm">
+          <div className="hero-content flex-col lg:flex-row justify-between items-start lg:items-center w-full max-w-none p-0 gap-8">
+            {/* Hero Left: title, badge, subtitle, actions */}
+            <div className="max-w-2xl">
+              <div className="badge badge-primary badge-soft mb-3.5 gap-1.5 font-bold uppercase tracking-wider text-xs px-3 py-2.5">
+                <Sparkles className="w-3.5 h-3.5 animate-pulse text-primary" /> Curated Universes & Canons
+              </div>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-headline font-black tracking-tight text-base-content mb-4 leading-tight">
+                The Multiverse
+              </h1>
+              <p className="text-base-content/70 text-base sm:text-lg max-w-xl leading-relaxed mb-6 font-normal">
+                Track every legend across interconnected worlds — movies, games, anime, books, and lore.
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={scrollToGrid}
+                  className="btn btn-primary rounded-full px-6 text-sm shadow-md gap-2 group"
+                >
+                  Browse Universes
+                  <ArrowDown className="w-4 h-4 transition-transform duration-300 group-hover:translate-y-1" />
+                </button>
+                {canCreateUniverse && (
+                  <Link
+                    href="/universes/create"
+                    className="btn btn-outline btn-primary rounded-full px-6 text-sm gap-2 group"
                   >
-                    Browse Universes
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {canCreateUniverse && (
-                    <Link
-                      href="/universes/create"
-                      className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-secondary transition-colors"
-                    >
-                      Create New
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </Link>
-                  )}
+                    <Plus className="w-4 h-4 transition-transform duration-300 group-hover:rotate-90" />
+                    Forge Realm
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Hero Right: DaisyUI Stats Component */}
+            <div className="stats stats-vertical sm:stats-horizontal shadow-md bg-base-100 border border-base-200 rounded-2xl w-full sm:w-auto">
+              <div className="stat py-4 px-6 sm:px-8 group">
+                <div className="stat-figure text-primary">
+                  <Globe2 className="w-8 h-8 opacity-80 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110" />
                 </div>
+                <div className="stat-title text-xs font-bold uppercase tracking-wider text-base-content/70">
+                  Universes
+                </div>
+                <div className="stat-value text-primary font-headline text-3xl sm:text-4xl">
+                  {totalUniverses}
+                </div>
+                <div className="stat-desc text-base-content/60">Curated sagas</div>
               </div>
 
-              {/* Right: live stats */}
-              <div className="flex gap-8 md:gap-12">
-                <div>
-                  <div className="text-3xl md:text-4xl font-headline font-extrabold text-on-background">{totalUniverses}</div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mt-1">Universes</div>
+              <div className="stat py-4 px-6 sm:px-8 group">
+                <div className="stat-figure text-secondary">
+                  <Layers className="w-8 h-8 opacity-80 transition-transform duration-500 group-hover:-translate-y-1 group-hover:scale-110" />
                 </div>
-                <div>
-                  <div className="text-3xl md:text-4xl font-headline font-extrabold text-on-background">{totalTitles.toLocaleString()}</div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mt-1">Titles</div>
+                <div className="stat-title text-xs font-bold uppercase tracking-wider text-base-content/70">
+                  Total Titles
                 </div>
+                <div className="stat-value text-secondary font-headline text-3xl sm:text-4xl">
+                  {totalTitles.toLocaleString()}
+                </div>
+                <div className="stat-desc text-base-content/60">Across all media</div>
               </div>
             </div>
           </div>
-
-          {/* Bottom fade to content */}
-          <div className="h-12 bg-gradient-to-b from-transparent to-background" />
         </section>
 
-        <section id="universe-grid" className="px-6 md:px-12 pt-4 pb-32 max-w-7xl mx-auto">
+        {/* Section: Universe Grid Controls & Cards */}
+        <section id="universe-grid">
           {error && (
-            <div className="rounded-2xl border border-error/30 bg-error/10 p-4 mb-6">
-              <p className="text-sm text-error">{error}</p>
+            <div className="alert alert-error mb-6 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
 
+          {/* DaisyUI Search + Filter + Sort Controls */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8">
+            <label className="input input-bordered flex items-center gap-2.5 max-w-md w-full bg-base-100 rounded-xl shadow-sm group/search">
+              <Search className="w-4 h-4 text-base-content/50 shrink-0 transition-transform duration-300 group-focus-within/search:scale-110 group-focus-within/search:text-primary" />
+              <input
+                type="text"
+                className="grow text-sm placeholder:text-base-content/40"
+                placeholder="Search universes by title, franchise..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="btn btn-ghost btn-circle btn-xs text-base-content/60 hover:text-base-content group/clear"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5 transition-transform duration-300 group-hover/clear:rotate-90" />
+                </button>
+              )}
+            </label>
+
+            <div className="flex items-center gap-3 self-end sm:self-auto">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'most-titles' | 'progress' | 'alphabetical')}
+                className="select select-bordered select-sm rounded-lg bg-base-100 font-medium text-xs text-base-content/80 shadow-sm"
+              >
+                <option value="most-titles">Sort: Most Titles</option>
+                <option value="progress">Sort: Highest Progress</option>
+                <option value="alphabetical">Sort: Alphabetical</option>
+              </select>
+              <span className="badge badge-neutral badge-soft text-xs font-bold px-3 py-2 rounded-lg">
+                {filteredUniverses.length} shown
+              </span>
+            </div>
+          </div>
+
+          {/* Loading Skeletons */}
           {loading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="glass-card rounded-3xl overflow-hidden animate-pulse">
-                  <div className="h-48 bg-surface-container-high/50" />
-                  <div className="p-6 space-y-3">
-                    <div className="h-6 bg-surface-container-high/50 rounded w-3/4" />
-                    <div className="h-4 bg-surface-container-high/50 rounded w-full" />
-                    <div className="h-4 bg-surface-container-high/50 rounded w-2/3" />
+                <div key={i} className="card card-border bg-base-100 shadow-sm overflow-hidden flex flex-col">
+                  <div className="skeleton aspect-[16/9] w-full rounded-none" />
+                  <div className="card-body p-5 space-y-3">
+                    <div className="skeleton h-6 w-3/4" />
+                    <div className="skeleton h-4 w-full" />
+                    <div className="skeleton h-4 w-2/3" />
+                    <div className="skeleton h-2 w-full mt-4" />
+                    <div className="card-actions justify-between pt-3 border-t border-base-200 mt-auto">
+                      <div className="skeleton h-5 w-24 rounded-full" />
+                      <div className="skeleton h-5 w-16" />
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {!loading && universes.length > 0 && (
+          {/* Universe Cards Grid */}
+          {!loading && filteredUniverses.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {universes.map((universe, index) => {
-                const variant = getVariant(index);
+              {filteredUniverses.map((universe) => {
                 const progress = universe.progress || 0;
                 const image = getUniverseHeroImage(universe, 'w780');
                 const trackableTotal = universe.itemsTotal || 0;
@@ -366,13 +459,13 @@ export function UniversesContent({
                 const untrackableCount = universe.untrackableCount || 0;
                 const isDeleting = deletingUniverseId === universe.id;
                 const typeBreakdown = getMediaTypeBreakdown(universe.items);
-                const creatorName = universe.creator?.name || 'Unknown';
+                const creatorName = universe.creator?.name || 'Curator';
                 const creatorImage = universe.creator?.image;
 
                 return (
                   <div
                     key={universe.id}
-                    className="group glass-card flex flex-col overflow-hidden rounded-3xl glow-hover transition-all duration-500 cursor-pointer"
+                    className="card card-border bg-base-100 shadow-sm hover:shadow-2xl hover:border-primary/50 transition-all duration-300 cursor-pointer overflow-hidden group flex flex-col h-full"
                     role="button"
                     tabIndex={0}
                     onClick={() => router.push(`/universes/${universe.slug || universe.id}`)}
@@ -383,135 +476,152 @@ export function UniversesContent({
                       }
                     }}
                   >
-                    {/* Image Header */}
-                    <div className="relative h-48 shrink-0 overflow-hidden">
+                    {/* Figure with Cover Image */}
+                    <figure className="relative aspect-[16/9] w-full overflow-hidden bg-base-300 shrink-0">
                       {image ? (
                         <Image
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           alt={universe.name}
                           src={image}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/20 via-transparent to-secondary/20" />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-                      {/* Delete button */}
-                      {universe.canDelete && (
-                        <button
-                          type="button"
-                          className="absolute top-3 left-3 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 text-error hover:bg-error/20 transition-colors"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void handleDeleteUniverse(universe);
-                          }}
-                          disabled={isDeleting}
-                          aria-label={`Delete ${universe.name}`}
-                        >
-                          {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                          <span className="text-xs font-bold">{isDeleting ? 'Deleting' : 'Delete'}</span>
-                        </button>
-                      )}
-
-                      {/* Progress badge */}
-                      <div className="absolute top-3 right-3 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1.5 rounded-full">
-                        <span className="text-xs font-bold">{progress}% done</span>
-                      </div>
-
-                      {/* Private badge */}
-                      {universe.visibility && universe.visibility !== 'public' ? (
-                        <div className="absolute top-12 right-3 bg-surface-container-lowest/60 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1">
-                          <Lock className="w-3 h-3 text-amber-600" />
-                          <span className="text-[10px] font-bold uppercase tracking-tight text-amber-600">Private</span>
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 via-base-200 to-secondary/20 flex items-center justify-center">
+                          <MediaTypeIcon type="other" className="w-12 h-12 text-base-content/30 transition-transform duration-500 group-hover:scale-110" />
                         </div>
-                      ) : null}
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-base-100/70 via-transparent to-black/40" />
 
-                      {/* Total titles badge */}
-                      <div className="absolute bottom-3 left-3 bg-surface-container-lowest/60 backdrop-blur-md px-3 py-1.5 rounded-full">
-                        <span className="text-xs font-bold uppercase tracking-tight">{totalTitlesCount} titles</span>
+                      {/* Top Badges */}
+                      <div className="absolute top-3 inset-x-3 flex items-center justify-between">
+                        <span className="badge badge-neutral badge-soft bg-base-100/90 text-base-content backdrop-blur-md shadow-sm text-xs font-bold gap-1">
+                          <Layers className="w-3 h-3 transition-transform duration-300 group-hover:scale-110" />
+                          {totalTitlesCount} titles
+                        </span>
+
+                        <div className="flex items-center gap-1.5">
+                          {universe.visibility && universe.visibility !== 'public' ? (
+                            <span className="badge badge-warning badge-soft gap-1 text-xs font-bold shadow-sm">
+                              <Lock className="w-3 h-3 transition-transform duration-300 group-hover:scale-110" />
+                              Private
+                            </span>
+                          ) : null}
+
+                          {universe.canDelete && (
+                            <button
+                              type="button"
+                              className="btn btn-circle btn-xs btn-error btn-soft shadow group/trash"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void handleDeleteUniverse(universe);
+                              }}
+                              disabled={isDeleting}
+                              aria-label={`Delete ${universe.name}`}
+                            >
+                              {isDeleting ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5 transition-transform duration-200 group-hover/trash:scale-125 group-hover/trash:rotate-6" />
+                              )}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Content Body */}
-                    <div className="flex flex-1 flex-col p-5">
-                      {/* Title */}
-                      <h3 className={`text-xl font-headline font-bold leading-tight text-on-surface mb-2 ${variant === 'primary' ? 'group-hover:text-primary' : variant === 'secondary' ? 'group-hover:text-secondary' : 'group-hover:text-tertiary'} transition-colors`}>
-                        {universe.name}
-                      </h3>
+                      {/* Bottom-right on image: Progress badge */}
+                      <div className="absolute bottom-3 right-3">
+                        <span
+                          className={`badge ${
+                            progress > 0 ? 'badge-primary' : 'badge-neutral'
+                          } badge-soft bg-base-100/90 text-base-content backdrop-blur-md font-bold text-xs shadow-sm`}
+                        >
+                          {progress}% done
+                        </span>
+                      </div>
+                    </figure>
 
-                      {/* Description */}
-                      <p className="text-on-surface-variant text-sm line-clamp-2 font-body mb-4 min-h-[40px]">
-                        {universe.description || 'No description available yet.'}
-                      </p>
+                    {/* DaisyUI Card Body */}
+                    <div className="card-body p-5 flex flex-col justify-between flex-1 gap-4">
+                      <div>
+                        <h2 className="card-title text-xl font-bold font-headline leading-tight text-base-content group-hover:text-primary transition-colors">
+                          {universe.name}
+                        </h2>
+                        <p className="text-base-content/70 text-sm line-clamp-2 mt-1.5 leading-relaxed">
+                          {universe.description || 'Interconnected franchise and media canon timeline.'}
+                        </p>
+                      </div>
 
-                      {/* Media Type Chips */}
+                      {/* Media Breakdown Badges using DaisyUI badge-soft */}
                       {typeBreakdown.size > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-4">
+                        <div className="flex flex-wrap gap-1.5">
                           {Array.from(typeBreakdown.entries()).slice(0, 4).map(([type, count]) => (
                             <span
                               key={type}
-                              className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-tight bg-surface-container-high/60 text-on-surface-variant px-2 py-1 rounded-full"
+                              className="badge badge-soft badge-neutral badge-sm gap-1 py-1 font-medium"
                             >
                               <MediaTypeIcon type={type} className="w-3 h-3" />
                               {count} {mediaTypeLabel(type)}
                             </span>
                           ))}
                           {typeBreakdown.size > 4 && (
-                            <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-tight bg-surface-container-high/60 text-on-surface-variant px-2 py-1 rounded-full">
+                            <span className="badge badge-soft badge-neutral badge-sm py-1 font-medium">
                               +{typeBreakdown.size - 4} more
                             </span>
                           )}
                         </div>
                       )}
 
-                      {/* Progress Bar */}
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant mb-1.5">
+                      {/* DaisyUI Progress Component */}
+                      <div className="w-full space-y-1.5 pt-1">
+                        <div className="flex items-center justify-between text-xs font-medium text-base-content/70">
                           <span>Progress</span>
-                          <span>
+                          <span className="font-semibold text-base-content/90">
                             {trackableTotal > 0
                               ? `${universe.itemsCompleted || 0} / ${trackableTotal} done`
-                              : 'Curated only'}
+                              : `${totalTitlesCount} curated`}
                           </span>
                         </div>
-                        <div className="h-1.5 w-full rounded-full bg-primary/15 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
-                            style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
-                          />
-                        </div>
+                        <progress
+                          className="progress progress-primary w-full h-2"
+                          value={progress}
+                          max="100"
+                        />
                         {untrackableCount > 0 && (
-                          <p className="mt-1 text-[10px] text-on-surface-variant">
-                            +{untrackableCount} curated item{untrackableCount === 1 ? '' : 's'}
+                          <p className="text-[11px] text-base-content/60">
+                            +{untrackableCount} curated title{untrackableCount === 1 ? '' : 's'}
                           </p>
                         )}
                       </div>
 
-                      {/* Footer: Creator + Explore */}
-                      <div className="mt-auto flex items-center justify-between border-t border-outline-variant/10 pt-4">
+                      {/* DaisyUI Card Actions: Creator + Explore Button */}
+                      <div className="card-actions justify-between items-center border-t border-base-200 pt-3 mt-auto">
                         <div className="flex items-center gap-2">
                           {creatorImage ? (
-                            <Image
-                              src={creatorImage}
-                              alt={creatorName}
-                              width={20}
-                              height={20}
-                              className="rounded-full object-cover"
-                            />
+                            <div className="avatar">
+                              <div className="w-6 rounded-full ring-1 ring-base-content/20">
+                                <Image
+                                  src={creatorImage}
+                                  alt={creatorName}
+                                  width={24}
+                                  height={24}
+                                />
+                              </div>
+                            </div>
                           ) : (
-                            <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                              <User className="w-3 h-3 text-primary" />
+                            <div className="avatar avatar-placeholder">
+                              <div className="w-6 rounded-full bg-base-300 text-base-content/70 flex items-center justify-center text-xs">
+                                <User className="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110" />
+                              </div>
                             </div>
                           )}
-                          <span className="text-[11px] font-medium text-on-surface-variant truncate max-w-[120px]">
+                          <span className="text-xs font-medium text-base-content/70 truncate max-w-[130px]">
                             {creatorName}
                           </span>
                         </div>
 
-                        <span className={`${variantTextClass(variant)} flex items-center gap-1 font-bold text-xs hover:translate-x-0.5 transition-transform`}>
-                          Explore <ArrowRight className="w-4 h-4" />
+                        <span className="btn btn-ghost btn-xs btn-primary gap-1 font-bold">
+                          Explore <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                         </span>
                       </div>
                     </div>
@@ -519,27 +629,52 @@ export function UniversesContent({
                 );
               })}
 
-              {/* Create New Card */}
-              {canCreateUniverse ? (
+              {/* DaisyUI Forge New Realm Card */}
+              {canCreateUniverse && (
                 <Link
                   href="/universes/create"
-                  className="group border-2 border-dashed border-outline-variant/30 rounded-3xl flex flex-col items-center justify-center p-12 hover:border-primary/50 transition-colors bg-surface-container-low/20 min-h-[380px]"
+                  className="card card-dash bg-base-200/50 hover:bg-base-200 hover:border-primary transition-all duration-300 flex flex-col items-center justify-center p-8 text-center min-h-[380px] group border-2"
                 >
-                  <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                    <Plus className="w-8 h-8 text-primary" />
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all text-primary">
+                    <Plus className="w-8 h-8 transition-transform duration-500 group-hover:rotate-90 group-hover:scale-110" />
                   </div>
-                  <h3 className="text-xl font-bold font-headline mb-2">Forge New Realm</h3>
-                  <p className="text-on-surface-variant text-center text-sm font-body">Contribute a new universe to the archive and begin its legacy.</p>
+                  <h3 className="card-title text-xl font-bold font-headline mb-2 text-base-content group-hover:text-primary transition-colors">
+                    Forge New Realm
+                  </h3>
+                  <p className="text-base-content/70 text-sm max-w-xs mb-5">
+                    Contribute a new universe to the archive and begin its interconnected legacy.
+                  </p>
+                  <span className="btn btn-primary btn-sm rounded-full px-5 shadow-sm">
+                    Create Universe
+                  </span>
                 </Link>
-              ) : null}
+              )}
             </div>
           )}
 
-          {!loading && universes.length === 0 && !error && (
-            <div className="rounded-2xl border border-outline-variant/20 bg-surface-container p-8 text-center">
-              <p className="text-on-surface-variant text-sm">
-                No universes found right now.
-              </p>
+          {/* Empty Search Result / Empty State */}
+          {!loading && filteredUniverses.length === 0 && !error && (
+            <div className="card card-border bg-base-200/40 p-12 text-center max-w-md mx-auto my-12">
+              <div className="card-body items-center text-center p-0">
+                <Layers className="w-12 h-12 text-base-content/30 mb-2 transition-transform duration-700 animate-pulse" />
+                <h3 className="card-title text-lg font-bold">No universes found</h3>
+                <p className="text-sm text-base-content/70">
+                  {searchQuery
+                    ? `No universes matched "${searchQuery}". Try a different keyword.`
+                    : 'No universes have been forged yet.'}
+                </p>
+                {searchQuery && (
+                  <div className="card-actions mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="btn btn-sm btn-outline rounded-full"
+                    >
+                      Clear Search
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </section>

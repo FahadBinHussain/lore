@@ -1,3 +1,5 @@
+'use client';
+
 import { MapPin } from 'lucide-react';
 import { GenericMediaDetailPage } from '@/components/media/generic-detail-page';
 

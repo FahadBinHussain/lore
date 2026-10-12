@@ -71,10 +71,18 @@ async function fetchPosterFromProvider(
     }
 
     if (provider === 'openlibrary') {
-      const workResp = await fetch(
+      let workResp = await fetch(
         `https://openlibrary.org/works/${externalId}.json`,
         { next: { revalidate: 86400 } },
       );
+      // Edition keys (OL…M) live under /books/ — used when OpenLibrary merges two
+      // distinct books into one work (e.g. two PvZ picture books sharing OL24326383W).
+      if (!workResp.ok && externalId.endsWith('M')) {
+        workResp = await fetch(
+          `https://openlibrary.org/books/${externalId}.json`,
+          { next: { revalidate: 86400 } },
+        );
+      }
       if (!workResp.ok) return { posterPath: null, backdropPath: null };
       const workData = (await workResp.json()) as { covers?: number[] };
       if (workData.covers && workData.covers.length > 0) {

@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useParams } from 'next/navigation';
-import { ArtworkLightbox } from '@/components/media/artwork-lightbox';
+import { ArtworkLightbox, type ArtworkSource } from '@/components/media/artwork-lightbox';
 
 type Artist = { id?: number; slug: string; name: string; imageUrl?: string | null; biography?: string; birthYear?: number | null; deathYear?: number | null; sourceUrl?: string; artworkCount?: number | null; lastSyncedAt?: string | null };
-type Painting = { id: string; title: string; year: number | null; imageUrl: string | null; sourceUrl: string; width?: number | null; height?: number | null; explored?: boolean };
+type Painting = { id: string; title: string; year: number | null; imageUrl: string | null; sourceUrl: string; width?: number | null; height?: number | null; explored?: boolean; sources?: ArtworkSource[] };
 
 const STALE_DAYS = 30;
 
@@ -108,12 +108,12 @@ export default function ArtistDetailPage() {
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <h2 className="text-2xl font-bold">Works <span className="text-base font-normal text-muted-foreground">({total})</span></h2>
         {total > 0 && (
-          <span className={`rounded-md border px-2 py-1 text-xs tabular-nums ${allExplored ? 'border-emerald-500/40 bg-emerald-500/10 font-semibold text-emerald-600' : 'border-primary/40 bg-primary/10 text-primary'}`}>
+          <span className={`rounded-md border px-2 py-1 text-xs tabular-nums ${allExplored ? 'border-success/40 bg-success/10 font-semibold text-success' : 'border-primary/40 bg-primary/10 text-primary'}`}>
             {exploredCount} / {total} explored{allExplored && !explored ? ' — artist auto-marked' : ''}
           </span>
         )}
         {truncated && (
-          <button type="button" onClick={loadMore} disabled={loadingMore} className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs text-amber-600 transition-all hover:scale-105 disabled:opacity-60">
+          <button type="button" onClick={loadMore} disabled={loadingMore} className="rounded-md border border-warning/40 bg-warning/10 px-2 py-1 text-xs text-warning transition-all hover:scale-105 disabled:opacity-60">
             {loadingMore ? 'Loading…' : `Showing ${paintings.length} of ${total} — load more`}
           </button>
         )}
@@ -126,7 +126,7 @@ export default function ArtistDetailPage() {
           {paintings.map((painting, idx) => (
             <div key={painting.id} className="group relative">
               <button type="button" onClick={() => setOpenIndex(idx)} className="w-full text-left cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-                <Card className={`group h-full overflow-hidden transition-all ${painting.explored ? 'border-emerald-500/50 opacity-70 hover:opacity-100' : 'hover:border-primary/50'}`}>
+                <Card className={`group h-full overflow-hidden transition-all ${painting.explored ? 'border-success/50 opacity-70 hover:opacity-100' : 'hover:border-primary/50'}`}>
                   <div className="aspect-[4/3] bg-muted">{painting.imageUrl ? <img src={painting.imageUrl} alt={painting.title} loading="lazy" className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center"><Palette className="h-8 w-8 text-muted-foreground/40" /></div>}</div>
                   <CardContent className="p-3"><p className="truncate text-sm font-medium">{painting.title}</p><p className="text-xs text-muted-foreground">{painting.year ?? '—'}</p></CardContent>
                 </Card>
@@ -136,7 +136,7 @@ export default function ArtistDetailPage() {
                 onClick={() => toggleArtwork(painting)}
                 aria-pressed={Boolean(painting.explored)}
                 aria-label={painting.explored ? `Mark ${painting.title} not explored` : `Mark ${painting.title} explored`}
-                className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur transition-all duration-200 hover:scale-110 active:scale-95 ${painting.explored ? 'border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/40' : 'border-white/40 bg-black/50 text-white/80 opacity-0 group-hover:opacity-100 focus-visible:opacity-100'}`}
+                className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur transition-all duration-200 hover:scale-110 active:scale-95 ${painting.explored ? 'border-success bg-success text-success-content shadow-lg shadow-success/40' : 'border-base-content/20 bg-base-100/80 backdrop-blur-md text-base-content shadow-sm opacity-0 group-hover:opacity-100 focus-visible:opacity-100'}`}
               >
                 <Check className="h-4 w-4" strokeWidth={3} />
               </button>

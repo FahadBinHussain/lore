@@ -82,18 +82,18 @@ export default function ThemeParksPage() {
 
   const getWaitTimeColor = (waitTime?: number) => {
     if (!waitTime) return 'text-muted-foreground';
-    if (waitTime < 30) return 'text-green-500';
-    if (waitTime < 60) return 'text-yellow-500';
-    return 'text-red-500';
+    if (waitTime < 30) return 'text-success';
+    if (waitTime < 60) return 'text-warning';
+    return 'text-error';
   };
 
   const getStatusColor = (status?: string) => {
-    if (!status) return 'bg-gray-500';
+    if (!status) return 'bg-base-300';
     switch (status.toLowerCase()) {
-      case 'operating': return 'bg-green-500';
-      case 'closed': return 'bg-red-500';
-      case 'down': return 'bg-yellow-500';
-      default: return 'bg-gray-500';
+      case 'operating': return 'bg-success';
+      case 'closed': return 'bg-error';
+      case 'down': return 'bg-warning';
+      default: return 'bg-base-300';
     }
   };
 
@@ -101,10 +101,10 @@ export default function ThemeParksPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
       <section className="relative py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-transparent to-pink-500/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
         <div className="relative w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge variant="outline" className="mb-4 bg-rose-500/10 text-rose-500 border-rose-500/30">
+            <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/30">
               <MapPin className="w-3 h-3 mr-1" />
               Theme Parks
             </Badge>
@@ -127,7 +127,7 @@ export default function ThemeParksPage() {
                 placeholder="Search attractions by name, park, or location..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-3 text-lg rounded-xl border-2 focus:border-rose-500/50"
+                className="pl-12 pr-4 py-3 text-lg rounded-xl border-2 focus:border-primary"
               />
             </div>
           </form>
@@ -173,8 +173,8 @@ export default function ThemeParksPage() {
                 <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:scale-105">
                   <CardContent className="p-0">
                     <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/20">
-                        <MapPin className="w-16 h-16 text-rose-500" />
+                      <div className="w-full h-full flex items-center justify-center bg-base-200">
+                        <MapPin className="w-16 h-16 text-base-content/40" />
                       </div>
                       {/* Status indicator */}
                       {attraction.status && (
@@ -184,7 +184,7 @@ export default function ThemeParksPage() {
                       )}
                       {/* Wait time */}
                       {attraction.waitTime && (
-                        <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-1">
+                        <div className="absolute top-2 right-2 badge bg-base-100/85 backdrop-blur-md text-base-content border border-base-content/15 shadow-sm px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           <span className={getWaitTimeColor(attraction.waitTime)}>
                             {attraction.waitTime}m
@@ -193,7 +193,7 @@ export default function ThemeParksPage() {
                       )}
                     </div>
                     <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-rose-600 transition-colors">
+                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-primary transition-colors">
                         {attraction.title}
                       </h3>
                       {attraction.location && (

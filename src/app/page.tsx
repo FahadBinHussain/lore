@@ -95,7 +95,7 @@ function TabIcon({
 function MediaCard({ item, href, icon }: { item: MediaItem; href: string; icon: typeof Film }) {
   return (
     <Link href={href} className="block group/card">
-      <Card className="overflow-hidden rounded-2xl border-border/50 bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 hover:border-border">
+      <Card className="overflow-hidden rounded-xl border border-border/60 bg-card py-0 gap-0 ring-0 shadow-none transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-black/10">
         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
           {item.image ? (
             <Image
@@ -116,7 +116,7 @@ function MediaCard({ item, href, icon }: { item: MediaItem; href: string; icon: 
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
           {item.rating ? (
             <div className="absolute top-2.5 right-2.5 bg-card/90 backdrop-blur-md border border-border/50 text-foreground px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-sm">
-              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+              <Star className="w-3 h-3 fill-warning text-warning" />
               {item.rating.toFixed(1)}
             </div>
           ) : null}
@@ -253,31 +253,31 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       {/* Hero — scroll-linked canvas, reduced from 240vh for tighter pacing */}
       <section className="relative min-h-[180vh] supports-[animation-timeline:view()]:min-h-[180vh] [@media(prefers-reduced-motion:reduce)]:min-h-[100vh]">
-        <div className="sticky top-0 h-screen overflow-hidden flex items-center">
+        <div className="sticky top-0 h-screen overflow-hidden flex items-end">
           <LogoScrollSequence />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/30 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
-          <div className="relative z-10 w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 sm:pb-28">
             <div className={cn(
-              "space-y-6 transition-all duration-700",
+              "max-w-xl rounded-3xl border border-border/60 bg-background/80 backdrop-blur-xl p-6 sm:p-8 shadow-2xl shadow-black/10 transition-all duration-700",
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             )}>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground font-[family-name:var(--font-epilogue)]">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] text-foreground">
                 Track your media universe
               </h1>
-              <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                Discover, track, and organize every movie, show, game, book, and comic across interconnected franchises — in release order.
+              <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
+                Every movie, show, game, book, and comic across interconnected franchises, in release order, with your progress marked along the way.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <Link href={isAuthenticated ? '/dashboard' : '/auth/signin'}>
-                  <Button size="lg" className="group">
+                  <Button size="lg" className="group w-full sm:w-auto h-11 px-5 text-sm">
                     {isAuthenticated ? 'Go to Dashboard' : 'Start Tracking'}
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
                 <Link href="/universes">
-                  <Button variant="outline" size="lg">
-                    <Compass className="w-4 h-4 mr-2" />
+                  <Button variant="outline" size="lg" className="group w-full sm:w-auto h-11 px-5 text-sm">
+                    <Compass className="w-4 h-4 mr-2 group-hover:rotate-45 transition-transform duration-500" />
                     Browse Universes
                   </Button>
                 </Link>
@@ -290,13 +290,15 @@ export default function HomePage() {
       {/* Trending Media */}
       <section className="py-12 sm:py-16 relative">
         <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2 font-[family-name:var(--font-epilogue)]">
-              Trending now
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Discover what&apos;s popular across movies, TV, anime, games, and more
-            </p>
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+            <div>
+              <h2 className="text-2xl sm:text-4xl font-bold mb-2">
+                Popular right now
+              </h2>
+              <p className="text-sm sm:text-base text-muted-foreground max-w-prose">
+                What people are watching, playing, and reading right now, across ten kinds of media.
+              </p>
+            </div>
           </div>
 
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as MediaTabKey)} className="w-full">
@@ -306,7 +308,7 @@ export default function HomePage() {
                   <TabsTrigger
                     key={key}
                     value={key}
-                    className="shrink-0 flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3.5 py-1.5 rounded-full data-[state=active]:bg-card data-[state=active]:shadow-sm font-medium"
+                    className="shrink-0 flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm px-3.5 py-1.5 rounded-full data-active:bg-primary data-active:text-primary-foreground data-active:shadow-sm font-medium"
                     onMouseEnter={() => tabIconRefs.current[index]?.startAnimation()}
                     onMouseLeave={() => tabIconRefs.current[index]?.stopAnimation()}
                   >
@@ -349,78 +351,48 @@ export default function HomePage() {
       </section>
 
       {/* Universes callout */}
-      <section className="py-16 sm:py-20 border-t border-border/30">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div>
-              <Badge variant="outline" className="mb-4">
-                <Layers className="w-3 h-3 mr-1.5" />
+      <section className="py-16 sm:py-24 border-t border-border/40 bg-muted/30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 items-start">
+            <div className="lg:sticky lg:top-28">
+              <Badge variant="outline" className="mb-4 group/badge h-6 px-2.5">
+                <Layers className="w-3 h-3 mr-1.5 transition-transform duration-500 group-hover/badge:rotate-180" />
                 Universes
               </Badge>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-3 font-[family-name:var(--font-epilogue)]">
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4">
                 Every item in a franchise, in release order
               </h2>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-6">
-                Universes are curated collections of every official release in a franchise — movies, shows, games, books, comics, soundtracks, and theme park attractions. All ordered by release date, so you always know what to experience next.
+              <p className="text-base text-muted-foreground leading-relaxed mb-6 max-w-md">
+                A universe is a curated collection of every official release in a franchise: movies, shows, games, books, comics, soundtracks, and theme park attractions.
               </p>
               <Link href="/universes">
-                <Button className="group">
+                <Button className="group h-11 px-5 text-sm">
                   Explore universes
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+
+            <ol className="relative space-y-4 before:absolute before:left-[19px] before:top-3 before:bottom-3 before:w-px before:bg-border">
               {[
-                { label: 'Universes', value: '40+' },
-                { label: 'Media items', value: '2,900+' },
-                { label: 'Media types', value: '10' },
-                { label: 'Franchises', value: 'MCU, DC, Shrek, and more' },
-              ].map((stat) => (
-                <div key={stat.label} className="p-4 rounded-lg border border-border/40 bg-card/50">
-                  <div className="text-xl font-bold font-[family-name:var(--font-epilogue)]">{stat.value}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
-                </div>
+                { title: 'Pick a franchise', body: 'Open any universe to see its complete timeline, from the first release to the latest.' },
+                { title: 'Follow the order', body: 'Items are sorted by original release date, so you always know what comes next.' },
+                { title: 'Mark what you have finished', body: 'Progress for each universe is counted as items done out of items tracked.' },
+              ].map((step, i) => (
+                <li key={step.title} className="relative flex gap-4">
+                  <span className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-background text-sm font-semibold tabular">
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 rounded-2xl border border-border/60 bg-card p-5">
+                    <h3 className="text-base font-semibold">{step.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{step.body}</p>
+                  </div>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border/30 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Link href="/" className="flex items-center gap-2">
-              <Image
-                src="/logo.png"
-                alt="Lore logo"
-                width={32}
-                height={32}
-                className="w-8 h-8 object-contain"
-              />
-              <span className="font-bold text-lg">Lore</span>
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                About
-              </Link>
-              <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Contact
-              </Link>
-              <Link href="/universes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Universes
-              </Link>
-              <Link href="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Search
-              </Link>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Lore
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -136,10 +136,10 @@ export default function MoviesPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
       <section className="relative py-8 sm:py-12 lg:py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-purple-500/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
         <div className="relative w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <Badge variant="outline" className="mb-3 sm:mb-4 bg-violet-500/10 text-violet-500 border-violet-500/30">
+            <Badge variant="outline" className="mb-3 sm:mb-4 bg-primary/10 text-primary border-primary/30">
               <Film className="w-3 h-3 mr-1" />
               Movies
             </Badge>
@@ -399,8 +399,8 @@ export default function MoviesPage() {
                             </div>
                           )}
                           {movie.rating && (
-                            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            <div className="absolute top-2 right-2 badge bg-base-100/85 backdrop-blur-md text-base-content border border-base-content/15 shadow-sm px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-warning text-warning" />
                               {movie.rating.toFixed(1)}
                             </div>
                           )}

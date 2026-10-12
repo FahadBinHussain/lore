@@ -53,6 +53,7 @@ export function UniverseTimelineView({ releaseItems, mixedItems }: UniverseTimel
             reverse={card.reverse}
             releaseDateLabel={card.releaseDateLabel}
             href={card.href}
+            sourceUrl={card.sourceUrl}
             poster={card.poster}
             title={card.title}
             mediaTypeLabel={card.mediaTypeLabel}

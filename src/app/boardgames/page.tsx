@@ -95,10 +95,10 @@ export default function BoardGamesPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
       <section className="relative py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
         <div className="relative w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge variant="outline" className="mb-4 bg-orange-500/10 text-orange-500 border-orange-500/30">
+            <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/30">
               <Gamepad2 className="w-3 h-3 mr-1" />
               Board Games
             </Badge>
@@ -121,7 +121,7 @@ export default function BoardGamesPage() {
                 placeholder="Search board games by title, designer, or category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-3 text-lg rounded-xl border-2 focus:border-orange-500/50"
+                className="pl-12 pr-4 py-3 text-lg rounded-xl border-2 focus:border-primary"
               />
             </div>
           </form>
@@ -188,13 +188,13 @@ export default function BoardGamesPage() {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/20 dark:to-red-900/20">
-                          <Gamepad2 className="w-12 h-12 text-orange-500" />
+                        <div className="w-full h-full flex items-center justify-center bg-base-200">
+                          <Gamepad2 className="w-12 h-12 text-base-content/40" />
                         </div>
                       )}
                     </div>
                     <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-orange-600 transition-colors">
+                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-primary transition-colors">
                         {game.title}
                       </h3>
                       {game.designers && (

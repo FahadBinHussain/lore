@@ -83,10 +83,10 @@ export default function PodcastsPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
       <section className="relative py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-cyan-500/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
         <div className="relative w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge variant="outline" className="mb-4 bg-teal-500/10 text-teal-500 border-teal-500/30">
+            <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/30">
               <Podcast className="w-3 h-3 mr-1" />
               Podcasts
             </Badge>
@@ -109,7 +109,7 @@ export default function PodcastsPage() {
                 placeholder="Search podcasts by title, topic, or creator..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-3 text-lg rounded-xl border-2 focus:border-teal-500/50"
+                className="pl-12 pr-4 py-3 text-lg rounded-xl border-2 focus:border-primary"
               />
             </div>
           </form>
@@ -165,19 +165,19 @@ export default function PodcastsPage() {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-100 to-cyan-100 dark:from-teal-900/20 dark:to-cyan-900/20">
-                          <Podcast className="w-16 h-16 text-teal-500" />
+                        <div className="w-full h-full flex items-center justify-center bg-base-200">
+                          <Podcast className="w-16 h-16 text-base-content/40" />
                         </div>
                       )}
                       {podcast.rating && (
-                        <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <div className="absolute top-2 right-2 badge bg-base-100/85 backdrop-blur-md text-base-content border border-base-content/15 shadow-sm px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-warning text-warning" />
                           {podcast.rating.toFixed(1)}
                         </div>
                       )}
                     </div>
                     <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-teal-600 transition-colors">
+                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-primary transition-colors">
                         {podcast.title}
                       </h3>
                       {podcast.publisher && (

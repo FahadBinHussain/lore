@@ -11,6 +11,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DetailPageSkeleton } from '@/components/ui/skeleton';
 import { CommentsSection } from '@/components/media/comments-section';
+import { cn } from '@/lib/utils';
 
 export interface GenericMediaDetail {
   id: string;
@@ -196,13 +197,13 @@ export function GenericMediaDetailPage({
 
   return (
     <main className="min-h-screen bg-base-100 text-base-content">
-      <section className="mx-auto grid w-full max-w-6xl gap-8 px-6 py-10 md:grid-cols-[320px_minmax(0,1fr)] lg:py-16">
+      <section className="mx-auto grid w-full max-w-6xl gap-6 sm:gap-8 px-4 sm:px-6 py-6 sm:py-10 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)] lg:py-16">
         <aside className="space-y-4">
-          <Button variant="ghost" onClick={() => router.back()} className="px-0">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+          <Button variant="ghost" onClick={() => router.back()} className="group px-0">
+            <ArrowLeft className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" />
             Back
           </Button>
-          <Card className="overflow-hidden border-base-content/10 bg-base-200">
+          <Card className="overflow-hidden border-base-content/10 bg-base-200 max-w-[240px] sm:max-w-[280px] md:max-w-none mx-auto md:mx-0 w-full shadow-xl">
             <CardContent className="p-0">
               <div className="aspect-[2/3] relative bg-base-300">
                 {detail.image ? (
@@ -210,7 +211,7 @@ export function GenericMediaDetailPage({
                     src={detail.image}
                     alt={detail.title}
                     fill
-                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                     className="object-cover"
                   />
                 ) : (
@@ -223,9 +224,9 @@ export function GenericMediaDetailPage({
           </Card>
         </aside>
 
-        <section className="space-y-8">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
+        <section className="space-y-6 sm:space-y-8">
+          <div className="space-y-4 text-center sm:text-left">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <Badge variant="outline" className="uppercase tracking-wider">
                 {title}
               </Badge>
@@ -239,28 +240,28 @@ export function GenericMediaDetailPage({
               ) : null}
             </div>
             <div>
-              <h1 className="text-4xl font-bold tracking-tight md:text-6xl">{detail.title}</h1>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">{detail.title}</h1>
               {detail.subtitle ? (
-                <p className="mt-3 text-lg text-base-content/70">{detail.subtitle}</p>
+                <p className="mt-2 sm:mt-3 text-base sm:text-lg text-base-content/70">{detail.subtitle}</p>
               ) : null}
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-base-content/70">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-base-content/70">
               {releaseDate ? <span>{releaseDate}</span> : null}
               {detail.rating ? (
-                <span className="inline-flex items-center gap-1 text-yellow-500">
-                  <Star className="h-4 w-4 fill-current" />
+                <span className="group inline-flex items-center gap-1 text-warning">
+                  <Star className="h-4 w-4 fill-current transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
                   {detail.rating}
                 </span>
               ) : null}
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Button onClick={toggleComplete} disabled={updating}>
-                {updating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-3">
+              <Button onClick={toggleComplete} disabled={updating} className="group transition-all duration-300 hover:scale-105">
+                {updating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-125" />}
                 {isComplete ? incompleteLabel : completeLabel}
               </Button>
               {detail.externalUrl ? (
-                <Link href={detail.externalUrl} target="_blank" rel="noreferrer" className={buttonVariants({ variant: 'outline' })}>
-                  <ExternalLink className="mr-2 h-4 w-4" />
+                <Link href={detail.externalUrl} target="_blank" rel="noreferrer" className={cn(buttonVariants({ variant: 'outline' }), "group transition-all duration-300 hover:scale-105")}>
+                  <ExternalLink className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                   Provider Page
                 </Link>
               ) : null}

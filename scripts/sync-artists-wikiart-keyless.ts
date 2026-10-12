@@ -4,6 +4,7 @@
 // Run: esbuild bundle -> `node --env-file=.env.local <bundle>.cjs` (no .env in repo).
 import { db } from '../src/db/index';
 import { artists, artworks } from '../src/db/schema';
+import { upsertArtworkSource } from '../src/lib/artists/artwork-sources';
 import { asc, isNull, or, sql } from 'drizzle-orm';
 
 const BASE = 'https://www.wikiart.org';
@@ -90,24 +91,29 @@ async function syncArtist(row: { id: number; slug: string }) {
     if (list.length === 0) break;
     for (const p of list) {
       const ext = String(p.id || p.paintingUrl || `${row.slug}-${page}-${total}`);
-      await db
+      const paintingUrl = p.paintingUrl ? `${BASE}${p.paintingUrl}` : null;
+      const imageUrl = p.image ? String(p.image) : null;
+      const title = String(p.title || 'Untitled').slice(0, 1000);
+      const [artworkRow] = await db
         .insert(artworks)
         .values({
           artistId: row.id,
           provider: 'wikiart',
           externalId: ext,
-          title: String(p.title || 'Untitled').slice(0, 1000),
+          title,
           year: parseYear(p.year),
           width: typeof p.width === 'number' ? p.width : null,
           height: typeof p.height === 'number' ? p.height : null,
-          imageUrl: p.image ? String(p.image) : null,
-          paintingUrl: p.paintingUrl ? `${BASE}${p.paintingUrl}` : null,
+          imageUrl,
+          paintingUrl,
           lastSyncedAt: new Date(),
         })
         .onConflictDoUpdate({
           target: [artworks.provider, artworks.externalId],
-          set: { title: String(p.title || 'Untitled').slice(0, 1000), year: parseYear(p.year), imageUrl: p.image ? String(p.image) : null, updatedAt: new Date() },
-        });
+          set: { title, year: parseYear(p.year), imageUrl, updatedAt: new Date() },
+        })
+        .returning({ id: artworks.id });
+      await upsertArtworkSource({ artworkId: artworkRow.id, provider: 'wikiart', externalId: ext, sourceUrl: paintingUrl, imageUrl, title, isPrimary: true, lastSyncedAt: new Date() });
       total += 1;
     }
     await sleep(DELAY_MS);

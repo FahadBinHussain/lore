@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { and, eq, inArray, or } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, or } from 'drizzle-orm';
 import { BookOpen, Users, Gem, Lock } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { isAdminRole } from '@/lib/auth/roles';
 import { db } from '@/db';
-import { collectionItems, collections, episodes as episodesTable, seasons, userEpisodeProgress, userMediaProgress, users } from '@/db/schema';
+import { collectionItems, collections, episodes as episodesTable, mediaExternalIds, seasons, userEpisodeProgress, userMediaProgress, users } from '@/db/schema';
 import { UniverseTimelineView } from '@/components/universes/universe-timeline-view';
 import { UniverseTimelineEntryDisplay, UniverseTimelineCardProps } from '@/components/universes/universe-timeline-card';
 import { UniverseVisibilityToggle } from '@/components/universes/visibility-toggle';
@@ -312,6 +312,24 @@ export default async function Page({ params }: UniversePageProps) {
 
   if (!universe) notFound();
 
+  // evidence URLs (media_external_ids.source_url) for manual items — rendered as the
+  // card's external source link when the item has no internal detail route
+  const mediaItemIds = universe.items.map((item) => item.mediaItem.id);
+  const sourceUrlRows =
+    mediaItemIds.length > 0
+      ? await db.query.mediaExternalIds.findMany({
+          where: and(inArray(mediaExternalIds.mediaItemId, mediaItemIds), isNotNull(mediaExternalIds.sourceUrl)),
+          columns: { mediaItemId: true, sourceUrl: true, isPrimary: true },
+        })
+      : [];
+  const sourceUrlByMediaItemId = new Map<number, string>();
+  for (const row of sourceUrlRows) {
+    if (!row.sourceUrl) continue;
+    if (row.isPrimary || !sourceUrlByMediaItemId.has(row.mediaItemId)) {
+      sourceUrlByMediaItemId.set(row.mediaItemId, row.sourceUrl);
+    }
+  }
+
   const canEdit = viewerIsAdmin || universe.createdBy === userId;
 
   const seriesMediaItemIds = universe.items
@@ -495,6 +513,7 @@ export default async function Page({ params }: UniversePageProps) {
       reverse,
       releaseDateLabel,
       href,
+      sourceUrl: sourceUrlByMediaItemId.get(item.mediaItem.id) ?? null,
       poster,
       title: item.mediaItem.title,
       mediaTypeLabel,
@@ -576,6 +595,7 @@ export default async function Page({ params }: UniversePageProps) {
           reverse: false,
           releaseDateLabel: formatReleaseDate(mediaItem.releaseDate),
           href: seriesHref,
+          sourceUrl: sourceUrlByMediaItemId.get(mediaItem.id) ?? null,
           poster,
           title: mediaItem.title,
           mediaTypeLabel,
@@ -616,7 +636,7 @@ export default async function Page({ params }: UniversePageProps) {
   return (
     <div className="min-h-screen bg-base-100 text-base-content font-[family-name:var(--font-manrope)] overflow-x-hidden">
       <main className="pb-32">
-        <section className="relative h-[716px] w-full flex items-end overflow-hidden">
+        <section className="relative min-h-[460px] sm:min-h-[540px] lg:min-h-[620px] lg:h-[716px] w-full flex items-end overflow-hidden">
           <div className="absolute inset-0 z-0">
             {heroImage ? (
               <Image src={heroImage} alt={`${universe.name} hero`} fill priority sizes="(min-width: 1024px) 33vw, 50vw" className="object-cover" />
@@ -625,31 +645,33 @@ export default async function Page({ params }: UniversePageProps) {
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-base-100 via-base-100/60 to-transparent" />
           </div>
-          <div className="relative z-10 px-6 md:px-12 pb-16 max-w-4xl">
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <span className="px-3 py-1 bg-primary/20 text-primary text-[10px] font-bold tracking-widest uppercase rounded-sm">Curated Universe</span>
+          <div className="relative z-10 px-4 sm:px-6 md:px-12 pb-10 sm:pb-16 max-w-4xl w-full">
+            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 flex-wrap">
+              <span className="badge badge-primary badge-soft badge-sm font-bold uppercase tracking-wider">Curated Universe</span>
               {universe.visibility !== 'public' ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/15 text-amber-600 text-[10px] font-bold tracking-widest uppercase rounded-sm">
-                  <Lock className="h-2.5 w-2.5" />
+                <span className="badge badge-warning badge-soft badge-sm gap-1 font-bold uppercase tracking-wider group/lock">
+                  <Lock className="h-2.5 w-2.5 transition-transform duration-300 group-hover/lock:scale-125" />
                   Private
                 </span>
               ) : null}
-              {universe.creator?.name ? <span className="text-base-content/70 text-xs font-medium">by {universe.creator.name}</span> : null}
+              {universe.creator?.name ? <span className="badge badge-neutral badge-soft badge-sm text-base-content/80">by {universe.creator.name}</span> : null}
               {canEdit ? (
                 <UniverseVisibilityToggle universeId={universe.id} currentVisibility={universe.visibility} />
               ) : null}
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold font-[family-name:var(--font-epilogue)] mb-6 tracking-tight">{universe.name}</h1>
-            <p className="text-lg text-base-content/80 leading-relaxed mb-8 max-w-2xl">{universe.description || 'Explore this universe timeline in release order.'}</p>
-            <div className="flex flex-wrap gap-8">
-              <div className="flex flex-col">
-                <span className="text-primary font-bold text-2xl">{universe.items.length}</span>
-                <span className="text-base-content/60 text-xs uppercase tracking-widest font-bold">Titles</span>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-[family-name:var(--font-epilogue)] mb-4 sm:mb-6 tracking-tight">{universe.name}</h1>
+            <p className="text-sm sm:text-base md:text-lg text-base-content/80 leading-relaxed mb-6 sm:mb-8 max-w-2xl">{universe.description || 'Explore this universe timeline in release order.'}</p>
+            <div className="stats stats-horizontal shadow-md bg-base-100/90 backdrop-blur-md border border-base-200 rounded-2xl max-w-full">
+              <div className="stat py-2 sm:py-3 px-4 sm:px-6">
+                <div className="stat-title text-[10px] sm:text-xs font-bold uppercase tracking-wider text-base-content/70">Titles</div>
+                <div className="stat-value text-2xl sm:text-3xl text-primary font-bold font-[family-name:var(--font-epilogue)]">{universe.items.length}</div>
+                <div className="stat-desc text-[11px] sm:text-xs text-base-content/60">In timeline</div>
               </div>
               {watchedCount > 0 ? (
-                <div className="flex flex-col">
-                  <span className="text-green-500 font-bold text-2xl">{watchedCount}</span>
-                  <span className="text-base-content/60 text-xs uppercase tracking-widest font-bold">Watched</span>
+                <div className="stat py-2 sm:py-3 px-4 sm:px-6">
+                  <div className="stat-title text-[10px] sm:text-xs font-bold uppercase tracking-wider text-base-content/70">Watched</div>
+                  <div className="stat-value text-2xl sm:text-3xl text-success font-bold font-[family-name:var(--font-epilogue)]">{watchedCount}</div>
+                  <div className="stat-desc text-[11px] sm:text-xs text-base-content/60">Completed</div>
                 </div>
               ) : null}
             </div>
@@ -660,20 +682,26 @@ export default async function Page({ params }: UniversePageProps) {
 
         <section className="px-6 md:px-12 py-20 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-base-200 p-8 rounded-xl border border-base-content/10">
-              <BookOpen className="text-primary mb-4 w-8 h-8" />
-              <h4 className="text-lg font-[family-name:var(--font-epilogue)] mb-2">Universe Notes</h4>
-              <p className="text-sm text-base-content/80">Release-ordered timeline powered from your collection data.</p>
+            <div className="card card-border bg-base-200/60 shadow-sm hover:shadow-md transition-all group">
+              <div className="card-body p-6">
+                <BookOpen className="text-primary mb-2 w-8 h-8 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6" />
+                <h3 className="card-title text-lg font-[family-name:var(--font-epilogue)]">Universe Notes</h3>
+                <p className="text-sm text-base-content/70">Release-ordered timeline powered from your collection data.</p>
+              </div>
             </div>
-            <div className="bg-base-200 p-8 rounded-xl border border-base-content/10">
-              <Users className="text-primary mb-4 w-8 h-8" />
-              <h4 className="text-lg font-[family-name:var(--font-epilogue)] mb-2">Created By</h4>
-              <p className="text-sm text-base-content/80">{universe.creator?.name || 'Unknown creator'}</p>
+            <div className="card card-border bg-base-200/60 shadow-sm hover:shadow-md transition-all group">
+              <div className="card-body p-6">
+                <Users className="text-primary mb-2 w-8 h-8 transition-transform duration-500 group-hover:scale-110 group-hover:-translate-y-1" />
+                <h3 className="card-title text-lg font-[family-name:var(--font-epilogue)]">Created By</h3>
+                <p className="text-sm text-base-content/70">{universe.creator?.name || 'Unknown curator'}</p>
+              </div>
             </div>
-            <div className="bg-base-200 p-8 rounded-xl border border-base-content/10">
-              <Gem className="text-primary mb-4 w-8 h-8" />
-              <h4 className="text-lg font-[family-name:var(--font-epilogue)] mb-2">Collection Size</h4>
-              <p className="text-sm text-base-content/80">{universe.items.length} items in this universe.</p>
+            <div className="card card-border bg-base-200/60 shadow-sm hover:shadow-md transition-all group">
+              <div className="card-body p-6">
+                <Gem className="text-primary mb-2 w-8 h-8 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12" />
+                <h3 className="card-title text-lg font-[family-name:var(--font-epilogue)]">Collection Size</h3>
+                <p className="text-sm text-base-content/70">{universe.items.length} items in this universe.</p>
+              </div>
             </div>
           </div>
         </section>

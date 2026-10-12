@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -179,7 +180,7 @@ export function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50">
-      <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/90 to-background/80 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-background/85 backdrop-blur-xl" />
 
       <div className="relative w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -190,10 +191,10 @@ export function Navbar() {
               alt="Lore logo"
               width={40}
               height={40}
-              className="w-8 h-8 sm:w-10 sm:h-10 object-contain bg-transparent transform-none rotate-0 scale-100"
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain bg-transparent transition-transform duration-500 group-hover:rotate-[8deg] group-hover:scale-105"
             />
             <div className="flex flex-col">
-              <span className="font-bold text-lg sm:text-xl text-foreground">
+              <span className="font-heading font-bold text-lg sm:text-xl tracking-tight text-foreground">
                 Lore
               </span>
               <span className="text-[8px] sm:text-[10px] text-muted-foreground font-medium -mt-1">Media Tracker</span>
@@ -367,7 +368,7 @@ export function Navbar() {
                         className="capitalize gap-2"
                         onClick={() => applyTheme(themeName)}
                       >
-                        <span className="h-2 w-2 rounded-full shrink-0" style={{ background: DARK_THEMES.has(themeName) ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.3)' }} aria-hidden />
+                        <span className={cn("h-2 w-2 rounded-full shrink-0", DARK_THEMES.has(themeName) ? "bg-primary" : "bg-base-content/30")} aria-hidden />
                         <span>{themeName}</span>
                         {theme === themeName && <Check className="ml-auto h-4 w-4 text-primary" />}
                       </DropdownMenuItem>
@@ -394,7 +395,7 @@ export function Navbar() {
                           {session.user.name?.[0]?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success border-2 border-background rounded-full"></div>
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-72 p-0 shadow-2xl border-border/50 bg-background/95 backdrop-blur-xl" align="end">
@@ -518,9 +519,9 @@ export function Navbar() {
                     </Button>
                   </Link>
                   <Link href="/auth/signin">
-                    <Button className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
+                    <Button className="group">
                       Get Started
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                     </Button>
                   </Link>
                 </>
@@ -553,7 +554,7 @@ export function Navbar() {
                     { href: '/movies', label: 'Movies' },
                     { href: '/tv', label: 'TV Shows' },
                     { href: '/anime', label: 'Anime' },
-                    { href: '/universes', label: 'Universes', extra: universesActive || universesPending },
+                          { href: '/universes', label: 'Universes', extra: universesActive || universesPending },
                     { href: '/artists', label: 'Artists' },
                   ].map((item) => {
                     const active = pathname === item.href || pathname.startsWith(item.href + '/');

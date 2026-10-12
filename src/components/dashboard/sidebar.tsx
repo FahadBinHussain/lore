@@ -13,18 +13,18 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const categories = [
-  { name: 'Overview', href: '/dashboard', icon: Home, color: 'text-primary' },
-  { name: 'Movies', href: '/dashboard/movies', icon: Film, color: 'text-violet-500' },
-  { name: 'TV Shows', href: '/dashboard/tv', icon: Tv, color: 'text-cyan-500' },
-  { name: 'Anime', href: '/dashboard/anime', icon: Zap, color: 'text-pink-500' },
-  { name: 'Manga', href: '/dashboard/manga', icon: BookCopy, color: 'text-sky-500' },
-  { name: 'Games', href: '/dashboard/games', icon: Gamepad2, color: 'text-amber-500' },
-  { name: 'Books', href: '/dashboard/books', icon: BookOpen, color: 'text-emerald-500' },
-  { name: 'Comics', href: '/dashboard/comics', icon: Sparkles, color: 'text-purple-500' },
-  { name: 'Board Games', href: '/dashboard/boardgames', icon: Gamepad2, color: 'text-orange-500' },
-  { name: 'Soundtracks', href: '/dashboard/soundtracks', icon: Music, color: 'text-teal-500' },
-  { name: 'Podcasts', href: '/dashboard/podcasts', icon: Podcast, color: 'text-red-500' },
-  { name: 'Theme Parks', href: '/dashboard/themeparks', icon: MapPin, color: 'text-lime-500' },
+  { name: 'Overview', href: '/dashboard', icon: Home },
+  { name: 'Movies', href: '/dashboard/movies', icon: Film },
+  { name: 'TV Shows', href: '/dashboard/tv', icon: Tv },
+  { name: 'Anime', href: '/dashboard/anime', icon: Zap },
+  { name: 'Manga', href: '/dashboard/manga', icon: BookCopy },
+  { name: 'Games', href: '/dashboard/games', icon: Gamepad2 },
+  { name: 'Books', href: '/dashboard/books', icon: BookOpen },
+  { name: 'Comics', href: '/dashboard/comics', icon: Sparkles },
+  { name: 'Board Games', href: '/dashboard/boardgames', icon: Gamepad2 },
+  { name: 'Soundtracks', href: '/dashboard/soundtracks', icon: Music },
+  { name: 'Podcasts', href: '/dashboard/podcasts', icon: Podcast },
+  { name: 'Theme Parks', href: '/dashboard/themeparks', icon: MapPin },
 ];
 
 export function DashboardSidebar() {
@@ -46,7 +46,7 @@ export function DashboardSidebar() {
       {/* Overlay for mobile */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-base-content/40 backdrop-blur-xs z-40 md:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -94,7 +94,7 @@ export function DashboardSidebar() {
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   )}
                 >
-                  <Icon className={cn('w-5 h-5', category.color)} />
+                  <Icon className={cn('w-5 h-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
                   {category.name}
                 </Link>
               );

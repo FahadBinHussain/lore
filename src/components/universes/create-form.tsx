@@ -845,15 +845,15 @@ export function CreateUniverseForm() {
                 </div>
                 <div className="rounded-md border bg-background p-3">
                   <p className="text-xs text-muted-foreground">API matched</p>
-                  <p className="text-lg font-semibold text-emerald-600">{previewSummary.resolved}</p>
+                  <p className="text-lg font-semibold text-success">{previewSummary.resolved}</p>
                 </div>
                 <div className="rounded-md border bg-background p-3">
                   <p className="text-xs text-muted-foreground">Curated</p>
-                  <p className="text-lg font-semibold text-amber-600">{previewSummary.unresolved}</p>
+                  <p className="text-lg font-semibold text-warning">{previewSummary.unresolved}</p>
                 </div>
                 <div className="rounded-md border bg-background p-3">
                   <p className="text-xs text-muted-foreground">JP {'->'} Anime</p>
-                  <p className="text-lg font-semibold text-violet-600">{previewSummary.animeRerouted}</p>
+                  <p className="text-lg font-semibold text-primary">{previewSummary.animeRerouted}</p>
                 </div>
               </div>
 
@@ -899,11 +899,11 @@ export function CreateUniverseForm() {
           )}
 
           {unresolvedPreviewItems.length > 0 && (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-2">
-              <p className="text-sm font-medium text-amber-600">Curated Fallbacks ({unresolvedPreviewItems.length})</p>
+            <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 space-y-2">
+              <p className="text-sm font-medium text-warning">Curated Fallbacks ({unresolvedPreviewItems.length})</p>
               <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
                 {unresolvedPreviewItems.map((item) => (
-                  <div key={`unresolved-${item.index}-${item.input.title}`} className="text-xs text-amber-700">
+                  <div key={`unresolved-${item.index}-${item.input.title}`} className="text-xs text-base-content/80">
                     <span className="font-medium">{item.input.title}</span>
                     {typeof item.input.year === 'number' ? ` (${item.input.year})` : ''}
                     {' - '}
@@ -933,9 +933,9 @@ export function CreateUniverseForm() {
                   const statusLabel = item.status === 'processing' ? 'resolving' : item.status;
                   const duplicateRowClass =
                     duplicateMeta?.role === 'kept'
-                      ? 'border-l-4 border-l-emerald-500 bg-emerald-500/10'
+                      ? 'border-l-4 border-l-success bg-success/10'
                       : duplicateMeta?.role === 'merged'
-                        ? 'border-l-4 border-l-red-500 bg-red-500/10'
+                        ? 'border-l-4 border-l-error bg-error/10'
                         : '';
 
                   return (
@@ -1003,18 +1003,18 @@ export function CreateUniverseForm() {
                                 {statusLabel}
                               </Badge>
                               {duplicateMeta?.role === 'kept' && (
-                                <Badge className="bg-emerald-600 text-white">Duplicate Group: Kept</Badge>
+                                <Badge className="badge-success text-success-content">Duplicate Group: Kept</Badge>
                               )}
                               {duplicateMeta?.role === 'merged' && (
-                                <Badge className="bg-red-600 text-white">Duplicate Group: Merged</Badge>
+                                <Badge className="badge-error text-error-content">Duplicate Group: Merged</Badge>
                               )}
                               {item.reroutedToAnime && (
-                                <Badge variant="secondary" className="bg-violet-500/10 text-violet-700">
+                                <Badge variant="secondary" className="bg-primary/10 text-primary">
                                   Import to Anime
                                 </Badge>
                               )}
                               {item.status === 'unresolved' && (
-                                <Badge variant="outline" className="border-amber-500/50 text-amber-600">
+                                <Badge variant="outline" className="border-warning/50 text-warning">
                                   Curated
                                 </Badge>
                               )}

@@ -304,7 +304,7 @@ export default function MovieDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex flex-col items-center justify-center gap-6">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-full blur-xl opacity-50" />
+          <div className="absolute inset-0 bg-gradient-to-r from-error/30 to-warning/30 rounded-full blur-xl opacity-50" />
           <Film className="w-20 h-20 text-primary relative z-10" />
         </div>
         <h1 className="text-3xl font-bold text-foreground">{error || 'Movie not found'}</h1>
@@ -346,48 +346,49 @@ export default function MovieDetailPage() {
       )}
 
       {/* Hero Section with Backdrop */}
-      <div className="relative h-[50vh] sm:h-[60vh] lg:h-[70vh] min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] overflow-hidden">
-        {movie.backdrop_path ? (
-          <div 
-            className="absolute inset-0 bg-cover bg-center scale-105"
-            style={{ 
-              backgroundImage: `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})` 
-            }}
-            suppressHydrationWarning
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 via-fuchsia-600/20 to-cyan-600/30" />
-        )}
-        
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-transparent to-background/45" />
-        
-        {/* Animated Background Effects */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-violet-500/10 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-fuchsia-500/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="relative w-full min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] flex flex-col justify-between pt-4 sm:pt-6 pb-6 sm:pb-10 lg:pb-12">
+        {/* Backdrop Image & Gradients (Background only - overflow-hidden strictly here) */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+          {movie.backdrop_path ? (
+            <div 
+              className="absolute inset-0 bg-cover bg-center scale-105"
+              style={{ 
+                backgroundImage: `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})` 
+              }}
+              suppressHydrationWarning
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-secondary/20 to-accent/25" />
+          )}
+          
+          {/* Gradient Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-background/25 sm:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/50 to-transparent" />
+          
+          {/* Animated Background Effects */}
+          <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/15 to-transparent rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-secondary/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
 
         {/* Back Button */}
-        <div className="absolute top-6 left-6 z-20">
+        <div className="relative z-20 px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl w-full mx-auto mb-4 sm:mb-6">
           <Button 
             variant="ghost" 
-            className="bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300"
+            className="bg-background/70 backdrop-blur-xl border border-border/80 hover:bg-background/90 text-foreground transition-all duration-300 group"
             onClick={() => router.back()}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
             Back
           </Button>
         </div>
 
-        {/* Movie Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12 z-10">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-4 sm:gap-6 lg:gap-8">
+        {/* Movie Info & Poster (Normal flow, never overflows outside!) */}
+        <div className="relative z-10 px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl w-full mx-auto">
+          <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-8 items-center sm:items-end">
             {/* Poster */}
-            <div className="flex-shrink-0 relative group mx-auto sm:mx-0 self-end translate-y-3 sm:translate-y-2 lg:translate-y-4">
-              <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
-              <div className="relative w-32 sm:w-40 md:w-48 lg:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
+            <div className="flex-shrink-0 relative group mx-auto sm:mx-0">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
+              <div className="relative w-36 sm:w-44 md:w-52 lg:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {movie.poster_path ? (
                   <Image 
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -398,23 +399,23 @@ export default function MovieDetailPage() {
                     className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
-                    <Film className="w-16 h-16 text-primary-foreground/80" />
+                  <div className="w-full h-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                    <Film className="w-16 h-16 text-primary-content/80" />
                   </div>
                 )}
               </div>
               {movie.content_rating && (
-                <div className="absolute -top-3 -right-3 bg-amber-500 text-foreground font-bold px-3 py-1 rounded-lg shadow-lg text-sm">
+                <div className="absolute -top-3 -right-3 bg-primary text-primary-content font-bold px-3 py-1 rounded-lg shadow-lg text-sm">
                   {movie.content_rating}
                 </div>
               )}
             </div>
 
             {/* Info */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-center sm:text-left w-full">
               {/* Title and Tagline */}
               <div className="mb-3 sm:mb-4">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-foreground mb-1 sm:mb-2 tracking-tight">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold font-headline text-foreground mb-1 sm:mb-2 tracking-tight break-words">
                   {movie.title}
                 </h1>
                 {movie.original_title && movie.original_title !== movie.title && (
@@ -423,43 +424,43 @@ export default function MovieDetailPage() {
                   </p>
                 )}
                 {movie.tagline && (
-                  <p className="text-base sm:text-lg lg:text-xl text-muted-foreground italic font-light">
+                  <p className="text-sm sm:text-base lg:text-lg text-muted-foreground italic font-light">
                     &quot;{movie.tagline}&quot;
                   </p>
                 )}
               </div>
 
               {/* Meta Info Row */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 mb-4 sm:mb-6">
                 {movie.release_date && (
-                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
-                    <Calendar className="w-4 h-4 text-accent" />
-                    <span className="text-foreground font-medium">
+                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border group/meta">
+                    <Calendar className="w-4 h-4 text-accent transition-transform duration-200 group-hover/meta:scale-110" />
+                    <span className="text-foreground font-medium text-xs sm:text-sm">
                       {getYear(movie.release_date)}
                     </span>
                   </div>
                 )}
                 
                 {movie.runtime > 0 && (
-                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <span className="text-foreground font-medium">{formatRuntime(movie.runtime)}</span>
+                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border group/meta">
+                    <Clock className="w-4 h-4 text-primary transition-transform duration-200 group-hover/meta:scale-110" />
+                    <span className="text-foreground font-medium text-xs sm:text-sm">{formatRuntime(movie.runtime)}</span>
                   </div>
                 )}
 
                 {/* Rating */}
-                <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-amber-500/30">
-                  <Star className="w-5 h-5 fill-amber-400 text-primary" />
-                  <span className="font-bold text-primary">{movie.vote_average.toFixed(1)}</span>
-                  <span className="text-muted-foreground/80 text-sm">({movie.vote_count.toLocaleString()})</span>
+                <div className="flex items-center gap-1.5 bg-primary/10 text-primary backdrop-blur-sm px-3 py-1.5 rounded-full border border-primary/25 group/meta">
+                  <Star className="w-4 h-4 fill-primary text-primary transition-transform duration-200 group-hover/meta:scale-110" />
+                  <span className="font-bold text-xs sm:text-sm">{movie.vote_average.toFixed(1)}</span>
+                  <span className="text-muted-foreground/80 text-xs">({movie.vote_count.toLocaleString()})</span>
                 </div>
 
                 {/* Status Badge */}
                 <Badge className={cn(
-                  "font-semibold",
-                  movie.status === 'Released' ? 'bg-emerald-500/20 text-primary border-emerald-500/30' :
-                  movie.status === 'In Production' ? 'bg-blue-500/20 text-secondary border-blue-500/30' :
-                  'bg-slate-500/20 text-muted-foreground border-slate-500/30'
+                  "font-semibold text-xs",
+                  movie.status === 'Released' ? 'badge-success' :
+                  movie.status === 'In Production' ? 'badge-info' :
+                  'badge-ghost'
                 )}>
                   {movie.status}
                 </Badge>
@@ -467,11 +468,11 @@ export default function MovieDetailPage() {
 
               {/* Genres */}
               {movie.genres && movie.genres.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-5 sm:mb-6">
                   {movie.genres.map((genre) => (
                     <span 
                       key={genre.id} 
-                      className="px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 border border-violet-500/30 text-primary font-medium text-sm hover:from-violet-500/30 hover:to-fuchsia-500/30 transition-all duration-300 cursor-pointer"
+                      className="px-3.5 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary font-medium text-xs sm:text-sm hover:bg-primary/20 transition-all duration-300 cursor-pointer"
                     >
                       {genre.name}
                     </span>
@@ -480,22 +481,22 @@ export default function MovieDetailPage() {
               )}
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-3">
                 {selectedTrailer || movie.videos?.trailers?.length > 0 ? (
                   <Button 
-                    className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-primary-foreground shadow-lg shadow-violet-500/25 transition-all duration-300"
+                    className="shadow-lg shadow-primary/25 transition-all duration-300 text-xs sm:text-sm group/btn"
                     onClick={() => {
                       if (movie.videos?.trailers?.length > 0) {
                         setSelectedTrailer(movie.videos.trailers[0]);
                       }
                     }}
                   >
-                    <PlayCircle className="w-5 h-5 mr-2" />
+                    <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110" />
                     Watch Trailer
                   </Button>
                 ) : (
-                  <Button className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-primary-foreground shadow-lg shadow-violet-500/25 transition-all duration-300">
-                    <Play className="w-5 h-5 mr-2" />
+                  <Button className="shadow-lg shadow-primary/25 transition-all duration-300 text-xs sm:text-sm group/btn">
+                    <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110" />
                     Watch Now
                   </Button>
                 )}
@@ -505,14 +506,14 @@ export default function MovieDetailPage() {
                   onClick={handleMarkAsWatched}
                   disabled={updatingWatched}
                   className={cn(
-                    "border-border text-foreground hover:bg-accent transition-all duration-300",
-                    isWatched && "bg-emerald-500/20 border-emerald-500/50 text-primary"
+                    "transition-all duration-300 text-xs sm:text-sm group/btn",
+                    isWatched && "bg-primary/20 border-primary/50 text-primary"
                   )}
                 >
                   {updatingWatched ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-1.5 sm:mr-2 animate-spin" />
                   ) : (
-                    <Check className={cn("w-4 h-4 mr-2", isWatched && "fill-emerald-400")} />
+                    <Check className={cn("w-4 h-4 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110", isWatched && "fill-primary")} />
                   )}
                   {isWatched ? 'Watched' : 'Mark as Watched'}
                 </Button>
@@ -522,15 +523,15 @@ export default function MovieDetailPage() {
                   size="icon"
                   onClick={() => setIsFavorite(!isFavorite)}
                   className={cn(
-                    "border-border text-foreground hover:bg-accent transition-all duration-300",
-                    isFavorite && "bg-red-500/20 border-red-500/50 text-destructive"
+                    "transition-all duration-300 h-9 w-9 sm:h-10 sm:w-10 group/btn",
+                    isFavorite && "bg-destructive/20 border-destructive/50 text-destructive"
                   )}
                 >
-                  <Heart className={cn("w-4 h-4", isFavorite && "fill-red-400")} />
+                  <Heart className={cn("w-4 h-4 transition-transform duration-200 group-hover/btn:scale-125", isFavorite && "fill-destructive")} />
                 </Button>
                 
-                <Button variant="outline" size="icon" className="border-border text-foreground hover:bg-accent">
-                  <Share2 className="w-4 h-4" />
+                <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 group/btn">
+                  <Share2 className="w-4 h-4 transition-transform duration-200 group-hover/btn:scale-110" />
                 </Button>
               </div>
             </div>
@@ -539,13 +540,13 @@ export default function MovieDetailPage() {
       </div>
 
       {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-12">
             {/* Overview */}
             <section className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-3xl blur-xl" />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-3xl blur-xl" />
               <div className="relative bg-card/80 backdrop-blur-xl rounded-2xl border border-border/80 p-8">
                 <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
                   <Sparkles className="w-6 h-6 text-primary" />
@@ -568,7 +569,7 @@ export default function MovieDetailPage() {
                   {movie.videos.trailers.map((video, idx) => (
                     <Card 
                       key={`trailer-${idx}`}
-                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/50 transition-all duration-300 cursor-pointer"
+                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-primary/50 transition-all duration-300 cursor-pointer"
                       onClick={() => setSelectedTrailer(video)}
                     >
                       <div className="aspect-video relative bg-muted">
@@ -592,7 +593,7 @@ export default function MovieDetailPage() {
                   {movie.videos.teasers.slice(0, 3).map((video, idx) => (
                     <Card 
                       key={`teaser-${idx}`}
-                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-fuchsia-500/50 transition-all duration-300 cursor-pointer"
+                      className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-secondary/50 transition-all duration-300 cursor-pointer"
                       onClick={() => setSelectedTrailer(video)}
                     >
                       <div className="aspect-video relative bg-muted">
@@ -642,7 +643,7 @@ export default function MovieDetailPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {getDisplayCast().map((actor) => (
                     <Link key={actor.id} href={`/people/${actor.id}`} className="block">
-                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/50 transition-all duration-300 hover:transform hover:scale-105">
+                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-primary/50 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="aspect-square relative overflow-hidden bg-muted">
                           {actor.profile_path ? (
                             <Image 
@@ -653,7 +654,7 @@ export default function MovieDetailPage() {
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
                               <Users className="w-12 h-12 text-muted-foreground/70" />
                             </div>
                           )}
@@ -679,10 +680,10 @@ export default function MovieDetailPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {getDirector() && (
                     <Link href={`/people/${getDirector()!.id}`} className="block">
-                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-amber-500/50 hover:scale-[1.02] transition-all duration-300">
+                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-primary/50 hover:scale-[1.02] transition-all duration-300">
                         <CardContent className="p-4 flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                            <Film className="w-6 h-6 text-primary-foreground" />
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                            <Film className="w-6 h-6 text-primary-content" />
                           </div>
                           <div>
                             <p className="text-foreground font-semibold">{getDirector()?.name}</p>
@@ -694,10 +695,10 @@ export default function MovieDetailPage() {
                   )}
                   {getWriters().slice(0, 2).map((writer) => (
                     <Link key={writer.id} href={`/people/${writer.id}`} className="block">
-                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/50 hover:scale-[1.02] transition-all duration-300">
+                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-primary/50 hover:scale-[1.02] transition-all duration-300">
                         <CardContent className="p-4 flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-                            <Users className="w-6 h-6 text-primary-foreground" />
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                            <Users className="w-6 h-6 text-primary-content" />
                           </div>
                           <div>
                             <p className="text-foreground font-semibold">{writer.name}</p>
@@ -709,10 +710,10 @@ export default function MovieDetailPage() {
                   ))}
                   {getCinematographer() && (
                     <Link href={`/people/${getCinematographer()!.id}`} className="block">
-                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/50 hover:scale-[1.02] transition-all duration-300">
+                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-accent/50 hover:scale-[1.02] transition-all duration-300">
                         <CardContent className="p-4 flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                            <Camera className="w-6 h-6 text-primary-foreground" />
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-secondary flex items-center justify-center">
+                            <Camera className="w-6 h-6 text-accent-content" />
                           </div>
                           <div>
                             <p className="text-foreground font-semibold">{getCinematographer()?.name}</p>
@@ -724,10 +725,10 @@ export default function MovieDetailPage() {
                   )}
                   {getComposer() && (
                     <Link href={`/people/${getComposer()!.id}`} className="block">
-                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-pink-500/50 hover:scale-[1.02] transition-all duration-300">
+                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-secondary/50 hover:scale-[1.02] transition-all duration-300">
                         <CardContent className="p-4 flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
-                            <Award className="w-6 h-6 text-primary-foreground" />
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-secondary to-primary flex items-center justify-center">
+                            <Award className="w-6 h-6 text-secondary-content" />
                           </div>
                           <div>
                             <p className="text-foreground font-semibold">{getComposer()?.name}</p>
@@ -739,10 +740,10 @@ export default function MovieDetailPage() {
                   )}
                   {getProducers().slice(0, 2).map((producer) => (
                     <Link key={producer.id} href={`/people/${producer.id}`} className="block">
-                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/50 hover:scale-[1.02] transition-all duration-300">
+                      <Card className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-primary/50 hover:scale-[1.02] transition-all duration-300">
                         <CardContent className="p-4 flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                            <TrendingUp className="w-6 h-6 text-primary-foreground" />
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                            <TrendingUp className="w-6 h-6 text-primary-content" />
                           </div>
                           <div>
                             <p className="text-foreground font-semibold">{producer.name}</p>
@@ -785,7 +786,7 @@ export default function MovieDetailPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                   {movie.similar.map((similar) => (
                     <Link key={similar.id} href={`/movies/movie-${similar.id}`}>
-                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-emerald-500/50 transition-all duration-300 hover:transform hover:scale-105">
+                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-primary/50 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {similar.poster_path ? (
                             <Image 
@@ -796,12 +797,12 @@ export default function MovieDetailPage() {
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
                               <Film className="w-10 h-10 text-muted-foreground/70" />
                             </div>
                           )}
                           <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-amber-400 text-primary" />
+                            <Star className="w-3 h-3 fill-warning text-warning" />
                             <span className="text-foreground text-xs font-semibold">{similar.vote_average.toFixed(1)}</span>
                           </div>
                         </div>
@@ -826,7 +827,7 @@ export default function MovieDetailPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                   {movie.recommendations.map((rec) => (
                     <Link key={rec.id} href={`/movies/movie-${rec.id}`}>
-                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-fuchsia-500/50 transition-all duration-300 hover:transform hover:scale-105">
+                      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-secondary/50 transition-all duration-300 hover:transform hover:scale-105">
                         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
                           {rec.poster_path ? (
                             <Image 
@@ -837,12 +838,12 @@ export default function MovieDetailPage() {
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20">
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary/10 to-accent/10">
                               <Film className="w-10 h-10 text-muted-foreground/70" />
                             </div>
                           )}
                           <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-amber-400 text-primary" />
+                            <Star className="w-3 h-3 fill-warning text-warning" />
                             <span className="text-foreground text-xs font-semibold">{rec.vote_average.toFixed(1)}</span>
                           </div>
                         </div>
@@ -872,9 +873,9 @@ export default function MovieDetailPage() {
                     href={`https://www.imdb.com/title/${movie.external_ids.imdb_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-amber-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-primary/50 transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-foreground font-bold text-sm">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-primary font-bold text-sm border border-primary/30">
                       IMDb
                     </div>
                     <span className="text-foreground group-hover:text-primary transition-colors">View on IMDb</span>
@@ -886,13 +887,13 @@ export default function MovieDetailPage() {
                     href={`https://www.facebook.com/${movie.external_ids.facebook_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-blue-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-primary/50 transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                      <FacebookBrandIcon className="w-5 h-5 text-primary-foreground" />
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center border border-primary/30">
+                      <FacebookBrandIcon className="w-5 h-5 text-primary" />
                     </div>
-                    <span className="text-foreground group-hover:text-secondary transition-colors">Facebook</span>
-                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-secondary" />
+                    <span className="text-foreground group-hover:text-primary transition-colors">Facebook</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-primary" />
                   </a>
                 )}
                 {movie.external_ids?.instagram_id && (
@@ -900,10 +901,10 @@ export default function MovieDetailPage() {
                     href={`https://www.instagram.com/${movie.external_ids.instagram_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-pink-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-secondary/50 transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
-                      <InstagramBrandIcon className="w-5 h-5 text-primary-foreground" />
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center border border-secondary/30">
+                      <InstagramBrandIcon className="w-5 h-5 text-secondary" />
                     </div>
                     <span className="text-foreground group-hover:text-secondary transition-colors">Instagram</span>
                     <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-secondary" />
@@ -914,13 +915,13 @@ export default function MovieDetailPage() {
                     href={`https://twitter.com/${movie.external_ids.twitter_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-sky-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-primary/50 transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center">
-                      <TwitterBrandIcon className="w-5 h-5 text-primary-foreground" />
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center border border-primary/30">
+                      <TwitterBrandIcon className="w-5 h-5 text-primary" />
                     </div>
-                    <span className="text-foreground group-hover:text-secondary transition-colors">Twitter</span>
-                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-secondary" />
+                    <span className="text-foreground group-hover:text-primary transition-colors">Twitter</span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-primary" />
                   </a>
                 )}
                 {movie.homepage && (
@@ -928,10 +929,10 @@ export default function MovieDetailPage() {
                     href={movie.homepage}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-green-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-xl rounded-xl border border-border/80 hover:border-primary/50 transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                      <Globe className="w-5 h-5 text-primary-foreground" />
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center border border-primary/30">
+                      <Globe className="w-5 h-5 text-primary" />
                     </div>
                     <span className="text-foreground group-hover:text-primary transition-colors">Official Website</span>
                     <ExternalLink className="w-4 h-4 text-muted-foreground/80 ml-auto group-hover:text-primary" />
@@ -1021,8 +1022,8 @@ export default function MovieDetailPage() {
                           className="h-8 w-auto object-contain invert brightness-0 dark:invert-0 dark:brightness-100"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                          <Building2 className="w-5 h-5 text-primary-foreground" />
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center border border-primary/30">
+                          <Building2 className="w-5 h-5 text-primary" />
                         </div>
                       )}
                       <div>

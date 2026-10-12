@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { 
   ArrowRight, Mail, Phone, MapPin, Clock,
@@ -97,93 +96,30 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
-      <header className="relative z-50 border-b border-border/50">
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/90 to-background/80 backdrop-blur-xl" />
-        
-        <div className="relative w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <Image
-                src="/logo.png"
-                alt="Lore logo"
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-2xl object-contain bg-transparent shadow-lg shadow-primary/20 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:scale-105"
-              />
-              <div className="flex flex-col">
-                <span className="font-bold text-xl bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
-                  Lore
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium -mt-1">Media Tracker</span>
-              </div>
-            </Link>
-
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Home
-              </Link>
-              <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                About
-              </Link>
-              <Link href="/contact" className="text-sm font-medium text-foreground transition-colors">
-                Contact
-              </Link>
-            </nav>
-
-            {/* CTA */}
-            <Link href="/auth/signin">
-              <Button className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                Get Started
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-24">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-2xl" />
-        
-        <div className="relative w-full px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-8">
-            <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/30">
-              <MessageCircle className="w-3 h-3 mr-1" />
-              Contact Us
-            </Badge>
-            
-            <h1 className="text-5xl sm:text-6xl font-bold tracking-tight">
-              <span className="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
-                Get in Touch
-              </span>
-            </h1>
-            
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Have questions, feedback, or just want to say hello? We&apos;d love to hear from you. 
-              Our team is here to help and we&apos;ll get back to you as soon as possible.
-            </p>
-          </div>
+      <section className="border-b border-border/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+          <h1 className="text-4xl sm:text-6xl font-extrabold leading-[1.1]">
+            Get in touch
+          </h1>
+          <p className="mt-5 text-lg sm:text-xl text-muted-foreground max-w-2xl leading-relaxed">
+            Questions, feedback, or just want to say hello? Send a message and we will get back to you as soon as we can.
+          </p>
         </div>
       </section>
 
       {/* Contact Info Cards */}
-      <section className="py-16 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5" />
+      <section className="py-12 border-b border-border/60">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {contactInfo.map((info, index) => (
               <Card 
                 key={index}
-                className="group relative overflow-hidden border-0 bg-card/50 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl"
+                className="group relative overflow-hidden border border-border/60 bg-card shadow-none ring-0 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
               >
                 <CardContent className="p-6 text-center">
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 mb-4 group-hover:scale-110 transition-transform duration-300">
                     <info.icon className="w-7 h-7 text-primary" />
                   </div>
                   <h3 className="font-semibold text-lg mb-1">{info.title}</h3>
@@ -212,7 +148,7 @@ export default function ContactPage() {
                 Send Message
               </Badge>
               <h2 className="text-3xl font-bold mb-4">
-                <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                <span>
                   Send Us a Message
                 </span>
               </h2>
@@ -220,12 +156,12 @@ export default function ContactPage() {
                 Fill out the form below and we&apos;ll get back to you within 24 hours.
               </p>
 
-              <Card className="border-0 bg-card/50 backdrop-blur-sm">
+              <Card className="border border-border/60 bg-card shadow-none ring-0">
                 <CardContent className="p-6">
                   {submitted ? (
                     <div className="text-center py-12">
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-                        <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/15 mb-4">
+                        <CheckCircle className="w-8 h-8 text-success" />
                       </div>
                       <h3 className="text-xl font-semibold mb-2">Message Sent!</h3>
                       <p className="text-muted-foreground">
@@ -288,9 +224,9 @@ export default function ContactPage() {
                       </div>
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
+                        className="w-full group"
                       >
-                        <Send className="w-4 h-4 mr-2" />
+                        <Send className="w-4 h-4 mr-2 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         Send Message
                       </Button>
                     </form>
@@ -306,7 +242,7 @@ export default function ContactPage() {
                 FAQ
               </Badge>
               <h2 className="text-3xl font-bold mb-4">
-                <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                <span>
                   Frequently Asked Questions
                 </span>
               </h2>
@@ -318,7 +254,7 @@ export default function ContactPage() {
                 {faqs.map((faq, index) => (
                   <Card 
                     key={index}
-                    className="border-0 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
+                    className="border border-border/60 bg-card shadow-none ring-0"
                   >
                     <CardContent className="p-6">
                       <h3 className="font-semibold text-lg mb-2">{faq.question}</h3>
@@ -336,7 +272,7 @@ export default function ContactPage() {
                     <a
                       key={index}
                       href={social.href}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 backdrop-blur-sm hover:bg-primary/10 transition-all duration-300 group"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border/60 bg-card hover:bg-primary/10 transition-all duration-300 group"
                     >
                       <social.icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                       <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
@@ -352,66 +288,23 @@ export default function ContactPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10" />
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
-        
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="space-y-8">
-            <h2 className="text-4xl sm:text-5xl font-bold">
-              <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                Ready to Get Started?
-              </span>
-            </h2>
-            
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Join thousands of users who are already tracking their media with Lore.
+      <section className="border-t border-border/60 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="max-w-xl">
+            <h2 className="text-2xl sm:text-3xl font-bold">Ready to get started?</h2>
+            <p className="mt-2 text-muted-foreground">
+              Sign in and start tracking your media with Lore.
             </p>
-            
-            <Link href="/auth/signin">
-              <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                <Zap className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                Start Tracking Free
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
           </div>
+          <Link href="/auth/signin">
+            <Button size="lg" className="group h-11 px-5 text-sm">
+              <Zap className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
+              Start tracking
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 mb-4 md:mb-0">
-              <Image
-                src="/logo.png"
-                alt="Lore logo"
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-2xl object-contain bg-transparent shadow-lg shadow-primary/20"
-              />
-              <span className="font-bold text-xl">Lore</span>
-            </Link>
-            
-            <div className="flex items-center gap-6">
-              <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Home
-              </Link>
-              <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                About
-              </Link>
-              <Link href="/contact" className="text-sm text-foreground transition-colors">
-                Contact
-              </Link>
-            </div>
-            
-            <p className="text-sm text-muted-foreground mt-4 md:mt-0">
-              © 2026 Lore. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

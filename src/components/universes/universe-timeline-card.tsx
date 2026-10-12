@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Clock,
   CircleSlash2,
+  ExternalLink,
   PauseCircle,
   Loader2,
   ListTree,
@@ -50,6 +51,8 @@ export interface UniverseTimelineCardProps {
   reverse: boolean;
   releaseDateLabel: string;
   href: string | null;
+  /** Evidence URL stored in media_external_ids.source_url for manual items (rendered when href is null). */
+  sourceUrl?: string | null;
   poster: string | null;
   title: string;
   mediaTypeLabel: string;
@@ -73,7 +76,7 @@ export interface UniverseTimelineCardProps {
 }
 
 function getMediaTypeFallbackIcon(mediaType: string) {
-  const iconClass = 'w-8 h-8 text-base-content/30';
+  const iconClass = 'w-8 h-8 text-base-content/30 transition-transform duration-500 group-hover:scale-110';
   switch (mediaType) {
     case 'movie': return <Film className={iconClass} />;
     case 'tv': return <Tv className={iconClass} />;
@@ -95,20 +98,20 @@ function getStatusBadge(status: string) {
     case 'in_progress':
       return {
         label: 'In Progress',
-        icon: <Clock className="w-3 h-3" />,
-        className: 'bg-amber-500/15 text-amber-500',
+        icon: <Clock className="w-3 h-3 animate-spin [animation-duration:8s]" />,
+        className: 'badge-warning',
       };
     case 'dropped':
       return {
         label: 'Dropped',
-        icon: <CircleSlash2 className="w-3 h-3" />,
-        className: 'bg-red-500/15 text-red-500',
+        icon: <CircleSlash2 className="w-3 h-3 transition-transform duration-300 group-hover:rotate-45" />,
+        className: 'badge-error',
       };
     case 'on_hold':
       return {
         label: 'On Hold',
-        icon: <PauseCircle className="w-3 h-3" />,
-        className: 'bg-blue-500/15 text-blue-500',
+        icon: <PauseCircle className="w-3 h-3 transition-transform duration-300 group-hover:scale-110" />,
+        className: 'badge-info',
       };
     default:
       return null;
@@ -119,6 +122,7 @@ export function UniverseTimelineCard({
   reverse,
   releaseDateLabel,
   href,
+  sourceUrl,
   poster,
   title,
   mediaTypeLabel,
@@ -194,45 +198,57 @@ export function UniverseTimelineCard({
         ) : null}
       </div>
       <div className="w-full md:w-5/12 max-w-xl mx-auto md:mx-0">
-        <div className="bg-base-200/60 backdrop-blur-xl p-6 rounded-xl border border-base-content/10 hover:border-primary/30 transition-all group">
-          <span className={`text-primary text-sm font-bold tracking-tighter mb-1 block ${reverse ? 'md:text-right' : ''}`}>{releaseDateLabel}</span>
+        <div className="card card-border bg-base-100 shadow-md hover:shadow-xl hover:border-primary/40 transition-all group overflow-hidden">
+          <div className="card-body p-6">
+            <span className={`text-primary text-sm font-bold tracking-tighter mb-1 block ${reverse ? 'md:text-right' : ''}`}>{releaseDateLabel}</span>
           <div className={`flex gap-4 ${reverse ? 'md:flex-row-reverse' : ''}`}>
             <div className="w-24 h-36 rounded-lg overflow-hidden flex-shrink-0 relative">
-              {href ? (
-                <Link href={href} scroll className="block h-full w-full">
-                  {poster ? (
-                    <Image
-                      src={poster}
-                      alt={title}
-                      fill
-                      sizes="(min-width: 1024px) 25vw, 50vw"
-                      className="object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-base-300 flex items-center justify-center">
-                      {getMediaTypeFallbackIcon(mediaType)}
-                    </div>
-                  )}
-                </Link>
-              ) : poster ? (
-                <Image
-                  src={poster}
-                  alt={title}
-                  fill
-                  sizes="(min-width: 1024px) 25vw, 50vw"
-                  className="object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
-                />
-              ) : (
-                <div className="h-full w-full bg-base-300 flex items-center justify-center">
-                  {getMediaTypeFallbackIcon(mediaType)}
-                </div>
-              )}
+              {(() => {
+                const posterContent = poster ? (
+                  <Image
+                    src={poster}
+                    alt={title}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    className="object-cover scale-110 group-hover:scale-100 transition-transform duration-700"
+                  />
+                ) : (
+                  <div className="h-full w-full bg-base-300 flex items-center justify-center">
+                    {getMediaTypeFallbackIcon(mediaType)}
+                  </div>
+                );
+                if (href) {
+                  return (
+                    <Link href={href} scroll className="block h-full w-full">
+                      {posterContent}
+                    </Link>
+                  );
+                }
+                if (sourceUrl) {
+                  return (
+                    <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="block h-full w-full">
+                      {posterContent}
+                    </a>
+                  );
+                }
+                return posterContent;
+              })()}
             </div>
             <div className={`flex-grow ${reverse ? 'md:text-right' : ''}`}>
               {href ? (
                 <Link href={href} scroll className="text-xl font-[family-name:var(--font-epilogue)] mb-1 group-hover:text-primary transition-colors block">
                   {title}
                 </Link>
+              ) : sourceUrl ? (
+                <a
+                  href={sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xl font-[family-name:var(--font-epilogue)] mb-1 group-hover:text-primary transition-colors inline-flex items-start gap-1.5"
+                >
+                  {title}
+                  <ExternalLink className="w-4 h-4 shrink-0 self-center opacity-60 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </a>
               ) : (
                 <h3 className="text-xl font-[family-name:var(--font-epilogue)] mb-1 group-hover:text-primary transition-colors">
                   {title}
@@ -243,17 +259,17 @@ export function UniverseTimelineCard({
                   {seriesTitle}
                 </p>
               ) : null}
-              <div className={`mb-2 flex flex-wrap gap-2 ${reverse ? 'md:justify-end' : ''}`}>
-                <span className="inline-block px-2 py-0.5 bg-base-300 text-base-content/70 text-[10px] font-bold rounded">
+              <div className={`mb-2 flex flex-wrap gap-1.5 items-center ${reverse ? 'md:justify-end' : ''}`}>
+                <span className="badge badge-neutral badge-xs font-bold">
                   {mediaTypeLabel}
                 </span>
                 {isCurated ? (
-                  <span className="inline-block px-2 py-0.5 bg-primary/15 text-primary text-[10px] font-bold rounded">
+                  <span className="badge badge-primary badge-xs font-bold">
                     Curated
                   </span>
                 ) : null}
                 {statusBadge ? (
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded ${statusBadge.className}`}>
+                  <span className={`badge badge-xs font-bold gap-1 ${statusBadge.className}`}>
                     {statusBadge.icon}
                     {statusBadge.label}
                   </span>
@@ -263,13 +279,13 @@ export function UniverseTimelineCard({
                     type="button"
                     onClick={toggleWatched}
                     disabled={updating}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded cursor-pointer transition-colors ${
+                    className={`btn btn-xs gap-1 font-bold group/btn ${
                       watched
-                        ? 'bg-green-500/15 text-green-500'
-                        : 'bg-base-100 border border-base-content/20 text-base-content/70 hover:text-primary hover:border-primary/40'
+                        ? 'btn-success text-success-content'
+                        : 'btn-outline border-base-content/20 text-base-content hover:btn-primary'
                     }`}
                   >
-                    {updating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                    {updating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3 transition-transform duration-200 group-hover/btn:scale-125" />}
                     {watched ? 'Watched' : 'Mark as watched'}
                   </button>
                 ) : null}
@@ -278,8 +294,8 @@ export function UniverseTimelineCard({
                 {description}
               </p>
               {rating ? (
-                <div className={`flex items-center gap-2 text-yellow-500 ${reverse ? 'md:justify-end' : ''}`}>
-                  <Star className="w-4 h-4" fill="currentColor" />
+                <div className={`flex items-center gap-2 text-warning ${reverse ? 'md:justify-end' : ''}`}>
+                  <Star className="w-4 h-4 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" fill="currentColor" />
                   <span className="text-xs font-bold">{rating.toFixed(1)}</span>
                 </div>
               ) : null}
@@ -289,7 +305,7 @@ export function UniverseTimelineCard({
             <details className="group/details mt-5 border-t border-base-content/10 pt-4">
               <summary className={`flex cursor-pointer list-none items-center justify-between gap-3 text-left ${reverse ? 'md:text-right' : ''}`}>
                 <span className={`flex min-w-0 items-center gap-2 text-sm font-bold text-base-content ${reverse ? 'md:flex-row-reverse' : ''}`}>
-                  <ListTree className="h-4 w-4 shrink-0 text-primary" />
+                  <ListTree className="h-4 w-4 shrink-0 text-primary transition-transform duration-300 group-hover/details:scale-110" />
                   <span className="truncate">Expanded airing window</span>
                 </span>
                 <span className={`flex shrink-0 items-center gap-2 text-xs font-bold text-base-content/60 ${reverse ? 'md:flex-row-reverse' : ''}`}>
@@ -327,7 +343,7 @@ export function UniverseTimelineCard({
                               <span className="mt-1 block text-xs text-base-content/50">{entry.runtimeLabel}</span>
                             ) : null}
                             {entry.rating ? (
-                              <span className="mt-1 flex items-center gap-1 text-xs font-semibold text-amber-500">
+                              <span className="mt-1 flex items-center gap-1 text-xs font-semibold text-warning">
                                 <Star className="w-3 h-3 fill-current" />
                                 {entry.rating.toFixed(1)}
                               </span>
@@ -359,6 +375,7 @@ export function UniverseTimelineCard({
               </div>
             </details>
           ) : null}
+          </div>
         </div>
       </div>
     </div>

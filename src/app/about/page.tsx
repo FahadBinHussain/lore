@@ -1,161 +1,82 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
-import { 
-  ArrowRight, Zap, Award
-} from 'lucide-react';
+import { ArrowRight, ListOrdered, CheckCheck, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+
+const PRINCIPLES = [
+  {
+    icon: Layers,
+    title: 'Complete by design',
+    body: 'A universe holds every official release in a franchise: main series, sequels, spin-offs, shorts, games, books, comics, and soundtracks. Nothing is dropped for being small or obscure.',
+  },
+  {
+    icon: ListOrdered,
+    title: 'Release order first',
+    body: 'Items are sorted by when they originally came out, so the timeline reads the way the franchise actually unfolded.',
+  },
+  {
+    icon: CheckCheck,
+    title: 'Progress you can trust',
+    body: 'Progress is items done out of items tracked. Anything that cannot be tracked yet is labeled as curated instead of being counted.',
+  },
+];
 
 export default function AboutPage() {
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
-      <header className="relative z-50 border-b border-border/50">
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/90 to-background/80 backdrop-blur-xl" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <Image
-                src="/logo.png"
-                alt="Lore logo"
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-2xl object-contain bg-transparent shadow-lg shadow-primary/20 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:scale-105"
-              />
-              <div className="flex flex-col">
-                <span className="font-bold text-xl bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
-                  Lore
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium -mt-1">Media Tracker</span>
-              </div>
-            </Link>
+    <div className="min-h-screen bg-background">
+      <section className="border-b border-border/60">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+          <h1 className="text-4xl sm:text-6xl font-extrabold leading-[1.1] max-w-3xl">
+            Tracking media should feel as good as finishing it.
+          </h1>
+          <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl leading-relaxed">
+            Lore helps enthusiasts organize and follow their entertainment across movies, TV shows, anime, games, books, comics, and more, one franchise at a time.
+          </p>
+        </div>
+      </section>
 
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Home
-              </Link>
-              <Link href="/about" className="text-sm font-medium text-foreground transition-colors">
-                About
-              </Link>
-              <Link href="/contact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Contact
-              </Link>
-            </nav>
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-10">How Lore works</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          {PRINCIPLES.map(({ icon: Icon, title, body }) => (
+            <div
+              key={title}
+              className="group rounded-2xl border border-border/60 bg-card p-6 transition-colors hover:border-primary/40"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Icon className="w-5 h-5 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6" />
+              </span>
+              <h3 className="mt-5 text-lg font-semibold">{title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-            {/* CTA */}
+      <section className="border-t border-border/60 bg-muted/30">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+          <div className="max-w-xl">
+            <h2 className="text-2xl sm:text-3xl font-bold">Ready to start your timeline?</h2>
+            <p className="mt-3 text-muted-foreground leading-relaxed">
+              Sign in, open a universe, and mark the first thing you have finished.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
             <Link href="/auth/signin">
-              <Button className="bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                Get Started
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button size="lg" className="group h-11 px-5 text-sm w-full sm:w-auto">
+                Get started
+                <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+            <Link href="/contact">
+              <Button variant="outline" size="lg" className="h-11 px-5 text-sm w-full sm:w-auto">
+                Contact us
               </Button>
             </Link>
           </div>
         </div>
-      </header>
-
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-24">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-2xl" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-8">
-            <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/30">
-              <Award className="w-3 h-3 mr-1" />
-              About Us
-            </Badge>
-            
-            <h1 className="text-5xl sm:text-6xl font-bold tracking-tight">
-              <span className="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
-                Our Mission
-              </span>
-            </h1>
-            
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              We believe tracking your media should be beautiful, intuitive, and enjoyable. 
-              Lore was created to help enthusiasts organize and track their entertainment journey 
-              across movies, TV shows, games, and books.
-            </p>
-          </div>
-        </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10" />
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
-        
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="space-y-8">
-            <h2 className="text-4xl sm:text-5xl font-bold">
-              <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                Ready to Start Your Journey?
-              </span>
-            </h2>
-            
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Join our community of media enthusiasts and transform how you track your entertainment.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/auth/signin">
-                <Button size="lg" className="group bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
-                  <Zap className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                  Get Started Free
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button variant="outline" size="lg" className="border-2">
-                  Contact Us
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 mb-4 md:mb-0">
-              <Image
-                src="/logo.png"
-                alt="Lore logo"
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-2xl object-contain bg-transparent shadow-lg shadow-primary/20"
-              />
-              <span className="font-bold text-xl">Lore</span>
-            </Link>
-            
-            <div className="flex items-center gap-6">
-              <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Home
-              </Link>
-              <Link href="/about" className="text-sm text-foreground transition-colors">
-                About
-              </Link>
-              <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Contact
-              </Link>
-            </div>
-            
-            <p className="text-sm text-muted-foreground mt-4 md:mt-0">
-              © 2026 Lore. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
-

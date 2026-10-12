@@ -554,3 +554,23 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
   parent: one(comments, { fields: [comments.parentId], references: [comments.id], relationName: 'commentReplies' }),
   replies: many(comments, { relationName: 'commentReplies' }),
 }));
+
+export const artworkExternalIds = pgTable('artwork_external_ids', {
+  id: serial('id').primaryKey(),
+  artworkId: integer('artwork_id').references(() => artworks.id, { onDelete: 'cascade' }).notNull(),
+  provider: varchar('provider', { length: 50 }).notNull(),
+  externalId: varchar('external_id', { length: 255 }).notNull(),
+  sourceUrl: text('source_url'),
+  imageUrl: text('image_url'),
+  title: varchar('title', { length: 1000 }),
+  confidence: integer('confidence').default(100).notNull(),
+  isPrimary: boolean('is_primary').default(false).notNull(),
+  lastSyncedAt: timestamp('last_synced_at'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('artwork_external_ids_provider_external_idx').on(table.provider, table.externalId),
+  index('artwork_external_ids_artworkId_idx').on(table.artworkId),
+  index('artwork_external_ids_provider_idx').on(table.provider),
+]);

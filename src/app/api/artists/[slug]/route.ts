@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { and, eq, inArray, isNotNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { artists, artworks, userArtistProgress, userArtworkProgress, users } from '@/db/schema';
+import { artists, artworks, artworkExternalIds, userArtistProgress, userArtworkProgress, users } from '@/db/schema';
 import { artistProgress, artworkTotals, exploredArtworkCount, reconcileArtist } from '@/lib/artists/progress';
 
 const PAINTINGS_LIMIT = 500;
@@ -45,10 +45,39 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       : [];
     const exploredIds = new Set(exploredRows.map((row) => row.artworkId));
 
+    const sourceRows = sliceIds.length
+      ? await db.select({
+          artworkId: artworkExternalIds.artworkId,
+          provider: artworkExternalIds.provider,
+          sourceUrl: artworkExternalIds.sourceUrl,
+          title: artworkExternalIds.title,
+          imageUrl: artworkExternalIds.imageUrl,
+          isPrimary: artworkExternalIds.isPrimary,
+        }).from(artworkExternalIds)
+          .where(inArray(artworkExternalIds.artworkId, sliceIds))
+          .orderBy(desc(artworkExternalIds.isPrimary), artworkExternalIds.provider)
+      : [];
+    const sourcesByArtwork = new Map<number, typeof sourceRows>();
+    for (const source of sourceRows) {
+      const bucket = sourcesByArtwork.get(source.artworkId) ?? [];
+      bucket.push(source);
+      sourcesByArtwork.set(source.artworkId, bucket);
+    }
+
     const { explored } = user ? await reconcileArtist(user.id, artist.id, 'down') : { explored: 0 };
     const progress = user ? await artistProgress(user.id, artist.id) : null;
 
-    const paintings = rows.map((row) => ({ id: String(row.id), title: row.title, year: row.year, imageUrl: row.imageUrl, sourceUrl: row.sourceUrl || `https://www.wikiart.org/en/${slug}`, width: row.width, height: row.height, explored: exploredIds.has(row.id) }));
+    const paintings = rows.map((row) => ({
+      id: String(row.id),
+      title: row.title,
+      year: row.year,
+      imageUrl: row.imageUrl,
+      sourceUrl: row.sourceUrl || `https://www.wikiart.org/en/${slug}`,
+      width: row.width,
+      height: row.height,
+      explored: exploredIds.has(row.id),
+      sources: (sourcesByArtwork.get(row.id) ?? []).map((source) => ({ provider: source.provider, sourceUrl: source.sourceUrl, title: source.title, imageUrl: source.imageUrl, isPrimary: source.isPrimary })),
+    }));
     return NextResponse.json({ artist, paintings, total, truncated: offset + rows.length < total, isExplored: Boolean(progress?.isExplored), isAuto: Boolean(progress?.isAuto), exploredCount: explored });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Artist could not be loaded.';

@@ -246,48 +246,49 @@ export default function AnimeDetailPage() {
       )}
 
       {/* Hero Section with Backdrop */}
-      <div className="relative h-[70vh] min-h-[600px] overflow-hidden">
-        {anime.banner || anime.image ? (
-          <div 
-            className="absolute inset-0 bg-cover bg-center scale-105"
-            style={{ 
-              backgroundImage: `url(${anime.banner || anime.image})` 
-            }}
-            suppressHydrationWarning
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-secondary/20 to-accent/25" />
-        )}
-        
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-transparent to-background/45" />
-        
-        {/* Animated Background Effects */}
-        <div className="absolute inset-0 overflow-hidden">
+      <div className="relative w-full min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] flex flex-col justify-between pt-4 sm:pt-6 pb-6 sm:pb-10 lg:pb-12">
+        {/* Backdrop Image & Gradients (Background only - overflow-hidden strictly here) */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+          {anime.banner || anime.image ? (
+            <div 
+              className="absolute inset-0 bg-cover bg-center scale-105"
+              style={{ 
+                backgroundImage: `url(${anime.banner || anime.image})` 
+              }}
+              suppressHydrationWarning
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-secondary/20 to-accent/25" />
+          )}
+          
+          {/* Gradient Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-background/25 sm:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/50 to-transparent" />
+          
+          {/* Animated Background Effects */}
           <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/15 to-transparent rounded-full blur-3xl animate-pulse" />
           <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-secondary/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
 
         {/* Back Button */}
-        <div className="absolute top-6 left-6 z-20">
+        <div className="relative z-20 px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl w-full mx-auto mb-4 sm:mb-6">
           <Button 
             variant="ghost" 
-            className="bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300"
+            className="bg-background/70 backdrop-blur-xl border border-border/80 hover:bg-background/90 text-foreground transition-all duration-300 group"
             onClick={() => router.back()}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
             Back
           </Button>
         </div>
 
-        {/* Show Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-10">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+        {/* Anime Info & Poster (Normal flow, never overflows outside!) */}
+        <div className="relative z-10 px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl w-full mx-auto">
+          <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-8 items-center sm:items-end">
             {/* Poster */}
-            <div className="flex-shrink-0 relative group">
+            <div className="flex-shrink-0 relative group mx-auto sm:mx-0">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
-              <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
+              <div className="relative w-36 sm:w-44 md:w-52 lg:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
                 {anime.image ? (
                   <Image 
                     src={anime.image}
@@ -306,17 +307,19 @@ export default function AnimeDetailPage() {
             </div>
 
             {/* Info */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-center sm:text-left w-full">
               {/* Title and Tagline */}
               <div className="mb-4">
-                <Badge variant="outline" className="mb-2 bg-primary/15 text-primary border-primary/30">
-                  <Zap className="w-3 h-3 mr-1" />
-                  Anime
-                </Badge>
-                <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-2 tracking-tight">
+                <div className="flex justify-center sm:justify-start mb-2">
+                  <Badge variant="outline" className="bg-primary/15 text-primary border-primary/30">
+                    <Zap className="w-3 h-3 mr-1" />
+                    Anime
+                  </Badge>
+                </div>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold font-headline text-foreground mb-2 tracking-tight break-words">
                   {anime.title}
                 </h1>
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
                   <Badge variant="outline" className="bg-secondary/15 text-secondary border-secondary/30">
                     {anime.formatBadge}
                   </Badge>
@@ -332,41 +335,41 @@ export default function AnimeDetailPage() {
               </div>
 
               {/* Meta Info Row */}
-              <div className="flex flex-wrap items-center gap-3 mb-6">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-3 mb-5 sm:mb-6">
                 {anime.seasonYear && (
-                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
-                    <Calendar className="w-4 h-4 text-primary" />
-                    <span className="text-foreground font-medium">{anime.seasonYear}</span>
+                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border group/meta">
+                    <Calendar className="w-4 h-4 text-primary transition-transform duration-200 group-hover/meta:scale-110" />
+                    <span className="text-foreground font-medium text-xs sm:text-sm">{anime.seasonYear}</span>
                   </div>
                 )}
                 
                 {anime.episodes && (
-                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
-                    <Play className="w-4 h-4 text-secondary" />
-                    <span className="text-foreground font-medium">{anime.episodes} Episodes</span>
+                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border group/meta">
+                    <Play className="w-4 h-4 text-secondary transition-transform duration-200 group-hover/meta:scale-110" />
+                    <span className="text-foreground font-medium text-xs sm:text-sm">{anime.episodes} Episodes</span>
                   </div>
                 )}
                 
                 {anime.duration && (
-                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
-                    <Clock className="w-4 h-4 text-accent" />
-                    <span className="text-foreground font-medium">{anime.duration} min</span>
+                  <div className="flex items-center gap-2 bg-background/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border group/meta">
+                    <Clock className="w-4 h-4 text-accent transition-transform duration-200 group-hover/meta:scale-110" />
+                    <span className="text-foreground font-medium text-xs sm:text-sm">{anime.duration} min</span>
                   </div>
                 )}
 
                 {/* Rating - API returns 0-100, divide by 10 for display */}
                 {anime.rating && (
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-amber-500/30">
-                    <Star className="w-5 h-5 fill-amber-400 text-primary" />
-                    <span className="font-bold text-primary">{anime.rating / 10}</span>
+                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-warning/20 to-primary/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-warning/30 group/meta">
+                    <Star className="w-4 h-4 fill-warning text-warning transition-transform duration-200 group-hover/meta:scale-110" />
+                    <span className="font-bold text-foreground text-xs sm:text-sm">{anime.rating / 10}</span>
                   </div>
                 )}
 
                 {/* Next Episode */}
                 {anime.nextEpisode && (
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-primary/20 to-secondary/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-primary/30">
-                    <Monitor className="w-4 h-4 text-primary" />
-                    <span className="text-foreground font-medium text-sm">
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-primary/20 to-secondary/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-primary/30 group/meta">
+                    <Monitor className="w-4 h-4 text-primary transition-transform duration-200 group-hover/meta:scale-110" />
+                    <span className="text-foreground font-medium text-xs sm:text-sm">
                       {formatNextEpisode(anime.nextEpisode)}
                     </span>
                   </div>
@@ -375,8 +378,8 @@ export default function AnimeDetailPage() {
 
               {/* Studios */}
               {anime.studios.length > 0 && (
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-muted-foreground text-sm">Studio:</span>
+                <div className="flex items-center justify-center sm:justify-start gap-2 mb-4 text-xs sm:text-sm">
+                  <span className="text-muted-foreground">Studio:</span>
                   {anime.studios.map((studio, i) => (
                     <span key={i} className="text-foreground font-medium">{studio}</span>
                   ))}
@@ -385,11 +388,11 @@ export default function AnimeDetailPage() {
 
               {/* Genres */}
               {anime.genres && anime.genres.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-5 sm:mb-6">
                   {anime.genres.map((genre) => (
                     <span 
                       key={genre} 
-                      className="px-4 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary font-medium text-sm hover:bg-primary/20 transition-all duration-300 cursor-pointer"
+                      className="px-3.5 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary font-medium text-xs sm:text-sm hover:bg-primary/20 transition-all duration-300 cursor-pointer"
                     >
                       {genre}
                     </span>
@@ -398,13 +401,13 @@ export default function AnimeDetailPage() {
               )}
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-3">
                 {anime.trailer?.site === 'youtube' && (
                   <Button 
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 text-xs sm:text-sm group/btn"
                     onClick={() => setSelectedTrailer(anime.trailer)}
                   >
-                    <PlayCircle className="w-5 h-5 mr-2" />
+                    <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110" />
                     Watch Trailer
                   </Button>
                 )}
@@ -414,7 +417,7 @@ export default function AnimeDetailPage() {
                   onClick={handleMarkAsWatched}
                   disabled={updatingWatched}
                   className={cn(
-                    "border-2 transition-all duration-300",
+                    "border-2 transition-all duration-300 text-xs sm:text-sm group/btn",
                     isWatched 
                       ? "bg-primary/20 border-primary/50 text-primary hover:bg-primary/30" 
                       : "bg-background/70 border-border text-foreground hover:bg-accent"
@@ -422,12 +425,12 @@ export default function AnimeDetailPage() {
                 >
                   {isWatched ? (
                     <>
-                      <Check className="w-5 h-5 mr-2 fill-current" />
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 fill-current transition-transform duration-200 group-hover/btn:scale-110" />
                       Watched
                     </>
                   ) : (
                     <>
-                      <Plus className="w-5 h-5 mr-2" />
+                      <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110" />
                       Mark as Watched
                     </>
                   )}

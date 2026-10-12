@@ -109,8 +109,8 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-500/10 text-green-500';
-      case 'in_progress': return 'bg-amber-500/10 text-amber-500';
+      case 'completed': return 'bg-success/15 text-success';
+      case 'in_progress': return 'bg-warning/15 text-warning';
       default: return 'bg-muted text-muted-foreground';
     }
   };

@@ -286,3 +286,36 @@ $env:PGPASSWORD=[uri]::UnescapeDataString([regex]::Match($url,'://[^:]+:([^@]+)@
 ```
 
 Quick triage when a DB connection fails: `Test-NetConnection 127.0.0.1 -Port 7891` — false means no local proxy is up, so the failure is NOT VPN interception; use the direct path above.
+
+## UI theming gotchas (2026-10-05 redesign & 2026-10-11 DaisyUI compliance)
+
+- **100% DaisyUI Compliance:** Replaced custom material/surface tokens (`text-on-surface`, `bg-surface-container-*`, `border-outline-*`, `text-on-background`) and hardcoded dark palette classes (`from-slate-950 via-slate-900 to-slate-950`, `bg-white/5`, `border-white/10`, `text-white`, `bg-black/70`) across all detail pages (`/books/[id]`, `/games/[id]`, `/movies/[id]`, `/tv/[id]`, `/people/[id]`, `/artists/[slug]`), media category listings (`/movies`, `/tv`, `/anime`, `/books`, `/games`, `/themeparks`, `/podcasts`), search, and universes with native daisyUI semantic utilities (`bg-base-100`, `bg-base-200`, `bg-base-300`, `text-base-content`, `text-base-content/70`, `border-base-content/15`, `badge`, `badge-outline`, `btn btn-primary`). This completely resolves CSS clashing with daisyUI across light, dark, and all 35 custom themes (`cupcake`, `retro`, `cyberpunk`, `valentine`, `aqua`, `synthwave`, `dracula`, etc.).
+- **Card and Hero readability in light mode:** In light themes (`data-theme="light"` and other bright themes), universe and search card titles now explicitly use `text-base-content` (dark charcoal/black in light mode, crisp white in dark mode) instead of indeterminate custom tokens, ensuring 100% readable contrast against card surfaces.
+- **Card overlay badges on posters:** Swapped hardcoded `bg-black/70 text-white` badges across all media cards for `badge bg-base-100/85 backdrop-blur-md text-base-content border border-base-content/15 shadow-sm`, keeping rating and type badges perfectly readable and theme-adaptive on any backdrop.
+- **Icon micro-interaction motion (Rule 10):** Added global motion transitions for Lucide/SVG icons in `globals.css` (`scale(1.08)` on container hover, `scale(0.95)` on active press) with prefers-reduced-motion fallback.
+- **Tailwind v4 `@theme inline` bakes the value into the utility.** All fallback variables in `globals.css` derive directly from the active daisyUI theme (`--color-base-100` / `--color-base-content` / `color-mix`) so any third-party or residual token also stays legible.
+- `--font-sans: var(--font-sans)` was self-referential and silently fell back to Times New Roman. Body = Manrope (`--font-manrope`), headings = Epilogue (`--font-epilogue`, applied to `h1-h4` in the base layer).
+- base-ui tabs expose `data-active` (not `data-[state=active]`) — style the selected tab with `data-active:` variants.
+- The homepage hero (`LogoScrollSequence` scroll frames) is intentionally untouched; only the copy panel on top of it changes. The sticky hero container starts below the fixed 4rem navbar, so bottom padding in it must clear that offset.
+- Footer lives in `src/components/site-footer.tsx` and is mounted once in `layout.tsx` — do not add per-page headers/footers (about/contact used to ship duplicate ones).
+- **DaisyUI 5 Color Variable Purge:** DaisyUI sets `--color-primary`, `--color-secondary`, `--color-base-100`, etc. on `:root` and `[data-theme]`. Any hardcoded Tailwind palette classes (e.g., `emerald-*`, `teal-*`, `amber-*`, `cyan-*`, `violet-*`, `fuchsia-*`, `blue-*`, `rose-*`, `pink-*`, `green-*`, `yellow-*`) override these CSS variables and break dynamic theme switching. All components, badges, buttons, cards, headers, borders, and icons across all routes were systematically replaced with semantic tokens (`primary`, `secondary`, `accent`, `base-100`, `base-200`, `base-300`, `base-content`, `success`, `warning`, `error`, `info`).
+- **DaisyUI 5 Universes Page Architecture (2026-10-11):** The universes page (`/universes` and `/universes/[slug]`) is 100% compliant with native DaisyUI 5 primitives:
+  - Hero: `.hero` and `.hero-content` with soft badge (`.badge.badge-primary.badge-soft`), headline, description, and `.btn.btn-primary.rounded-full` action triggers.
+  - Stats: `.stats.stats-vertical.sm:stats-horizontal` containing `.stat` cards with `.stat-figure`, `.stat-title`, `.stat-value`, and `.stat-desc`.
+  - Universe Cards: `.card.card-border.bg-base-100.shadow-sm.hover:shadow-2xl` with `<figure className="relative aspect-[16/9]">`, `.card-body.p-5`, `.card-title`, and `.card-actions`. (DaisyUI 5 uses `card-border` instead of v4 `card-bordered`, and `card-dash` for dashed borders).
+  - Search & Sorting: `.input.input-bordered` with clear action button and `.select.select-bordered` for client-side instant filtering across all universes.
+  - Avatars & Progress: Native `.avatar` and `.avatar.avatar-placeholder` for curators, and `<progress className="progress progress-primary w-full h-2">` for progress bars.
+  - Rule 10 icon motion: All icons feature micro-interaction transitions (`group-hover:scale-110`, `group-hover:rotate-12`, `group-hover:translate-x-1`, `animate-pulse`, `animate-spin`).
+
+## Detail Page Hero Responsiveness Architecture (2026-10-11)
+
+- **Root Cause of Cover Clipping on Mobile:** Previous detail heroes (`/movies/[id]`, `/tv/[id]`, `/anime/[id]`, `/games/[id]`, `/books/[id]`, seasons, episodes) used fixed-height outer wrappers (`h-[50vh] sm:h-[60vh] min-h-[400px] overflow-hidden`) with hero text and posters anchored at `absolute bottom-0 left-0 right-0`. On mobile screens (320px–420px), media info stacks vertically into a single column (`poster + title + meta badges + genres + buttons = ~520px+`). Because content was anchored to `bottom-0` inside a ~400px container, the poster was forced over `top: 0`, colliding with the Back button and getting sliced off by outer `overflow-hidden`.
+- **The Responsive Media Hero Architecture Formula:**
+  - Outer wrapper: `relative w-full min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] flex flex-col justify-between pt-4 sm:pt-6 pb-6 sm:pb-10 lg:pb-12` (NO `overflow-hidden` on outer wrapper).
+  - Backdrop layer: `absolute inset-0 overflow-hidden pointer-events-none select-none z-0` containing the backdrop image (`scale-105 transition-transform duration-700`), gradients (`bg-gradient-to-t from-base-100 via-base-100/75 to-base-100/25 sm:to-transparent`), and ambient lights.
+  - Back button: in normal flow at the top (`relative z-20 px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl w-full mx-auto mb-4 sm:mb-6`).
+  - Media content & poster: in normal document flow (`relative z-10 px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl w-full mx-auto`).
+  - Flex container: `flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-8 items-center sm:items-end`.
+  - Poster sizing: `relative w-36 sm:w-44 md:w-52 lg:w-64 aspect-[2/3]` (or `aspect-[3/4]` for games, `aspect-video` for episodes).
+  - Info text & badges: `flex-1 min-w-0 text-center sm:text-left w-full`, pills and buttons aligned `justify-center sm:justify-start`.
+  - Rule 10 icon motion: all buttons, pills, ratings, and back navigation include smooth CSS micro-interactions (`group-hover:scale-110`, `group-hover:-translate-x-1`, `group-hover:rotate-12`, `group-hover:scale-125`).

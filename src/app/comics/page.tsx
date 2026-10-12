@@ -84,10 +84,10 @@ export default function ComicsPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
       <section className="relative py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
         <div className="relative w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge variant="outline" className="mb-4 bg-purple-500/10 text-purple-500 border-purple-500/30">
+            <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/30">
               <BookOpen className="w-3 h-3 mr-1" />
               Comics
             </Badge>
@@ -110,7 +110,7 @@ export default function ComicsPage() {
                 placeholder="Search comics by title, character, or creator..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-3 text-lg rounded-xl border-2 focus:border-purple-500/50"
+                className="pl-12 pr-4 py-3 text-lg rounded-xl border-2 focus:border-primary"
               />
             </div>
           </form>
@@ -166,13 +166,13 @@ export default function ComicsPage() {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20">
-                          <BookOpen className="w-12 h-12 text-purple-500" />
+                        <div className="w-full h-full flex items-center justify-center bg-base-200">
+                          <BookOpen className="w-12 h-12 text-base-content/40" />
                         </div>
                       )}
                     </div>
                     <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-purple-600 transition-colors">
+                      <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-primary transition-colors">
                         {comic.title}
                       </h3>
                       {comic.volume && (

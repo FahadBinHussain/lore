@@ -65,10 +65,10 @@ export default function MangaPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <section className="relative overflow-hidden py-16">
-        <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 via-transparent to-violet-500/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
         <div className="relative w-full px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
-            <Badge variant="outline" className="mb-4 border-sky-500/30 bg-sky-500/10 text-sky-500">
+            <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary">
               <BookCopy className="mr-1 h-3 w-3" />
               Manga
             </Badge>
@@ -86,7 +86,7 @@ export default function MangaPage() {
                 placeholder="Search manga by title..."
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="rounded-xl border-2 py-3 pl-12 pr-4 text-lg focus:border-sky-500/50"
+                className="rounded-xl border-2 py-3 pl-12 pr-4 text-lg focus:border-primary/50"
               />
             </div>
           </form>
@@ -129,13 +129,13 @@ export default function MangaPage() {
                             loading="lazy"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-100 to-violet-100 dark:from-sky-900/20 dark:to-violet-900/20">
-                            <BookCopy className="h-12 w-12 text-sky-500" />
+                          <div className="flex h-full w-full items-center justify-center bg-base-200">
+                            <BookCopy className="h-12 w-12 text-base-content/40" />
                           </div>
                         )}
                       </div>
                       <div className="p-4">
-                        <h3 className="mb-1 line-clamp-2 text-lg font-semibold transition-colors group-hover:text-sky-600">
+                        <h3 className="mb-1 line-clamp-2 text-lg font-semibold transition-colors group-hover:text-primary">
                           {item.title}
                         </h3>
                         <div className="mb-2 flex flex-wrap gap-2 text-sm text-muted-foreground">

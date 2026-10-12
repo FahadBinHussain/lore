@@ -4,6 +4,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Check, ExternalLink, X } from 'lucide-react';
 
+export interface ArtworkSource {
+  provider: string;
+  sourceUrl: string | null;
+  title?: string | null;
+  imageUrl?: string | null;
+  isPrimary?: boolean;
+}
+
 export interface ArtworkItem {
   id: string;
   title: string;
@@ -13,7 +21,10 @@ export interface ArtworkItem {
   width?: number | null;
   height?: number | null;
   explored?: boolean;
+  sources?: ArtworkSource[];
 }
+
+const sourceLabel = (provider: string) => (provider === 'wikiart' ? 'WikiArt' : provider === 'official' ? 'Official' : provider.replace(/-/g, ' '));
 
 interface ArtworkLightboxProps {
   artistName: string;
@@ -101,15 +112,32 @@ export function ArtworkLightbox({ artistName, images, index, onIndexChange, onCl
             onClick={(e) => { e.stopPropagation(); onToggleExplored(); }}
             aria-pressed={Boolean(active.explored)}
             aria-label={active.explored ? 'Mark not explored (E)' : 'Mark explored (E)'}
-            className={`flex items-center gap-1 rounded-full px-2.5 py-1 font-medium transition-all duration-200 hover:scale-110 ${active.explored ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/40' : 'bg-white/10 text-white/70 hover:bg-white/25 hover:text-white'}`}
+            className={`flex items-center gap-1 rounded-full px-2.5 py-1 font-medium transition-all duration-200 hover:scale-110 ${active.explored ? 'bg-success text-success-content shadow-lg shadow-success/40' : 'bg-white/10 text-white/70 hover:bg-white/25 hover:text-white'}`}
           >
             <Check className="h-3.5 w-3.5" strokeWidth={3} />
             {active.explored ? 'Explored' : 'Mark explored'} <span className="hidden text-white/40 sm:inline">(E)</span>
           </button>
         )}
-        <a href={active.sourceUrl} target="_blank" rel="noreferrer" aria-label="Open original source page" className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 text-white/70 transition-all duration-200 hover:scale-110 hover:bg-white/25 hover:text-white">
-          <ExternalLink className="h-3.5 w-3.5" />
-        </a>
+        {active.sources && active.sources.length > 1 ? (
+          active.sources.map((source) => (
+            <a
+              key={source.provider}
+              href={source.sourceUrl || active.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              title={source.title || sourceLabel(source.provider)}
+              aria-label={`Open this artwork on ${sourceLabel(source.provider)}`}
+              className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 text-white/70 transition-all duration-200 hover:scale-110 hover:bg-white/25 hover:text-white"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{sourceLabel(source.provider)}</span>
+            </a>
+          ))
+        ) : (
+          <a href={active.sourceUrl} target="_blank" rel="noreferrer" aria-label="Open original source page" className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 text-white/70 transition-all duration-200 hover:scale-110 hover:bg-white/25 hover:text-white">
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
       </div>
     </div>,
     document.body

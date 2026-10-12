@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar";
 import { ScrollNavigationTracker } from "@/components/scroll-navigation-tracker";
 import { PageTransition } from "@/components/page-transition";
 import { RouteProgress } from "@/components/route-progress";
+import { SiteFooter } from "@/components/site-footer";
 
 export const metadata: Metadata = {
   title: "Lore - Media Tracker",
@@ -31,13 +32,11 @@ const geistMono = Geist_Mono({
 const epilogue = Epilogue({
   variable: "--font-epilogue",
   subsets: ["latin"],
-  weight: ["400", "700", "800"],
 });
 
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
 });
 
 const italianno = Italianno({
@@ -67,6 +66,7 @@ export default function RootLayout({
           <Navbar />
           <RouteProgress />
           <PageTransition>{children}</PageTransition>
+          <SiteFooter />
         </Providers>
       </body>
     </html>

@@ -61,14 +61,14 @@ interface PersonDetails {
 }
 
 const DEPARTMENT_META: Record<string, { icon: typeof Film; color: string }> = {
-  Directing: { icon: Film, color: 'text-amber-500' },
-  Writing: { icon: Palette, color: 'text-violet-400' },
-  Production: { icon: Sparkles, color: 'text-emerald-500' },
-  Camera: { icon: Camera, color: 'text-cyan-500' },
-  Sound: { icon: Mic, color: 'text-pink-500' },
-  Editing: { icon: Scissors, color: 'text-indigo-400' },
-  'Costume & Make-Up': { icon: Shirt, color: 'text-fuchsia-400' },
-  Art: { icon: Palette, color: 'text-lime-500' },
+  Directing: { icon: Film, color: 'text-primary' },
+  Writing: { icon: Palette, color: 'text-secondary' },
+  Production: { icon: Sparkles, color: 'text-accent' },
+  Camera: { icon: Camera, color: 'text-primary' },
+  Sound: { icon: Mic, color: 'text-secondary' },
+  Editing: { icon: Scissors, color: 'text-accent' },
+  'Costume & Make-Up': { icon: Shirt, color: 'text-primary' },
+  Art: { icon: Palette, color: 'text-secondary' },
 };
 
 function creditHref(credit: CreditItem) {
@@ -78,7 +78,7 @@ function creditHref(credit: CreditItem) {
 function CreditCard({ credit, role }: { credit: CreditItem; role: string }) {
   return (
     <Link href={creditHref(credit)} className="block">
-      <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border border-border/80 hover:border-cyan-500/50 transition-all duration-300 hover:transform hover:scale-105 h-full">
+      <Card className="group overflow-hidden bg-base-200/80 backdrop-blur-xl border border-base-content/15 hover:border-primary/50 transition-all duration-300 hover:transform hover:scale-105 h-full">
         <div className="aspect-[2/3] relative overflow-hidden bg-muted">
           {credit.poster_path ? (
             <Image
@@ -89,7 +89,7 @@ function CreditCard({ credit, role }: { credit: CreditItem; role: string }) {
               className="object-cover group-hover:scale-110 transition-transform duration-500"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
+            <div className="w-full h-full flex items-center justify-center bg-base-200">
               <Film className="w-10 h-10 text-muted-foreground/70" />
             </div>
           )}
@@ -221,7 +221,7 @@ export default function PersonDetailPage() {
         </Link>
 
         {/* Hero */}
-        <Card className="bg-card/80 backdrop-blur-xl border border-border/80 mb-8 overflow-hidden">
+        <Card className="bg-base-200/80 backdrop-blur-xl border border-base-content/15 mb-8 overflow-hidden">
           <CardContent className="p-6 md:p-8">
             <div className="flex flex-col md:flex-row gap-6 md:gap-8">
               <div className="w-40 md:w-52 shrink-0 mx-auto md:mx-0">
@@ -236,7 +236,7 @@ export default function PersonDetailPage() {
                       priority
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
+                    <div className="w-full h-full flex items-center justify-center bg-base-200">
                       <Users className="w-20 h-20 text-muted-foreground/70" />
                     </div>
                   )}
@@ -306,7 +306,7 @@ export default function PersonDetailPage() {
                       href={`https://www.imdb.com/name/${person.external_ids.imdb_id}/`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/15 text-amber-500 hover:bg-amber-500/25 hover:scale-105 transition-all text-sm font-medium"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-warning/15 text-warning hover:bg-warning/25 hover:scale-105 transition-all text-sm font-medium"
                     >
                       IMDb <ExternalLink className="w-3.5 h-3.5" />
                     </a>
@@ -316,7 +316,7 @@ export default function PersonDetailPage() {
                       href={`https://www.wikidata.org/wiki/${person.external_ids.wikidata_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/15 text-sky-400 hover:bg-sky-500/25 hover:scale-105 transition-all text-sm font-medium"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-base-200 text-base-content hover:bg-base-300 hover:scale-105 transition-all text-sm font-medium"
                     >
                       Wikidata <ExternalLink className="w-3.5 h-3.5" />
                     </a>
@@ -336,7 +336,7 @@ export default function PersonDetailPage() {
                       href={`https://www.facebook.com/${person.external_ids.facebook_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 hover:scale-105 transition-all text-sm font-medium"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/15 text-primary hover:bg-primary/25 hover:scale-105 transition-all text-sm font-medium"
                     >
                       <FacebookBrandIcon className="w-3.5 h-3.5" />
                     </a>
@@ -346,7 +346,7 @@ export default function PersonDetailPage() {
                       href={`https://www.instagram.com/${person.external_ids.instagram_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-pink-500/15 text-pink-400 hover:bg-pink-500/25 hover:scale-105 transition-all text-sm font-medium"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/15 text-secondary hover:bg-secondary/25 hover:scale-105 transition-all text-sm font-medium"
                     >
                       <InstagramBrandIcon className="w-3.5 h-3.5" />
                     </a>
@@ -356,7 +356,7 @@ export default function PersonDetailPage() {
                       href={`https://twitter.com/${person.external_ids.twitter_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-400/15 text-sky-300 hover:bg-sky-400/25 hover:scale-105 transition-all text-sm font-medium"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/15 text-accent hover:bg-accent/25 hover:scale-105 transition-all text-sm font-medium"
                     >
                       <TwitterBrandIcon className="w-3.5 h-3.5" />
                     </a>
@@ -377,7 +377,7 @@ export default function PersonDetailPage() {
           />
 
           {crewDepartments.map(([department, items]) => {
-            const meta = DEPARTMENT_META[department] || { icon: Film, color: 'text-slate-400' };
+            const meta = DEPARTMENT_META[department] || { icon: Film, color: 'text-base-content/70' };
             return (
               <FilmographySection
                 key={department}

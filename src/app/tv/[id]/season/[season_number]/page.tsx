@@ -143,104 +143,105 @@ export default function SeasonDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
       {/* Hero Section with Backdrop */}
-      <div className="relative h-[60vh] min-h-[500px] overflow-hidden">
-        {season.poster_path ? (
-          <div
-            className="absolute inset-0 bg-cover bg-center scale-105"
-            style={{
-              backgroundImage: `url(https://image.tmdb.org/t/p/original${season.poster_path})`
-            }}
-            suppressHydrationWarning
-          />
-        ) : show.backdrop_path ? (
-          <div
-            className="absolute inset-0 bg-cover bg-center scale-105"
-            style={{
-              backgroundImage: `url(https://image.tmdb.org/t/p/original${show.backdrop_path})`
-            }}
-            suppressHydrationWarning
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 via-fuchsia-600/20 to-cyan-600/30" />
-        )}
+      <div className="relative w-full min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] flex flex-col justify-between pt-4 sm:pt-6 pb-6 sm:pb-10 lg:pb-12">
+        {/* Background Backdrop Layer - isolated overflow-hidden */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+          {season.poster_path ? (
+            <div
+              className="absolute inset-0 bg-cover bg-center scale-105 transition-transform duration-700"
+              style={{
+                backgroundImage: `url(https://image.tmdb.org/t/p/original${season.poster_path})`
+              }}
+              suppressHydrationWarning
+            />
+          ) : show.backdrop_path ? (
+            <div
+              className="absolute inset-0 bg-cover bg-center scale-105 transition-transform duration-700"
+              style={{
+                backgroundImage: `url(https://image.tmdb.org/t/p/original${show.backdrop_path})`
+              }}
+              suppressHydrationWarning
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-secondary/20 to-accent/25" />
+          )}
 
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-transparent to-background/45" />
+          {/* Gradient Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-background/25 sm:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 sm:via-transparent to-background/50" />
 
-        {/* Animated Background Effects */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-violet-500/10 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-fuchsia-500/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          {/* Animated Background Effects */}
+          <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/15 to-transparent rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-secondary/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
 
-        {/* Back Button */}
-        <div className="absolute top-6 left-6 z-20">
+        {/* Back Button - in normal flow */}
+        <div className="relative z-20 px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl w-full mx-auto mb-4 sm:mb-6">
           <Link href={`/tv/${params.id}`}>
             <Button
               variant="ghost"
-              className="bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300"
+              className="group bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300 shadow-sm"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
               Back to {show.name}
             </Button>
           </Link>
         </div>
 
-        {/* Season Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-10">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+        {/* Season Info in normal document flow */}
+        <div className="relative z-10 px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl w-full mx-auto">
+          <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-8 items-center sm:items-end">
             {/* Poster */}
             <div className="flex-shrink-0 relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
-              <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl blur-md opacity-70 group-hover:opacity-100 transition duration-500" />
+              <div className="relative w-36 sm:w-44 md:w-52 lg:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-border/30 bg-muted">
                 {season.poster_path ? (
                   <Image
                     src={`https://image.tmdb.org/t/p/w500${season.poster_path}`}
                     alt={season.name}
                     fill
                     priority
-                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                     className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
-                    <Monitor className="w-16 h-16 text-primary-foreground/80" />
+                  <div className="w-full h-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                    <Monitor className="w-16 h-16 text-primary-content/80" />
                   </div>
                 )}
               </div>
             </div>
 
             {/* Info */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-center sm:text-left w-full">
               {/* Title and Season Number */}
-              <div className="mb-4">
-                <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-2 tracking-tight">
+              <div className="mb-3 sm:mb-4">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-2 tracking-tight">
                   {season.name}
                 </h1>
-                <div className="flex items-center gap-4 mb-4">
-                  <Badge variant="secondary" className="bg-violet-500/20 text-primary text-lg px-4 py-2">
+                <div className="flex items-center justify-center sm:justify-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+                  <Badge variant="secondary" className="bg-primary/20 text-primary text-sm sm:text-base px-3 sm:px-4 py-1 sm:py-1.5 transition-transform duration-300 hover:scale-105">
                     Season {season.season_number}
                   </Badge>
                 </div>
                 {season.overview && (
-                  <p className="text-xl text-muted-foreground italic font-light max-w-2xl">
+                  <p className="text-sm sm:text-base md:text-lg text-muted-foreground italic font-light max-w-2xl mx-auto sm:mx-0">
                     {season.overview}
                   </p>
                 )}
               </div>
 
               {/* Meta Info Row */}
-              <div className="flex flex-wrap items-center gap-6 mb-8">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 mb-4 sm:mb-6">
                 {season.air_date && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="w-5 h-5" />
-                    <span className="text-lg">{getYear(season.air_date)}</span>
+                  <div className="group flex items-center gap-2 text-muted-foreground text-sm sm:text-base">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-accent transition-transform duration-300 group-hover:scale-110" />
+                    <span>{getYear(season.air_date)}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <PlayCircle className="w-5 h-5" />
-                  <span className="text-lg">{season.episode_count} Episodes</span>
+                <div className="group flex items-center gap-2 text-muted-foreground text-sm sm:text-base">
+                  <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary transition-transform duration-300 group-hover:scale-110" />
+                  <span>{season.episode_count} Episodes</span>
                 </div>
               </div>
             </div>
@@ -252,8 +253,8 @@ export default function SeasonDetailPage() {
       <div className="px-6 md:px-12 pb-12">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-              <PlayCircle className="w-5 h-5 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center">
+              <PlayCircle className="w-5 h-5 text-primary" />
             </div>
             Episodes
           </h2>
@@ -262,7 +263,7 @@ export default function SeasonDetailPage() {
             {season.episodes.map((episode) => (
               <Card
                 key={episode.id}
-                className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-violet-500/50 transition-all duration-300"
+                className="bg-card/80 backdrop-blur-xl border border-border/80 hover:border-primary/50 transition-all duration-300"
               >
                 <CardContent className="p-6">
                   <div className="flex gap-6">
@@ -278,7 +279,7 @@ export default function SeasonDetailPage() {
                             className="w-full aspect-video rounded-lg object-cover hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
-                          <div className="w-full aspect-video rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center hover:scale-105 transition-transform duration-300">
+                          <div className="w-full aspect-video rounded-lg bg-base-200 flex items-center justify-center hover:scale-105 transition-transform duration-300">
                             <PlayCircle className="w-8 h-8 text-muted-foreground/70" />
                           </div>
                         )}

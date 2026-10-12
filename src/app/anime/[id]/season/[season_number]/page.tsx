@@ -197,57 +197,58 @@ export default function AnimeSeasonPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
-      {/* Hero Section */}
-      <div className="relative h-[50vh] min-h-[400px] overflow-hidden">
-        {anime.image ? (
-          <div
-            className="absolute inset-0 bg-cover bg-center scale-105"
-            style={{
-              backgroundImage: `url(${anime.image})`
-            }}
-            suppressHydrationWarning
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-secondary/20 to-accent/25" />
-        )}
+      {/* Hero Section with Backdrop */}
+      <div className="relative w-full min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] flex flex-col justify-between pt-4 sm:pt-6 pb-6 sm:pb-10 lg:pb-12">
+        {/* Background Backdrop Layer - isolated overflow-hidden */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+          {anime.image ? (
+            <div
+              className="absolute inset-0 bg-cover bg-center scale-105 transition-transform duration-700"
+              style={{
+                backgroundImage: `url(${anime.image})`
+              }}
+              suppressHydrationWarning
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-secondary/20 to-accent/25" />
+          )}
 
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-transparent to-background/45" />
+          {/* Gradient Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-background/25 sm:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 sm:via-transparent to-background/50" />
 
-        {/* Animated Background Effects */}
-        <div className="absolute inset-0 overflow-hidden">
+          {/* Animated Background Effects */}
           <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/15 to-transparent rounded-full blur-3xl animate-pulse" />
           <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-secondary/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
 
-        {/* Back Button */}
-        <div className="absolute top-6 left-6 z-20">
+        {/* Back Button - in normal flow */}
+        <div className="relative z-20 px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl w-full mx-auto mb-4 sm:mb-6">
           <Link href={`/anime/${params.id}`}>
             <Button
               variant="ghost"
-              className="bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300"
+              className="group bg-background/65 backdrop-blur-xl border border-border hover:bg-background/80 text-foreground transition-all duration-300 shadow-sm"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
               Back to {anime.title}
             </Button>
           </Link>
         </div>
 
-        {/* Anime Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-10">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+        {/* Anime Info in normal document flow */}
+        <div className="relative z-10 px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl w-full mx-auto">
+          <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-8 items-center sm:items-end">
             {/* Poster */}
             <div className="flex-shrink-0 relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500" />
-              <div className="relative w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl blur-md opacity-70 group-hover:opacity-100 transition duration-500" />
+              <div className="relative w-36 sm:w-44 md:w-52 lg:w-64 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-border/30 bg-muted">
                 {anime.image ? (
                   <Image
                     src={anime.image}
                     alt={anime.title}
                     fill
                     priority
-                    sizes="(min-width: 1024px) 33vw, 50vw"
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                     className="object-cover transform group-hover:scale-105 transition duration-500"
                   />
                 ) : (
@@ -259,51 +260,53 @@ export default function AnimeSeasonPage() {
             </div>
 
             {/* Info */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-center sm:text-left w-full">
               {/* Title and Season */}
-              <div className="mb-4">
-                <Badge variant="outline" className="mb-2 bg-primary/15 text-primary border-primary/30">
-                  <Zap className="w-3 h-3 mr-1" />
-                  Anime Season
-                </Badge>
-                <div className="flex items-center gap-4 mb-2">
-                  <h1 className="text-4xl md:text-6xl font-bold text-foreground tracking-tight">
+              <div className="mb-3 sm:mb-4">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
+                  <Badge variant="outline" className="bg-primary/15 text-primary border-primary/30 text-xs sm:text-sm">
+                    <Zap className="w-3 h-3 mr-1" />
+                    Anime Season
+                  </Badge>
+                  {anime.season && anime.seasonYear && (
+                    <Badge variant="outline" className="bg-secondary/15 text-secondary border-secondary/30 text-xs sm:text-sm">
+                      {anime.season} {anime.seasonYear}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-3 sm:gap-4 mb-2">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tight">
                     {anime.title}
                   </h1>
                   <Button
                     variant="ghost"
                     onClick={toggleSeasonWatched}
                     className={cn(
-                      "mt-2",
+                      "group text-xs sm:text-sm transition-all duration-300 hover:scale-105",
                       animeIsWatched ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {animeIsWatched ? (
-                      <><Check className="w-6 h-6 mr-2" /> Watched Season</>
+                      <><Check className="w-4 h-4 mr-1.5 transition-transform duration-300 group-hover:scale-125" /> Watched Season</>
                     ) : (
-                      <><Plus className="w-6 h-6 mr-2" /> Mark Season Watched</>
+                      <><Plus className="w-4 h-4 mr-1.5 transition-transform duration-300 group-hover:rotate-90" /> Mark Season Watched</>
                     )}
                   </Button>
                 </div>
-                {anime.season && anime.seasonYear && (
-                  <Badge variant="outline" className="bg-secondary/15 text-secondary border-secondary/30">
-                    {anime.season} {anime.seasonYear}
-                  </Badge>
-                )}
               </div>
 
               {/* Meta Info */}
-              <div className="flex flex-wrap items-center gap-6 mb-8">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 mb-4 sm:mb-6">
                 {anime.episodes && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Play className="w-5 h-5" />
-                    <span className="text-lg">{anime.episodes} Episodes</span>
+                  <div className="group flex items-center gap-1.5 sm:gap-2 text-muted-foreground text-xs sm:text-sm">
+                    <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary transition-transform duration-300 group-hover:scale-110" />
+                    <span>{anime.episodes} Episodes</span>
                   </div>
                 )}
                 {anime.duration && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Clock className="w-5 h-5" />
-                    <span className="text-lg">{anime.duration} min per episode</span>
+                  <div className="group flex items-center gap-1.5 sm:gap-2 text-muted-foreground text-xs sm:text-sm">
+                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent transition-transform duration-300 group-hover:scale-110" />
+                    <span>{anime.duration} min per episode</span>
                   </div>
                 )}
               </div>
