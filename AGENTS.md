@@ -231,6 +231,11 @@ The `call-of-duty` collection (id 41, 61 items) was 48/61 `manual`. A binding pa
 
 Remaining manual after the pass: 8 items (3 comics, 4 books, 1 unreleased movie) — all genuinely absent from their APIs, documented in the table above.
 
+### Universe collection count and canonical item gotcha (2026-10-12)
+
+- `collections.item_count` is a cached denormalized counter on the universe card. When creating or syncing a universe via custom scripts, always update `collections.item_count` to match the actual item count (Bird Box had `item_count: 0` despite having items).
+- `ensureCanonicalMediaItem` returns `Promise<CanonicalMediaResult | null>`, where `CanonicalMediaResult` is `{ mediaItem, mapping, created }`. When linking collection items, read `result.mediaItem.id`, not `result.id`.
+
 ### Running one-off TypeScript scripts
 
 This repository does not install `tsx` or `ts-node`, and the current Node 24 environment can fail when `tsx` tries to initialize its loader worker. For repository scripts, bundle the entry point with `npx --yes esbuild@0.25.10 <script> --bundle --platform=node --format=cjs --outfile=<temporary.cjs>`, then run the bundle with `node --env-file=.env --env-file=.env.local <temporary.cjs>`. Remove the temporary bundle afterward.
