@@ -269,7 +269,7 @@ export default async function UniverseOGImage({ params }: Props) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '280px',
+              width: '250px',
               height: '100%',
               flexShrink: 0,
             }}
@@ -278,8 +278,8 @@ export default async function UniverseOGImage({ params }: Props) {
               src={posterImage}
               alt=""
               style={{
-                width: '260px',
-                height: '390px',
+                width: '230px',
+                height: '345px',
                 objectFit: 'cover',
                 borderRadius: '16px',
                 boxShadow: '0 16px 36px rgba(0, 0, 0, 0.7)',
