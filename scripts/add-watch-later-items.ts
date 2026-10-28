@@ -20,12 +20,6 @@ const MOVIES: MovieToAdd[] = [
     releaseDate: '2017-09-28',
     posterPath: '/k16xOaI9x5fqepxVwBwUJAozsW8.jpg',
   },
-  {
-    tmdbId: '925786',
-    title: "Satan's Slaves 2: Communion",
-    releaseDate: '2022-07-30',
-    posterPath: '/xQNMM3u6srkhM8bdTCKVTFzyCF1.jpg',
-  },
   // 2. The Dark and the Wicked
   {
     tmdbId: '680593',
@@ -40,30 +34,12 @@ const MOVIES: MovieToAdd[] = [
     releaseDate: '2024-07-19',
     posterPath: '/3Z9c1tbUhP0QruRjczPHnbx3U2D.jpg',
   },
-  // 4. Hell House (franchise)
+  // 4. Hell House LLC
   {
     tmdbId: '359246',
     title: 'Hell House LLC',
     releaseDate: '2015-10-16',
     posterPath: '/xUSCQEbbAy3Lv6r00RfXtdxhRDX.jpg',
-  },
-  {
-    tmdbId: '532973',
-    title: 'Hell House LLC II: The Abaddon Hotel',
-    releaseDate: '2018-09-14',
-    posterPath: '/sFPkQLUq8wmNOL2XMow4WF5tOpu.jpg',
-  },
-  {
-    tmdbId: '614722',
-    title: 'Hell House LLC III: Lake of Fire',
-    releaseDate: '2019-09-19',
-    posterPath: '/gchygJq6AnzGFg0uYRDKn7mqsyU.jpg',
-  },
-  {
-    tmdbId: '1035982',
-    title: 'Hell House LLC Origins: The Carmichael Manor',
-    releaseDate: '2023-10-24',
-    posterPath: '/bsd1ovBNOhYpQElhlZAqpMo51q6.jpg',
   },
 ];
 
