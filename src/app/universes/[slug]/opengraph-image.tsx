@@ -62,7 +62,7 @@ export default async function UniverseOGImage({ params }: Props) {
         const itemWithPoster = universe.items.find((i) => i.mediaItem?.posterPath);
         if (itemWithPoster?.mediaItem?.posterPath) {
           const pp = itemWithPoster.mediaItem.posterPath;
-          posterImage = pp.startsWith('http') ? pp : `https://image.tmdb.org/t/p/w342${pp}`;
+          posterImage = pp.startsWith('http') ? pp : `https://image.tmdb.org/t/p/w185${pp}`;
         }
       }
     }
@@ -278,8 +278,8 @@ export default async function UniverseOGImage({ params }: Props) {
               src={posterImage}
               alt=""
               style={{
-                width: '230px',
-                height: '345px',
+                width: '210px',
+                height: '315px',
                 objectFit: 'cover',
                 borderRadius: '16px',
                 boxShadow: '0 16px 36px rgba(0, 0, 0, 0.7)',
