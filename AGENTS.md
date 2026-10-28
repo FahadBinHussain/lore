@@ -1,3 +1,6 @@
+# Primary Workspace Rule
+- **Primary development is in `lore-private` (`C:\Users\Admin\Downloads\lore-private`)**: This repository is the public sanitized sync target. All active feature development and daily changes belong in `lore-private` first.
+
 # Artist tracker (WikiArt)
 
 - The artist tracker stores provider references and per-user explored state in `artists` and `user_artist_progress`; it does not copy WikiArt artwork files into the repository or database.
