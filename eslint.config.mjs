@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // throwaway scratch bundles (scripts/tmp-*) — never committed, never linted
+    "scripts/tmp-*.cjs",
   ]),
 ]);
 

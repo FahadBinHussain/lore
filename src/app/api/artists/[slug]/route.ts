@@ -18,7 +18,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const user = await requireUser();
     const offset = Math.max(0, Number(request.nextUrl.searchParams.get('offset')) || 0);
-    const artist = await db.query.artists.findFirst({ where: and(eq(artists.provider, 'wikiart'), eq(artists.slug, slug)) });
+    // Slugs are the public artist identifier (all UI routes and links are /artists/<slug>); the
+    // provider column is a source attribute, not the lookup key. An artist can be wikiart-sourced
+    // or imported from a non-wikiart source by a deep-research adapter script (official sites, etc).
+    // Two providers sharing one slug is possible per the schema (artists_provider_slug_idx is
+    // per-provider) but would be a routing ambiguity — never resolve it silently.
+    const candidates = await db.query.artists.findMany({ where: eq(artists.slug, slug), limit: 2 });
+    if (candidates.length > 1) {
+      return NextResponse.json({ error: `Artist slug "${slug}" is ambiguous — held by ${candidates.length} provider rows (${candidates.map((c) => c.provider).join(', ')}). Resolve the slug collision before browsing.` }, { status: 409 });
+    }
+    const artist = candidates[0];
     if (!artist) {
       return NextResponse.json({ error: `Artist "${slug}" is not in the local catalog. Run scripts/sync-artists-wikiart-keyless.ts single ${slug} to crawl it.` }, { status: 404 });
     }
@@ -103,7 +112,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ ...state, artistSlug: artistRow?.slug, artistExplored: Boolean(progress?.isExplored), artistIsAuto: Boolean(progress?.isAuto) });
   }
 
-  let artist = body.artistId ? await db.query.artists.findFirst({ where: eq(artists.id, body.artistId) }) : await db.query.artists.findFirst({ where: and(eq(artists.provider, 'wikiart'), eq(artists.slug, slug)) });
+  const candidates = body.artistId ? [] : await db.query.artists.findMany({ where: eq(artists.slug, slug), limit: 2 });
+  if (candidates.length > 1) {
+    return NextResponse.json({ error: `Artist slug "${slug}" is ambiguous — held by ${candidates.length} provider rows. Resolve the slug collision before toggling progress.` }, { status: 409 });
+  }
+  let artist = body.artistId ? await db.query.artists.findFirst({ where: eq(artists.id, body.artistId) }) : candidates[0];
   if (!artist) {
     artist = (await db.insert(artists).values({ provider: 'wikiart', externalId: slug, slug, name: body.name || slug, sourceUrl: `https://www.wikiart.org/en/${slug}` }).returning())[0];
   }

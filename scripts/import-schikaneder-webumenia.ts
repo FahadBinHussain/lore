@@ -46,16 +46,30 @@ const YEAR_MIN = 1850;
 const YEAR_MAX = 1935;
 
 // Per-item decisions with their own reason (no pattern guessing).
-const ITEM_DECISIONS: Record<string, { kind: 'hold'; reason: string }> = {
+// `link` kind = image-verdict adjudication: the nahlad/<id>/800 thumb serves webumenia's
+// 32045-byte no-image.jpg placeholder, so identity was proven through the DZI zoom server
+// (img.webumenia.sk/zoom/?path=<jp2>.dzi tiles stitched transiently, refs-only) + dHash
+// against the tracked rows' commons scans. Only ever set here after a written verdict.
+type ItemDecision =
+  | { kind: 'hold'; reason: string }
+  | { kind: 'link'; artworkId: number; how: string; confidence: number; reason: string };
+
+const ITEM_DECISIONS: Record<string, ItemDecision> = {
   'CZE:PNP.IO_128': {
-    kind: 'hold',
+    kind: 'link',
+    artworkId: 194341,
+    how: 'image-verdict',
+    confidence: 95,
     reason:
-      'shares studie/vrazda/dome with the tracked row 194341 "Studie k obrazu Vražda v domě" (both 1890) — same probable work under two phrasings, but the strings differ, so review before linking',
+      'DZI zoom recovery (the nahlad thumb serves the 32045-byte no-image.jpg placeholder) shows the same "Vražda v domě" courtyard study — crowd left around the fallen body, doorway glow — as tracked row 194341 "Studie k obrazu Vražda v domě" (1890); dHash dist 8 <= MATCH_MAX 8 against its commons scan (Fond Karáskova galerie PNP = the same institution as this PNP/Karasek item), only a frame/crop difference',
   },
   'CZE:MG.A_813': {
-    kind: 'hold',
+    kind: 'link',
+    artworkId: 194346,
+    how: 'image-verdict',
+    confidence: 100,
     reason:
-      'gender-variant title "Staropražské zákoutí" vs the tracked "Staropražská zákoutí" (194346, 1907) — same gallery (Moravská galerie) and same 1907-1909 range, but only one title token is shared, so it is held for review instead of linked or inserted',
+      'DZI zoom recovery shows the same snowy night street with carriage and horse, arch left, lit windows — tracked row 194346 "Staropražská zákoutí" (1907); dHash dist 1 against its commons scan "Schikaneder - Straoprazska zakouti.jpg"; title differs only by the gender ending (Staropražské vs Staropražská)',
   },
 };
 
@@ -145,7 +159,12 @@ async function main() {
     }
     const dec = ITEM_DECISIONS[item.id];
     if (dec) {
-      decisions.set(item.id, { type: 'hold', reason: dec.reason });
+      if (dec.kind === 'link') {
+        console.log(`VERDICT-LINK ${item.id} -> ${dec.artworkId} — ${dec.reason}`);
+        decisions.set(item.id, { type: 'link', artworkId: dec.artworkId, how: dec.how, confidence: dec.confidence });
+      } else {
+        decisions.set(item.id, { type: 'hold', reason: dec.reason });
+      }
       continue;
     }
     const cand = fold(item.title);

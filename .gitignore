@@ -49,3 +49,6 @@ next-env.d.ts
 
 # universe research notes - never commit
 /research/
+
+# throwaway scratch bundles - never commit
+scripts/tmp-*.cjs

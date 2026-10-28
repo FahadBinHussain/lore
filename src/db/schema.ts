@@ -471,6 +471,33 @@ export const userArtworkProgress = pgTable('user_artwork_progress', {
   index('user_artwork_progress_user_idx').on(table.userId),
 ]);
 
+// ==================== ARTWORK CHAT ====================
+
+// One persisted conversation per (user, artwork). The mini chatbot on the
+// artist page auto-detects the open artwork, so the pair is the natural key:
+// reopening a work resumes the same thread, no thread picker needed.
+export const artworkChats = pgTable('artwork_chats', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  artworkId: integer('artwork_id').references(() => artworks.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('artwork_chats_user_artwork_idx').on(table.userId, table.artworkId),
+  index('artwork_chats_user_idx').on(table.userId),
+]);
+
+export const artworkChatMessages = pgTable('artwork_chat_messages', {
+  id: serial('id').primaryKey(),
+  chatId: integer('chat_id').references(() => artworkChats.id, { onDelete: 'cascade' }).notNull(),
+  role: varchar('role', { length: 20 }).notNull(), // 'user' | 'assistant'
+  content: text('content').notNull(),
+  model: varchar('model', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  index('artwork_chat_messages_chat_idx').on(table.chatId, table.createdAt),
+]);
+
 // ==================== RELATIONS ====================
 
 export const seasonsRelations = relations(seasons, ({ one, many }) => ({
@@ -497,6 +524,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   comments: many(comments),
   artistProgress: many(userArtistProgress),
   artworkProgress: many(userArtworkProgress),
+  artworkChats: many(artworkChats),
 }));
 
 export const artistsRelations = relations(artists, ({ many }) => ({
@@ -512,6 +540,16 @@ export const userArtistProgressRelations = relations(userArtistProgress, ({ one 
 export const userArtworkProgressRelations = relations(userArtworkProgress, ({ one }) => ({
   user: one(users, { fields: [userArtworkProgress.userId], references: [users.id] }),
   artwork: one(artworks, { fields: [userArtworkProgress.artworkId], references: [artworks.id] }),
+}));
+
+export const artworkChatsRelations = relations(artworkChats, ({ one, many }) => ({
+  user: one(users, { fields: [artworkChats.userId], references: [users.id] }),
+  artwork: one(artworks, { fields: [artworkChats.artworkId], references: [artworks.id] }),
+  messages: many(artworkChatMessages),
+}));
+
+export const artworkChatMessagesRelations = relations(artworkChatMessages, ({ one }) => ({
+  chat: one(artworkChats, { fields: [artworkChatMessages.chatId], references: [artworkChats.id] }),
 }));
 
 export const mediaItemsRelations = relations(mediaItems, ({ many }) => ({

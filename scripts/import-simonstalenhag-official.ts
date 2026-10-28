@@ -45,8 +45,8 @@ const HASH_EXCLUDE: Record<string, string> = {
   'bilder/svema_19_detalj1.jpg': 'detail crop of bilder/svema_19.jpg - never matches the whole plate',
 };
 
-// Resolutions from the 2026-10-08 image-adjudication batch (vision over the held
-// pairs; raw verdicts verified against visual evidence).
+// Resolutions from the 2026-10-08 image-adjudication batch (AI Studio vision over the held
+// pairs; raw verdicts + evidence: automata-private youtube.com\aistudio-title-batch\image-results.json).
 // A verdict only ever rewrites a HELD decision - a confident title/hash link is left alone so a
 // future better match is never overridden.
 const HELD_TYPES = new Set(['ambiguous-title', 'ambiguous-hash', 'near', 'dup-official', 'hold-nohash']);

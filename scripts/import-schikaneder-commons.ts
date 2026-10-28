@@ -57,6 +57,28 @@ const TITLE_YEAR_TOLERANCE = 1;
 const YEAR_MIN = 1850;
 const YEAR_MAX = 1935;
 
+// Resolutions from the 2026-10-15 image-verdict batch (direct side-by-side compare of the
+// transient downloads). A verdict only ever rewrites a HELD decision — a confident
+// title/hash link is left alone so a future better match is never overridden. Each entry
+// names the exact Commons file (from the scrape JSON) and links it onto an existing row.
+const isHeld = (d: Decision): boolean =>
+  d.type === 'ambiguous-title' || d.type === 'ambiguous-hash' || d.type === 'near' || d.type === 'dup-target' || d.type === 'hold-nohash';
+// held commons file -> existing wikiart artwork id it was verified to be the same painting as
+const VERDICT_LINK: Record<string, { wikiId: number; dist: number | null; why: string }> = {
+  'Jakub Schikaneder - Truchlivy navrat (1886-7).jpg': {
+    wikiId: 171233,
+    dist: null,
+    why:
+      'direct image verdict 2026-10-15: same painting as The Sad Way (white-haired figure in a dark cart, horse at right, pale-shirted figure walking behind on a rutted track, frozen water + bare trees, same "63cm" ruler) — different-resolution crop of the same scan; the dist-21 hash was a crop artifact, not a second work',
+  },
+  'Jakub Schikaneder - Symbolicky vyjev (1895-7).jpg': {
+    wikiId: 171232,
+    dist: 0,
+    why:
+      'direct image verdict 2026-10-15: same painting as Symbolic Composition O 14683 (lit doorway with dark standing figure, pale descending steps, leaning figure at left railing, orange autumn bush at right) — warmer/lighter scan of the same work; the hash-only second claim was a duplicate file, not a distinct work',
+  },
+};
+
 // Known non-artwork files inside the category tree / search hits. Per file with its own
 // reason (HASH_EXCLUDE pattern) — extend per file, never a silent pattern match.
 // Reviewed against the full scrape output (571 candidates) on 2026-10-08. Keys are the
@@ -803,6 +825,22 @@ async function runImport(apply: boolean): Promise<void> {
       decisions.set(item.src, { type: 'near', best, second });
     } else {
       decisions.set(item.src, { type: 'new' });
+    }
+  }
+
+  // Adjudicated holds: the 2026-10-15 image-verdict batch looked at every held pair, so the
+  // two held Commons claims are resolved here instead of staying HELD forever. HELD only.
+  for (const [file, v] of Object.entries(VERDICT_LINK)) {
+    const item = items.find((i) => i.file === file);
+    if (!item) { console.error(`VERDICT-LINK ${file} — not in this scrape, skipped loudly`); continue; }
+    if (already.has(extId(item.src))) continue;
+    const d = decisions.get(item.src);
+    if (d && isHeld(d)) {
+      wikiClaimed.add(v.wikiId);
+      decisions.set(item.src, { type: 'title', wikiId: v.wikiId, confidence: 100 });
+      console.log(`VERDICT-LINK ${file} -> wikiart ${v.wikiId} — ${v.why}`);
+    } else if (d) {
+      console.log(`VERDICT-LINK ${file} - natural decision ${d.type} kept (not a hold)`);
     }
   }
 

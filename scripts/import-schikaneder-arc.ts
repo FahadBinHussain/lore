@@ -51,11 +51,30 @@ const YEAR_MAX = 1935;
 
 // Per-item decisions, each with its own reason (AGENTS per-file rule: no pattern guessing).
 // `hold` = ambiguous, needs review; never auto-linked, never auto-inserted.
-const ITEM_DECISIONS: Record<number, { kind: 'hold'; reason: string }> = {
+// `link` = resolved to an existing tracked row by a DIRECT image verdict (2026-10-15 vision
+//   adjudication over the transient downloads); carries the target artwork id and a written why.
+type ItemDecision = { kind: 'hold'; reason: string } | { kind: 'link'; wikiId: number; how: string; why: string };
+const ITEM_DECISIONS: Record<number, ItemDecision> = {
+  82016: {
+    kind: 'link',
+    wikiId: 171238,
+    how: 'image-verdict',
+    why:
+      'ARC 82016 is the same pastel-on-paper "Kontemplace, Mnich na morském brehu" as tracked row 171238 (direct image verdict 2026-10-15: same monk, same pink sunset, same rock arrangement, same halo) — the ARC twin pair disambiguated by medium: 82016=pastel, 82019=charcoal/uhel',
+  },
+  82019: {
+    kind: 'link',
+    wikiId: 171241,
+    how: 'image-verdict',
+    why:
+      'ARC 82019 is the same charcoal/uhel "Kontemplace, Mnich na morském brehu" as tracked row 171241 (direct image verdict 2026-10-15: monochrome tonal washes, white halo on dark hood — the medium variant, not the pastel 171238)',
+  },
   109321: {
-    kind: 'hold',
-    reason:
-      'ARC titles it "Twilight" (1909); the tracker already holds Stmívání (194351, 1909) — the Czech/English pair matches by year but not by string, so it is a translation twin pending review, not an insert',
+    kind: 'link',
+    wikiId: 194351,
+    how: 'image-verdict',
+    why:
+      'ARC "Twilight" (1909) is the same painting as tracked Stmívání (194351, 1909) (direct image verdict 2026-10-15: identical moonlit meadow, red tree, winding path, same Schikaneder signature; only a warmer paper tone in the Commons copy) — translation twin resolved',
   },
 };
 
@@ -83,7 +102,10 @@ function imageUrlOf(raw: ArcRaw): string | null {
   if (!raw.ImageUrl) return null;
   const file = raw.ImageUrl.replace(/\\/g, '/').split('/').pop();
   if (!file) return null;
-  return `https://www.artrenewal.org/secureimages/797/7975/${file}`;
+  // raw.ImageUrl is `/artwork/797/7975/<id>\<file>` — the `artwork/<id>` segment is
+  // required (fixed 2026-10-15: the old `secureimages/797/7975/<file>` shape 404s/placeholder
+  // serves; probe verified `secureimages/artwork/797/7975/<id>/<file>` returns the real image).
+  return `https://www.artrenewal.org/secureimages/artwork/797/7975/${raw.Id}/${file}`;
 }
 
 function toItem(raw: ArcRaw): ArcItem {
@@ -170,7 +192,8 @@ async function main() {
     }
     const dec = ITEM_DECISIONS[item.id];
     if (dec) {
-      decisions.set(item.id, { type: 'hold', reason: dec.reason });
+      if (dec.kind === 'link') decisions.set(item.id, { type: 'link', wikiId: dec.wikiId, how: dec.how, confidence: 100 });
+      else decisions.set(item.id, { type: 'hold', reason: dec.reason });
       continue;
     }
     const cand = fold(item.title);

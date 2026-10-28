@@ -5,11 +5,17 @@
 # this script only reads those local files, computes a 9x8 grayscale dHash (64 binary chars)
 # per image, and writes { key: bits|null } to C:\tmp\schikaneder-hash-jobs-out.json.
 # null = unreadable image (the caller holds that item). No network access here.
+# -JobsPath/-OutPath (added 2026-10-15) let the Pinterest adapter reuse this helper with
+# its own job files; defaults stay the Commons paths and the Commons call site is unchanged.
+param(
+    [string]$JobsPath = 'C:\tmp\schikaneder-hash-jobs.json',
+    [string]$OutPath = 'C:\tmp\schikaneder-hash-jobs-out.json'
+)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
-$jobsPath = 'C:\tmp\schikaneder-hash-jobs.json'
-$outPath = 'C:\tmp\schikaneder-hash-jobs-out.json'
+$jobsPath = $JobsPath
+$outPath = $OutPath
 
 $jobs = (Get-Content -LiteralPath $jobsPath -Raw -Encoding UTF8 | ConvertFrom-Json)
 $out = [ordered]@{}

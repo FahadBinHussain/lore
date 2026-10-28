@@ -5,7 +5,7 @@
 import { db } from '../src/db/index';
 import { artists, artworks } from '../src/db/schema';
 import { upsertArtworkSource } from '../src/lib/artists/artwork-sources';
-import { asc, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, or, sql } from 'drizzle-orm';
 
 const BASE = 'https://www.wikiart.org';
 const HEADERS = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'X-Requested-With': 'XMLHttpRequest' };
@@ -164,10 +164,13 @@ async function main() {
   }
 
   await discoverArtists();
+  // Only wikiart-sourced rows are this crawler's business — non-wikiart artists (deep-research
+  // adapter imports, e.g. official-site scripts) have their own sync path and would otherwise
+  // land in the failure list on every pass.
   const todo = await db
     .select({ id: artists.id, slug: artists.slug })
     .from(artists)
-    .where(or(isNull(artists.lastSyncedAt), sql`${artists.lastSyncedAt} < now() - interval '24 hours'`))
+    .where(and(eq(artists.provider, 'wikiart'), or(isNull(artists.lastSyncedAt), sql`${artists.lastSyncedAt} < now() - interval '24 hours'`)))
     .orderBy(sql`${artists.seedRev} is not null`, asc(artists.id));
   console.log(`todo artists=${todo.length}`);
 

@@ -8,8 +8,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useParams } from 'next/navigation';
 import { ArtworkLightbox, type ArtworkSource } from '@/components/media/artwork-lightbox';
+import { ArtworkChat } from '@/components/ai/artwork-chat';
 
-type Artist = { id?: number; slug: string; name: string; imageUrl?: string | null; biography?: string; birthYear?: number | null; deathYear?: number | null; sourceUrl?: string; artworkCount?: number | null; lastSyncedAt?: string | null };
+type Artist = { id?: number; provider?: string; slug: string; name: string; imageUrl?: string | null; biography?: string; birthYear?: number | null; deathYear?: number | null; sourceUrl?: string; artworkCount?: number | null; lastSyncedAt?: string | null };
 type Painting = { id: string; title: string; year: number | null; imageUrl: string | null; sourceUrl: string; width?: number | null; height?: number | null; explored?: boolean; sources?: ArtworkSource[] };
 
 const STALE_DAYS = 30;
@@ -88,6 +89,7 @@ export default function ArtistDetailPage() {
   const stale = staleDays(artist.lastSyncedAt);
   const noWorks = total === 0;
   const allExplored = total > 0 && exploredCount >= total;
+  const sourceLabel = artist.provider === 'wikiart' ? 'WikiArt' : artist.provider === 'official' ? 'Official' : artist.provider ? artist.provider.replace(/-/g, ' ') : 'Source';
   return (
     <main className="container mx-auto max-w-7xl px-4 py-10">
       <Link href="/artists" className="mb-6 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Artists</Link>
@@ -100,7 +102,7 @@ export default function ArtistDetailPage() {
             {artist.biography && <p className="mb-5 max-w-3xl whitespace-pre-line text-muted-foreground">{artist.biography}</p>}
             <div className="flex flex-wrap gap-3">
               <Button onClick={toggleArtist} disabled={saving}><Sparkles className="mr-2 h-4 w-4 animate-pulse" />{explored ? 'Mark unexplored' : 'Mark explored'}</Button>
-              {artist.sourceUrl && <a href={artist.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm hover:bg-muted">WikiArt <ExternalLink className="h-4 w-4" /></a>}
+              {artist.sourceUrl && <a href={artist.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm hover:bg-muted">{sourceLabel} <ExternalLink className="h-4 w-4" /></a>}
             </div>
           </div>
         </CardContent>
@@ -145,7 +147,13 @@ export default function ArtistDetailPage() {
         </div>
       )}
       {openIndex !== null && paintings[openIndex] && (
-        <ArtworkLightbox artistName={artist.name} images={paintings} index={openIndex} onIndexChange={setOpenIndex} onClose={() => setOpenIndex(null)} onToggleExplored={() => toggleArtwork(paintings[openIndex])} />
+        <>
+          <ArtworkLightbox artistName={artist.name} images={paintings} index={openIndex} onIndexChange={setOpenIndex} onClose={() => setOpenIndex(null)} onToggleExplored={() => toggleArtwork(paintings[openIndex])} />
+          <ArtworkChat
+            artistName={artist.name}
+            artwork={{ id: paintings[openIndex].id, title: paintings[openIndex].title, year: paintings[openIndex].year }}
+          />
+        </>
       )}
     </main>
   );
