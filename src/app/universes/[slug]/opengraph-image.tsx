@@ -64,12 +64,12 @@ export default async function UniverseOGImage({ params }: Props) {
         const itemWithBackdrop = universe.items.find((i) => i.mediaItem?.backdropPath);
         if (itemWithBackdrop?.mediaItem?.backdropPath) {
           const bp = itemWithBackdrop.mediaItem.backdropPath;
-          bgImage = bp.startsWith('http') ? bp : `https://image.tmdb.org/t/p/w1280${bp}`;
+          bgImage = bp.startsWith('http') ? bp : `https://image.tmdb.org/t/p/w780${bp}`;
         } else {
           const itemWithPoster = universe.items.find((i) => i.mediaItem?.posterPath);
           if (itemWithPoster?.mediaItem?.posterPath) {
             const pp = itemWithPoster.mediaItem.posterPath;
-            bgImage = pp.startsWith('http') ? pp : `https://image.tmdb.org/t/p/w780${pp}`;
+            bgImage = pp.startsWith('http') ? pp : `https://image.tmdb.org/t/p/w500${pp}`;
           }
         }
       }
@@ -110,8 +110,7 @@ export default async function UniverseOGImage({ params }: Props) {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              opacity: 0.22,
-              filter: 'blur(3px)',
+              opacity: 0.18,
             }}
           />
         )}
