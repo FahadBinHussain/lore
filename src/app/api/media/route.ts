@@ -69,7 +69,17 @@ export async function GET(request: NextRequest) {
   try {
     let rawItems;
 
-    if (type === 'tv') {
+    if (type === 'watch-later') {
+      rawItems = await db
+        .select()
+        .from(userMediaProgress)
+        .innerJoin(mediaItems, eq(userMediaProgress.mediaItemId, mediaItems.id))
+        .where(and(
+          eq(userMediaProgress.userId, parseInt(session.user.id)),
+          eq(userMediaProgress.status, 'plan_to_watch')
+        ))
+        .orderBy(desc(userMediaProgress.updatedAt));
+    } else if (type === 'tv') {
       // For TV shows, include both userMediaProgress and shows with watched episodes
       const mediaProgressItems = await db
         .select()

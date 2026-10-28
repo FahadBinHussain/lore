@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowLeft, Star, Clock, Calendar,
-  Play, Plus, Check,
+  Play, Plus, Check, Bookmark, Loader2,
   Zap, PlayCircle, Monitor, Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -80,6 +80,8 @@ export default function AnimeDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isWatched, setIsWatched] = useState(false);
   const [updatingWatched, setUpdatingWatched] = useState(false);
+  const [isWatchLater, setIsWatchLater] = useState(false);
+  const [updatingWatchLater, setUpdatingWatchLater] = useState(false);
   const [selectedTrailer, setSelectedTrailer] = useState<{ id: string; site: string } | null>(null);
 
   const fetchAnimeDetails = useCallback(async () => {
@@ -115,7 +117,8 @@ export default function AnimeDetailPage() {
       }
       if (response.ok) {
         const data = await response.json();
-        setIsWatched(data.isWatched);
+        setIsWatched(Boolean(data.isWatched));
+        setIsWatchLater(Boolean(data.isWatchLater || data.status === 'plan_to_watch'));
       }
     } catch {
       // Silently fail - user can still browse without tracking
@@ -174,12 +177,54 @@ export default function AnimeDetailPage() {
       }
       
       if (response.ok) {
-        setIsWatched(!isWatched);
+        const nextWatched = !isWatched;
+        setIsWatched(nextWatched);
+        if (nextWatched) {
+          setIsWatchLater(false);
+        }
       }
     } catch (err) {
       console.error('Failed to update watched status:', err);
     } finally {
       setUpdatingWatched(false);
+    }
+  };
+
+  const handleWatchLaterToggle = async () => {
+    if (!anime) return;
+    setUpdatingWatchLater(true);
+    try {
+      const nextWatchLater = !isWatchLater;
+      const response = await fetch('/api/media/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-cache',
+        body: JSON.stringify({
+          mediaId: params.id as string,
+          mediaType: 'anime',
+          isWatchLater: nextWatchLater,
+          title: anime.title,
+          posterPath: anime.image,
+          releaseDate: anime.seasonYear ? `${anime.seasonYear}-01-01` : null,
+          totalEpisodes: anime.episodes,
+        }),
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/auth/signin';
+        return;
+      }
+
+      if (response.ok) {
+        setIsWatchLater(nextWatchLater);
+        if (nextWatchLater) {
+          setIsWatched(false);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update watch later status:', err);
+    } finally {
+      setUpdatingWatchLater(false);
     }
   };
 
@@ -434,6 +479,25 @@ export default function AnimeDetailPage() {
                       Mark as Watched
                     </>
                   )}
+                </Button>
+
+                <Button 
+                  variant="outline"
+                  onClick={handleWatchLaterToggle}
+                  disabled={updatingWatchLater}
+                  className={cn(
+                    "border-2 transition-all duration-300 text-xs sm:text-sm group/btn",
+                    isWatchLater 
+                      ? "bg-secondary/20 border-secondary/50 text-secondary hover:bg-secondary/30" 
+                      : "bg-background/70 border-border text-foreground hover:bg-accent"
+                  )}
+                >
+                  {updatingWatchLater ? (
+                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 animate-spin" />
+                  ) : (
+                    <Bookmark className={cn("w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110", isWatchLater && "fill-secondary")} />
+                  )}
+                  {isWatchLater ? 'In Watchlist' : 'Watch Later'}
                 </Button>
               </div>
             </div>

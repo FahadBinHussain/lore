@@ -40,7 +40,8 @@ export const watchStatusEnum = pgEnum('watch_status', [
   'in_progress', 
   'completed', 
   'dropped', 
-  'on_hold'
+  'on_hold',
+  'plan_to_watch'
 ]);
 
 export const listVisibilityEnum = pgEnum('list_visibility', ['public', 'private', 'unlisted']);

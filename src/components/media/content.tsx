@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, Music, Podcast, MapPin, Check, Clock, Search, Zap } from 'lucide-react';
+import { Film, Tv, Gamepad2, BookOpen, BookCopy, Dice6, Music, Podcast, MapPin, Check, Clock, Search, Zap, Bookmark } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -124,6 +124,7 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
     total: items.length,
     completed: items.filter(i => i.status === 'completed').length,
     inProgress: items.filter(i => i.status === 'in_progress').length,
+    watchLater: items.filter(i => i.status === 'plan_to_watch').length,
   };
 
   return (
@@ -142,21 +143,25 @@ export function MediaContent({ type, title, icon }: MediaContentProps) {
           </Button>
         </div>
         <p className="text-muted-foreground">
-          {stats.total} tracked • {stats.completed} completed • {stats.inProgress} in progress
+          {stats.total} tracked • {stats.watchLater} watch later • {stats.inProgress} in progress • {stats.completed} completed
         </p>
       </div>
 
       <Tabs value={filter} onValueChange={setFilter} className="mb-8">
-        <TabsList className="grid w-full max-w-md grid-cols-3">
-          <TabsTrigger value="all" className="flex items-center gap-2">
+        <TabsList className="grid w-full max-w-xl grid-cols-4">
+          <TabsTrigger value="all" className="flex items-center gap-1.5 sm:gap-2">
             All ({stats.total})
           </TabsTrigger>
-          <TabsTrigger value="in_progress" className="flex items-center gap-2">
-            <Clock className="w-4 h-4" />
+          <TabsTrigger value="plan_to_watch" className="flex items-center gap-1.5 sm:gap-2 group">
+            <Bookmark className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+            Watch Later ({stats.watchLater})
+          </TabsTrigger>
+          <TabsTrigger value="in_progress" className="flex items-center gap-1.5 sm:gap-2 group">
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 group-hover:rotate-12 transition-transform" />
             In Progress ({stats.inProgress})
           </TabsTrigger>
-          <TabsTrigger value="completed" className="flex items-center gap-2">
-            <Check className="w-4 h-4" />
+          <TabsTrigger value="completed" className="flex items-center gap-1.5 sm:gap-2 group">
+            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
             Completed ({stats.completed})
           </TabsTrigger>
         </TabsList>

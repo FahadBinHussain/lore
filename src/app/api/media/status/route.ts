@@ -58,6 +58,8 @@ export async function GET(request: NextRequest) {
     console.log('Media item query result:', { mediaId, mediaType, found: !!mediaItem, mediaItem });
 
     let isWatchedResult = false;
+    let isWatchLaterResult = false;
+    let currentStatus = 'not_started';
     let watchedEpisodesResult: number[] = [];
     const requestedSeasonNumber = seasonNumberParam ? parseInt(seasonNumberParam, 10) : null;
     const requestedEpisodeNumber = episodeNumberParam ? parseInt(episodeNumberParam, 10) : null;
@@ -99,6 +101,8 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
           isWatched: isWatchedResult,
+          isWatchLater: false,
+          status: isWatchedResult ? 'completed' : 'not_started',
           watchedEpisodes: [],
         }, {
           headers: {
@@ -120,6 +124,8 @@ export async function GET(request: NextRequest) {
       console.log('Progress query result:', { userId, mediaItemId: mediaItem.id, found: !!progress, progress });
 
       isWatchedResult = progress?.status === 'completed';
+      isWatchLaterResult = progress?.status === 'plan_to_watch';
+      currentStatus = progress?.status ?? 'not_started';
 
       if (mediaType === 'anime') {
         const watchedEpisodes = await db
@@ -151,6 +157,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       isWatched: isWatchedResult,
+      isWatchLater: isWatchLaterResult,
+      status: currentStatus,
       watchedEpisodes: watchedEpisodesResult,
     }, {
       headers: {
@@ -174,7 +182,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { mediaId, mediaType, isWatched, title, posterPath, releaseDate, totalEpisodes, source: bodySource } = body;
+    const { mediaId, mediaType, isWatched, isWatchLater, title, posterPath, releaseDate, totalEpisodes, source: bodySource } = body;
     
     console.log('Received status update request:', { mediaId, mediaType, isWatched, title });
 
@@ -222,10 +230,55 @@ export async function POST(request: NextRequest) {
 
     console.log('Looking for existing progress:', { userId: parseInt(session.user.id), mediaItemId, found: !!existingProgress, currentStatus: existingProgress?.status });
 
-    if (existingProgress) {
+    if (typeof isWatchLater === 'boolean') {
+      if (isWatchLater) {
+        if (existingProgress) {
+          console.log('Updating progress to plan_to_watch:', { id: existingProgress.id, mediaItemId });
+          await db.update(userMediaProgress)
+            .set({
+              status: 'plan_to_watch',
+              completedAt: null,
+              currentProgress: 0,
+              progressPercentage: '0',
+              lastActivityAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(userMediaProgress.id, existingProgress.id));
+        } else {
+          console.log('Creating new progress as plan_to_watch:', { mediaItemId });
+          await db.insert(userMediaProgress).values({
+            userId: parseInt(session.user.id),
+            mediaItemId,
+            status: 'plan_to_watch',
+            currentProgress: 0,
+            progressPercentage: '0',
+            lastActivityAt: new Date(),
+          });
+        }
+
+        // If it's a TV show, clear any watched episodes when moving to watch later
+        if (mediaType === 'tv') {
+          await db.delete(userEpisodeProgress)
+            .where(and(
+              eq(userEpisodeProgress.userId, parseInt(session.user.id)),
+              sql`${userEpisodeProgress.episodeId} IN (
+                SELECT ${episodes.id} FROM ${episodes}
+                INNER JOIN ${seasons} ON ${episodes.seasonId} = ${seasons.id}
+                WHERE ${seasons.mediaItemId} = ${mediaItemId}
+              )`
+            ));
+        }
+      } else {
+        if (existingProgress && existingProgress.status === 'plan_to_watch') {
+          console.log('Removing from plan_to_watch:', { id: existingProgress.id, mediaItemId });
+          await db.delete(userMediaProgress)
+            .where(eq(userMediaProgress.id, existingProgress.id));
+        }
+      }
+    } else if (existingProgress) {
       if (isWatched) {
         // Update existing progress to completed
-        console.log('Updating existing progress:', {
+        console.log('Updating existing progress to completed:', {
           id: existingProgress.id,
           currentStatus: existingProgress.status,
           newStatus: 'completed',
@@ -509,7 +562,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true }, {
+    const finalIsWatched = typeof isWatched === 'boolean' ? isWatched : (isWatchLater ? false : existingProgress?.status === 'completed');
+    const finalIsWatchLater = typeof isWatchLater === 'boolean' ? isWatchLater : (isWatched ? false : existingProgress?.status === 'plan_to_watch');
+
+    return NextResponse.json({
+      success: true,
+      isWatched: finalIsWatched,
+      isWatchLater: finalIsWatchLater,
+      status: finalIsWatched ? 'completed' : finalIsWatchLater ? 'plan_to_watch' : 'not_started',
+    }, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',

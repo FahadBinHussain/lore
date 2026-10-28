@@ -324,3 +324,17 @@ Quick triage when a DB connection fails: `Test-NetConnection 127.0.0.1 -Port 789
   - Poster sizing: `relative w-36 sm:w-44 md:w-52 lg:w-64 aspect-[2/3]` (or `aspect-[3/4]` for games, `aspect-video` for episodes).
   - Info text & badges: `flex-1 min-w-0 text-center sm:text-left w-full`, pills and buttons aligned `justify-center sm:justify-start`.
   - Rule 10 icon motion: all buttons, pills, ratings, and back navigation include smooth CSS micro-interactions (`group-hover:scale-110`, `group-hover:-translate-x-1`, `group-hover:rotate-12`, `group-hover:scale-125`).
+
+## Watch Later (Watchlist) Architecture (2026-10-28)
+
+- **Database Enum:** Added `plan_to_watch` to PostgreSQL enum `watch_status` (`ALTER TYPE watch_status ADD VALUE IF NOT EXISTS 'plan_to_watch'`) and updated `watchStatusEnum` in `src/db/schema.ts`.
+- **API Status Contracts:**
+  - `GET /api/media/status`: Returns `isWatched`, `isWatchLater: Boolean(progress?.status === 'plan_to_watch')`, and `status: progress?.status ?? 'not_started'`.
+  - `POST /api/media/status`: Supports `{ isWatchLater: boolean }`. Marking as `isWatchLater: true` updates or inserts `user_media_progress` with `status: 'plan_to_watch'` (and clears completed episodes if TV). Marking as `isWatched: true` transitions item to completed. Unsetting deletes the progress record.
+- **Media Listing API:** `GET /api/media?type=watch-later` fetches all saved watch later items across all media types for the authenticated user ordered by `updated_at DESC`.
+- **Dashboard & Category Views:**
+  - Dedicated route: `/dashboard/watch-later` (`WatchLaterContent`) with type filter pills, real-time title search, quick "Mark as Watched", quick "Remove", and empty state with Rule 10 icon motion.
+  - Category views (`src/components/media/content.tsx`): Added a 4th tab `Watch Later ({stats.watchLater})` with `Bookmark` icon and `bg-secondary/15 text-secondary` badge.
+  - Main Dashboard (`src/components/dashboard/content.tsx`): Added a Watch Later queue banner card and live stat counter linked to `/dashboard/watch-later`.
+  - Navbar: Added "Watch Later" shortcut in the user profile dropdown.
+- **Detail Pages:** Added "Watch Later" / "Plan to Play" / "Read Later" button with responsive states and icon motion across movies, tv, anime, games, books, and generic media detail pages.

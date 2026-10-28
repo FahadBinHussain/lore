@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeft, Check, ExternalLink, Loader2, Star } from 'lucide-react';
+import { ArrowLeft, Check, ExternalLink, Loader2, Star, Bookmark } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -83,6 +83,8 @@ export function GenericMediaDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [isWatchLater, setIsWatchLater] = useState(false);
+  const [updatingWatchLater, setUpdatingWatchLater] = useState(false);
 
   const rawId = params?.id;
   const itemId = useMemo(() => {
@@ -141,6 +143,7 @@ export function GenericMediaDetailPage({
         if (!response.ok) return;
         const data = await response.json();
         setIsComplete(Boolean(data.isWatched));
+        setIsWatchLater(Boolean(data.isWatchLater || data.status === 'plan_to_watch'));
       } catch (err) {
         console.error('Failed to fetch media status:', err);
       }
@@ -151,6 +154,37 @@ export function GenericMediaDetailPage({
 
   const description = stripHtml(detail?.description);
   const releaseDate = formatDate(detail?.releaseDate);
+
+  async function toggleWatchLater() {
+    if (!detail) return;
+    setUpdatingWatchLater(true);
+    try {
+      const nextWatchLater = !isWatchLater;
+      const response = await fetch('/api/media/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mediaId: detail.id,
+          mediaType,
+          isWatchLater: nextWatchLater,
+          title: detail.title,
+          posterPath: detail.image ?? null,
+          releaseDate: detail.releaseDate ? new Date(detail.releaseDate).toISOString().split('T')[0] : null,
+        }),
+      });
+
+      if (response.ok) {
+        setIsWatchLater(nextWatchLater);
+        if (nextWatchLater) {
+          setIsComplete(false);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update watch later status:', err);
+    } finally {
+      setUpdatingWatchLater(false);
+    }
+  }
 
   async function toggleComplete() {
     if (!detail) return;
@@ -171,7 +205,11 @@ export function GenericMediaDetailPage({
       });
 
       if (response.ok) {
-        setIsComplete((value) => !value);
+        setIsComplete((value) => {
+          const next = !value;
+          if (next) setIsWatchLater(false);
+          return next;
+        });
       }
     } finally {
       setUpdating(false);
@@ -258,6 +296,23 @@ export function GenericMediaDetailPage({
               <Button onClick={toggleComplete} disabled={updating} className="group transition-all duration-300 hover:scale-105">
                 {updating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-125" />}
                 {isComplete ? incompleteLabel : completeLabel}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={toggleWatchLater}
+                disabled={updatingWatchLater}
+                className={cn(
+                  "group transition-all duration-300 hover:scale-105",
+                  isWatchLater && "bg-secondary/20 border-secondary/50 text-secondary"
+                )}
+              >
+                {updatingWatchLater ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Bookmark className={cn("mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6", isWatchLater && "fill-secondary")} />
+                )}
+                {isWatchLater ? 'In Watchlist' : 'Watch Later'}
               </Button>
               {detail.externalUrl ? (
                 <Link href={detail.externalUrl} target="_blank" rel="noreferrer" className={cn(buttonVariants({ variant: 'outline' }), "group transition-all duration-300 hover:scale-105")}>

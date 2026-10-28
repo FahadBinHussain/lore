@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { 
   ArrowLeft, Star, Calendar, 
   Users, Loader2, 
-  Heart, Share2, Check, BookOpen, FileText,
+  Heart, Share2, Check, BookOpen, FileText, Bookmark,
   ExternalLink, TrendingUp,
   ChevronDown, ChevronUp,
   Image as ImageIcon, Sparkles,
@@ -123,6 +123,8 @@ export default function BookDetailPage() {
   const [isRead, setIsRead] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [updatingRead, setUpdatingRead] = useState(false);
+  const [isWatchLater, setIsWatchLater] = useState(false);
+  const [updatingWatchLater, setUpdatingWatchLater] = useState(false);
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [activeTab, setActiveTab] = useState<'about' | 'contents' | 'editions'>('about');
 
@@ -151,12 +153,51 @@ export default function BookDetailPage() {
       });
       
       if (response.ok) {
-        setIsRead(!isRead);
+        const nextRead = !isRead;
+        setIsRead(nextRead);
+        if (nextRead) {
+          setIsWatchLater(false);
+        }
       }
     } catch (err) {
       console.error('Failed to update read status:', err);
     } finally {
       setUpdatingRead(false);
+    }
+  };
+
+  const handleWatchLaterToggle = async () => {
+    if (!book) return;
+    setUpdatingWatchLater(true);
+    try {
+      const idParam = params.id as string;
+      const numericIdMatch = idParam.match(/(\d+)$/);
+      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
+      const nextWatchLater = !isWatchLater;
+
+      const response = await fetch('/api/media/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mediaId: numericId,
+          mediaType: 'book',
+          isWatchLater: nextWatchLater,
+          title: book.title,
+          posterPath: coverUrl,
+          releaseDate: book.last_modified?.value?.split('T')[0],
+        }),
+      });
+
+      if (response.ok) {
+        setIsWatchLater(nextWatchLater);
+        if (nextWatchLater) {
+          setIsRead(false);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update watch later status:', err);
+    } finally {
+      setUpdatingWatchLater(false);
     }
   };
 
@@ -194,7 +235,8 @@ export default function BookDetailPage() {
       const response = await fetch(`/api/media/status?mediaId=${numericId}&mediaType=book`);
       if (response.ok) {
         const data = await response.json();
-        setIsRead(data.isWatched);
+        setIsRead(Boolean(data.isWatched));
+        setIsWatchLater(Boolean(data.isWatchLater || data.status === 'plan_to_watch'));
       }
     } catch (err) {
       console.error('Failed to fetch read status:', err);
@@ -474,6 +516,23 @@ export default function BookDetailPage() {
                     <Check className={cn("w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-125", isRead && "text-success")} />
                   )}
                   {isRead ? 'Read' : 'Mark as Read'}
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  onClick={handleWatchLaterToggle}
+                  disabled={updatingWatchLater}
+                  className={cn(
+                    "transition-all duration-300 text-xs sm:text-sm group/btn",
+                    isWatchLater && "bg-secondary/20 border-secondary/50 text-secondary"
+                  )}
+                >
+                  {updatingWatchLater ? (
+                    <Loader2 className="w-4 h-4 mr-1.5 sm:mr-2 animate-spin" />
+                  ) : (
+                    <Bookmark className={cn("w-4 h-4 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110", isWatchLater && "fill-secondary")} />
+                  )}
+                  {isWatchLater ? 'In Reading List' : 'Read Later'}
                 </Button>
                 
                 <Button 

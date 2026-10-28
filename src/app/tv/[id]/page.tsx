@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { 
-  ArrowLeft, Star, Clock, Calendar, Globe, 
+  ArrowLeft, Star, Clock, Calendar, Globe, Bookmark, 
   Users, Loader2, Play,
   Heart, Share2, Check, Tv, Monitor,
   ExternalLink, TrendingUp, Award, Building2,
@@ -159,6 +159,8 @@ export default function TVShowDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isWatched, setIsWatched] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isWatchLater, setIsWatchLater] = useState(false);
+  const [updatingWatchLater, setUpdatingWatchLater] = useState(false);
   const [updatingWatched, setUpdatingWatched] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [showAllCast, setShowAllCast] = useState(false);
@@ -221,7 +223,8 @@ export default function TVShowDetailPage() {
       const response = await fetch(`/api/media/status?mediaId=${numericId}&mediaType=tv`);
       if (response.ok) {
         const data = await response.json();
-        setIsWatched(data.isWatched);
+        setIsWatched(Boolean(data.isWatched));
+        setIsWatchLater(Boolean(data.isWatchLater || data.status === 'plan_to_watch'));
       }
     } catch (err) {
       console.error('Failed to fetch watched status:', err);
@@ -258,12 +261,52 @@ export default function TVShowDetailPage() {
       }
       
       setSyncProgress(100);
-      setIsWatched(!isWatched);
+      const nextWatched = !isWatched;
+      setIsWatched(nextWatched);
+      if (nextWatched) {
+        setIsWatchLater(false);
+      }
       await new Promise((resolve) => setTimeout(resolve, 300));
     } catch (err) {
       console.error('Failed to update watched status:', err);
     } finally {
       setUpdatingWatched(false);
+    }
+  };
+
+  const handleWatchLaterToggle = async () => {
+    if (!show) return;
+    setUpdatingWatchLater(true);
+    try {
+      const idParam = params.id as string;
+      const numericIdMatch = idParam.match(/(\d+)$/);
+      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
+      const nextWatchLater = !isWatchLater;
+
+      const response = await fetch('/api/media/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mediaId: numericId,
+          mediaType: 'tv',
+          isWatchLater: nextWatchLater,
+          title: show.name,
+          posterPath: show.poster_path,
+          releaseDate: show.first_air_date,
+          totalEpisodes: show.number_of_episodes,
+        }),
+      });
+
+      if (response.ok) {
+        setIsWatchLater(nextWatchLater);
+        if (nextWatchLater) {
+          setIsWatched(false);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update watch later status:', err);
+    } finally {
+      setUpdatingWatchLater(false);
     }
   };
 
@@ -625,6 +668,23 @@ export default function TVShowDetailPage() {
                     <Check className={cn("w-4 h-4 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110", isWatched && "fill-primary")} />
                   )}
                   {isWatched ? 'Watched' : 'Mark as Watched'}
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  onClick={handleWatchLaterToggle}
+                  disabled={updatingWatchLater}
+                  className={cn(
+                    "transition-all duration-300 text-xs sm:text-sm group/btn",
+                    isWatchLater && "bg-secondary/20 border-secondary/50 text-secondary"
+                  )}
+                >
+                  {updatingWatchLater ? (
+                    <Loader2 className="w-4 h-4 mr-1.5 sm:mr-2 animate-spin" />
+                  ) : (
+                    <Bookmark className={cn("w-4 h-4 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110", isWatchLater && "fill-secondary")} />
+                  )}
+                  {isWatchLater ? 'In Watchlist' : 'Watch Later'}
                 </Button>
                 
                 <Button 

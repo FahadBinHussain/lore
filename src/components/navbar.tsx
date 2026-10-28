@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { isAdminRole, normalizeUserRole } from '@/lib/auth/roles';
 import {
-  ArrowRight, LayoutDashboard, Search, Plus,
+  ArrowRight, LayoutDashboard, Search, Plus, Bookmark,
   User, Settings, Bell, LogOut, Menu, X, Palette, Check, LoaderCircle
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -435,8 +435,18 @@ export function Navbar() {
                         closeOnClick
                         className="group px-3 py-2.5 cursor-pointer hover:bg-primary/5 focus:bg-primary/5 transition-colors duration-150"
                       >
-                        <LayoutDashboard className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />
+                        <LayoutDashboard className="mr-3 h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:scale-110" />
                         <span className="font-medium">Dashboard</span>
+                        <ArrowRight className="ml-auto h-3 w-3 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                      </DropdownMenuLinkItem>
+
+                      <DropdownMenuLinkItem
+                        render={<Link href="/dashboard/watch-later" />}
+                        closeOnClick
+                        className="group px-3 py-2.5 cursor-pointer hover:bg-secondary/5 focus:bg-secondary/5 transition-colors duration-150"
+                      >
+                        <Bookmark className="mr-3 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-secondary group-hover:scale-110 group-hover:rotate-6 transition-all" />
+                        <span className="font-medium">Watch Later</span>
                         <ArrowRight className="ml-auto h-3 w-3 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                       </DropdownMenuLinkItem>
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Film, Tv, Gamepad2, BookOpen, BookCopy, Music, Podcast, MapPin,
-  Zap, Upload, ArrowRight, Clock,
+  Zap, Upload, ArrowRight, Clock, Bookmark,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ImportModal, type ImportItem, type TraktImportType } from './import-modal';
@@ -77,6 +77,7 @@ export function DashboardContent() {
   const [importType, setImportType] = useState<TraktImportType>('watched-movies');
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [countsLoading, setCountsLoading] = useState(true);
+  const [watchLaterCount, setWatchLaterCount] = useState<number | null>(null);
 
   const loadCounts = useCallback(async () => {
     const results: Record<string, number> = {};
@@ -96,6 +97,15 @@ export function DashboardContent() {
         }
       })
     );
+    try {
+      const wlResp = await fetch('/api/media?type=watch-later', { cache: 'no-cache' });
+      if (wlResp.ok) {
+        const data = await wlResp.json();
+        setWatchLaterCount(Array.isArray(data.items) ? data.items.length : 0);
+      }
+    } catch {
+      setWatchLaterCount(0);
+    }
     return results;
   }, []);
 
@@ -226,6 +236,37 @@ export function DashboardContent() {
                 </div>
               );
             })}
+          </div>
+
+          {/* Watch Later Queue Banner */}
+          <div className="mb-8">
+            <div className="relative overflow-hidden rounded-xl p-5 sm:p-6 border border-secondary/20 bg-secondary/5 hover:border-secondary/40 transition-all duration-300 group">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3.5">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/10 border border-secondary/25">
+                    <Bookmark className="w-5 h-5 text-secondary transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-bold text-sm sm:text-base font-[family-name:var(--font-epilogue)]">Watch Later Queue</h3>
+                      <span className="badge badge-secondary badge-sm font-semibold">
+                        {watchLaterCount === null ? '...' : `${watchLaterCount} saved`}
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
+                      Your personal watchlist for movies, anime, shows, games, and books to enjoy next.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/dashboard/watch-later"
+                  className="btn btn-secondary btn-sm rounded-xl gap-2 self-start sm:self-auto group/btn font-medium"
+                >
+                  <span>Open Watch Later</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:translate-x-1" />
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* Import banner */}

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
-  ArrowLeft, Star, Clock, Calendar, Globe, 
+  ArrowLeft, Star, Clock, Calendar, Globe, Bookmark, 
   Users, Loader2, Play,
   Heart, Share2, Check, Film,
   ExternalLink, TrendingUp, Award, Building2,
@@ -146,6 +146,8 @@ export default function MovieDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isWatched, setIsWatched] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isWatchLater, setIsWatchLater] = useState(false);
+  const [updatingWatchLater, setUpdatingWatchLater] = useState(false);
   const [updatingWatched, setUpdatingWatched] = useState(false);
   const [showAllCast, setShowAllCast] = useState(false);
   const [selectedTrailer, setSelectedTrailer] = useState<Video | null>(null);
@@ -191,7 +193,8 @@ export default function MovieDetailPage() {
       if (response.ok) {
         const data = await response.json();
         console.log('Watched status data:', data);
-        setIsWatched(data.isWatched);
+        setIsWatched(Boolean(data.isWatched));
+        setIsWatchLater(Boolean(data.isWatchLater || data.status === 'plan_to_watch'));
       } else {
         console.error('Failed to fetch status:', response.status);
       }
@@ -226,12 +229,52 @@ export default function MovieDetailPage() {
       });
       
       if (response.ok) {
-        setIsWatched(!isWatched);
+        const nextWatched = !isWatched;
+        setIsWatched(nextWatched);
+        if (nextWatched) {
+          setIsWatchLater(false);
+        }
       }
     } catch (err) {
       console.error('Failed to update watched status:', err);
     } finally {
       setUpdatingWatched(false);
+    }
+  };
+
+  const handleWatchLaterToggle = async () => {
+    if (!movie) return;
+    setUpdatingWatchLater(true);
+    try {
+      const idParam = params.id as string;
+      const numericIdMatch = idParam.match(/(\d+)$/);
+      const numericId = numericIdMatch ? numericIdMatch[1] : idParam;
+      const nextWatchLater = !isWatchLater;
+
+      const response = await fetch('/api/media/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-cache',
+        body: JSON.stringify({
+          mediaId: numericId,
+          mediaType: 'movie',
+          isWatchLater: nextWatchLater,
+          title: movie.title,
+          posterPath: movie.poster_path,
+          releaseDate: movie.release_date,
+        }),
+      });
+
+      if (response.ok) {
+        setIsWatchLater(nextWatchLater);
+        if (nextWatchLater) {
+          setIsWatched(false);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update watch later status:', err);
+    } finally {
+      setUpdatingWatchLater(false);
     }
   };
 
@@ -516,6 +559,23 @@ export default function MovieDetailPage() {
                     <Check className={cn("w-4 h-4 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110", isWatched && "fill-primary")} />
                   )}
                   {isWatched ? 'Watched' : 'Mark as Watched'}
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  onClick={handleWatchLaterToggle}
+                  disabled={updatingWatchLater}
+                  className={cn(
+                    "transition-all duration-300 text-xs sm:text-sm group/btn",
+                    isWatchLater && "bg-secondary/20 border-secondary/50 text-secondary"
+                  )}
+                >
+                  {updatingWatchLater ? (
+                    <Loader2 className="w-4 h-4 mr-1.5 sm:mr-2 animate-spin" />
+                  ) : (
+                    <Bookmark className={cn("w-4 h-4 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110", isWatchLater && "fill-secondary")} />
+                  )}
+                  {isWatchLater ? 'In Watchlist' : 'Watch Later'}
                 </Button>
                 
                 <Button 

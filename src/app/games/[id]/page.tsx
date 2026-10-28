@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { 
   ArrowLeft, Star, Calendar, Globe, 
   Users, Loader2,
-  Heart, Share2, Check, Gamepad2, Monitor,
+  Heart, Share2, Check, Gamepad2, Monitor, Bookmark,
   ExternalLink, TrendingUp, Award, Building2,
   ChevronDown, ChevronUp,
   PlayCircle, Image as ImageIcon, Sparkles,
@@ -186,6 +186,8 @@ export default function GameDetailPage() {
   const [isPlayed, setIsPlayed] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [updatingPlayed, setUpdatingPlayed] = useState(false);
+  const [isWatchLater, setIsWatchLater] = useState(false);
+  const [updatingWatchLater, setUpdatingWatchLater] = useState(false);
   const [showAllPlatforms, setShowAllPlatforms] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const gameRef = useRef<GameDetails | null>(null);
@@ -222,12 +224,47 @@ export default function GameDetailPage() {
       });
       
       if (response.ok) {
-        setIsPlayed(!isPlayed);
+        const nextPlayed = !isPlayed;
+        setIsPlayed(nextPlayed);
+        if (nextPlayed) {
+          setIsWatchLater(false);
+        }
       }
     } catch (err) {
       console.error('Failed to update played status:', err);
     } finally {
       setUpdatingPlayed(false);
+    }
+  };
+
+  const handleWatchLaterToggle = async () => {
+    if (!game || !gameId) return;
+    setUpdatingWatchLater(true);
+    try {
+      const nextWatchLater = !isWatchLater;
+      const response = await fetch('/api/media/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mediaId: gameId,
+          mediaType: 'game',
+          isWatchLater: nextWatchLater,
+          title: game.name,
+          posterPath: game.cover_url,
+          releaseDate: game.first_release_date ? new Date(game.first_release_date * 1000).toISOString().split('T')[0] : null,
+        }),
+      });
+
+      if (response.ok) {
+        setIsWatchLater(nextWatchLater);
+        if (nextWatchLater) {
+          setIsPlayed(false);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update watch later status:', err);
+    } finally {
+      setUpdatingWatchLater(false);
     }
   };
 
@@ -306,7 +343,8 @@ export default function GameDetailPage() {
         const response = await fetch(`/api/media/status?mediaId=${gameId}&mediaType=game`);
         if (response.ok) {
           const data = await response.json();
-          setIsPlayed(data.isWatched);
+          setIsPlayed(Boolean(data.isWatched));
+          setIsWatchLater(Boolean(data.isWatchLater || data.status === 'plan_to_watch'));
         }
       } catch (err) {
         console.error('Failed to fetch played status:', err);
@@ -609,6 +647,23 @@ export default function GameDetailPage() {
                     <Check className={cn("w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-125", isPlayed && "fill-primary")} />
                   )}
                   {isPlayed ? 'Played' : 'Mark as Played'}
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  onClick={handleWatchLaterToggle}
+                  disabled={updatingWatchLater}
+                  className={cn(
+                    "transition-all duration-300 text-xs sm:text-sm group/btn",
+                    isWatchLater && "bg-secondary/20 border-secondary/50 text-secondary"
+                  )}
+                >
+                  {updatingWatchLater ? (
+                    <Loader2 className="w-4 h-4 mr-1.5 sm:mr-2 animate-spin" />
+                  ) : (
+                    <Bookmark className={cn("w-4 h-4 mr-1.5 sm:mr-2 transition-transform duration-200 group-hover/btn:scale-110", isWatchLater && "fill-secondary")} />
+                  )}
+                  {isWatchLater ? 'In Backlog' : 'Plan to Play'}
                 </Button>
                 
                 <Button 
