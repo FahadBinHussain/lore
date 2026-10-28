@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { auth } from '@/lib/auth';
 import { UniversesContent } from '@/components/universes/content';
 import { db } from '@/db';
@@ -5,6 +6,28 @@ import { collectionItems, collections, userMediaProgress, users } from '@/db/sch
 import { and, desc, eq, inArray, or } from 'drizzle-orm';
 import { isAdminRole } from '@/lib/auth/roles';
 import { isApiBackedMediaItem } from '@/lib/media/provider-support';
+
+export const metadata: Metadata = {
+  title: 'Universes & Timelines',
+  description:
+    'Explore curated movie universes, franchise timelines, and complete chronological watch orders across film, television, anime, games, and literature.',
+  alternates: {
+    canonical: '/universes',
+  },
+  openGraph: {
+    type: 'website',
+    title: 'Universes & Timelines | Lore',
+    description:
+      'Explore curated movie universes, franchise timelines, and complete chronological watch orders across film, television, anime, games, and literature.',
+    url: '/universes',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Universes & Timelines | Lore',
+    description:
+      'Explore curated movie universes, franchise timelines, and complete chronological watch orders across film, television, anime, games, and literature.',
+  },
+};
 
 export default async function UniversesPage() {
   const session = await auth();

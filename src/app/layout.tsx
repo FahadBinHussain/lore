@@ -9,13 +9,67 @@ import { PageTransition } from "@/components/page-transition";
 import { RouteProgress } from "@/components/route-progress";
 import { SiteFooter } from "@/components/site-footer";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://univrs.vercel.app';
+
 export const metadata: Metadata = {
-  title: "Lore - Media Tracker",
-  description: "Track movies, TV shows, games, and books across interconnected universes",
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: "Lore — Media & Universe Tracker",
+    template: "%s | Lore",
+  },
+  description: "Track movies, TV shows, anime, games, books, comics, and soundtracks across interconnected universes in release and chronological order.",
+  applicationName: "Lore",
+  keywords: [
+    "media tracker",
+    "universe tracker",
+    "chronological watch order",
+    "movie tracker",
+    "tv tracking",
+    "anime tracker",
+    "franchise timeline",
+    "mcu watch order",
+    "star wars timeline"
+  ],
+  authors: [{ name: "Lore" }],
+  creator: "Lore",
+  publisher: "Lore",
   icons: {
     icon: "/logo.png?v=3",
     shortcut: "/logo.png?v=3",
     apple: "/logo.png?v=3",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: APP_URL,
+    siteName: "Lore",
+    title: "Lore — Media & Universe Tracker",
+    description: "Track movies, TV shows, anime, games, books, comics, and soundtracks across interconnected universes in release and chronological order.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Lore — Media & Universe Tracker",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lore — Media & Universe Tracker",
+    description: "Track movies, TV shows, anime, games, books, comics, and soundtracks across interconnected universes in release and chronological order.",
+    images: ["/opengraph-image"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

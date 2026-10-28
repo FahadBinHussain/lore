@@ -631,3 +631,13 @@ Quick triage when a DB connection fails: `Test-NetConnection 127.0.0.1 -Port 789
   - Main Dashboard (`src/components/dashboard/content.tsx`): Added a Watch Later queue banner card and live stat counter linked to `/dashboard/watch-later`.
   - Navbar: Added "Watch Later" shortcut in the user profile dropdown.
 - **Detail Pages:** Added "Watch Later" / "Plan to Play" / "Read Later" button with responsive states and icon motion across movies, tv, anime, games, books, and generic media detail pages.
+
+
+## OpenGraph & Rich Link Previews Architecture (2026-10-28)
+
+- **Rule 8 Compliance:** Complete OpenGraph and Twitter card metadata configured across all shareable routes on `univrs.vercel.app` (Lore).
+- **Absolute `metadataBase` & Canonical URLs:** Root `layout.tsx` declares `metadataBase: new URL('https://univrs.vercel.app')`. Every child layout/route sets its canonical `alternates.canonical` to avoid crawler snippet abortion on Discord, WhatsApp, Twitter/X, and Telegram.
+- **Dynamic 1200x630 OG Generators (`next/og`):**
+  - Root: `src/app/opengraph-image.tsx` renders a branded 1200x630 card with dark glowing theme, key capability pills, and domain badge (~145KB, well below WhatsApp's strict 300KB ceiling).
+  - Dynamic Universes: `src/app/universes/[slug]/opengraph-image.tsx` queries collection data and hero poster/backdrop dynamically, generating tailored 1200x630 preview cards per universe timeline on demand.
+  - Category Hub Layouts: Added dedicated server layouts with rich OpenGraph and Twitter cards for `/movies`, `/tv`, `/anime`, `/games`, `/books`, `/comics`, `/artists`, `/soundtracks`, `/about`, and `/universes`.

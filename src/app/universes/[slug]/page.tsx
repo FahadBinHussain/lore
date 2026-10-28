@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { and, eq, inArray, isNotNull, or } from 'drizzle-orm';
@@ -272,6 +273,55 @@ function getCuratedInputType(additionalData: unknown): string | null {
 
 function getDisplayDescription(description: string | null): string {
   return description || 'No description available yet.';
+}
+
+export async function generateMetadata({ params }: UniversePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const maybeId = parseInt(slug, 10);
+  const universe = await db.query.collections.findFirst({
+    where: and(
+      eq(collections.visibility, 'public'),
+      Number.isNaN(maybeId) ? eq(collections.slug, slug) : or(eq(collections.slug, slug), eq(collections.id, maybeId))
+    ),
+    with: {
+      items: {
+        orderBy: collectionItems.releaseOrder,
+        with: { mediaItem: true },
+      },
+    },
+  });
+
+  if (!universe) {
+    return {
+      title: 'Universe Not Found',
+    };
+  }
+
+  const title = universe.name;
+  const count = universe.items.length;
+  const description =
+    universe.description ||
+    `Explore the complete chronological timeline and watch order for ${universe.name} on Lore (${count} tracked items).`;
+  const url = `/universes/${slug}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      type: 'website',
+      title: `${title} | Lore`,
+      description,
+      url,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | Lore`,
+      description,
+    },
+  };
 }
 
 export default async function Page({ params }: UniversePageProps) {
