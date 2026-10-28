@@ -22,7 +22,7 @@ export default async function UniverseOGImage({ params }: Props) {
   let universeName = 'Universe Timeline';
   let universeDescription = 'Explore complete franchise timelines and chronological watch orders.';
   let itemCount = 0;
-  let bgImage: string | null = null;
+  let posterImage: string | null = null;
   let mediaTypes: string[] = [];
 
   try {
@@ -55,22 +55,14 @@ export default async function UniverseOGImage({ params }: Props) {
       }
       mediaTypes = Array.from(types).slice(0, 4);
 
-      // Extract background image
-      if (universe.bannerImage && universe.bannerImage.startsWith('http')) {
-        bgImage = universe.bannerImage;
-      } else if (universe.coverImage && universe.coverImage.startsWith('http')) {
-        bgImage = universe.coverImage;
+      // Extract poster image
+      if (universe.coverImage && universe.coverImage.startsWith('http')) {
+        posterImage = universe.coverImage;
       } else {
-        const itemWithBackdrop = universe.items.find((i) => i.mediaItem?.backdropPath);
-        if (itemWithBackdrop?.mediaItem?.backdropPath) {
-          const bp = itemWithBackdrop.mediaItem.backdropPath;
-          bgImage = bp.startsWith('http') ? bp : `https://image.tmdb.org/t/p/w780${bp}`;
-        } else {
-          const itemWithPoster = universe.items.find((i) => i.mediaItem?.posterPath);
-          if (itemWithPoster?.mediaItem?.posterPath) {
-            const pp = itemWithPoster.mediaItem.posterPath;
-            bgImage = pp.startsWith('http') ? pp : `https://image.tmdb.org/t/p/w500${pp}`;
-          }
+        const itemWithPoster = universe.items.find((i) => i.mediaItem?.posterPath);
+        if (itemWithPoster?.mediaItem?.posterPath) {
+          const pp = itemWithPoster.mediaItem.posterPath;
+          posterImage = pp.startsWith('http') ? pp : `https://image.tmdb.org/t/p/w500${pp}`;
         }
       }
     }
@@ -80,7 +72,7 @@ export default async function UniverseOGImage({ params }: Props) {
 
   // Truncate description for card display
   const cleanDescription =
-    universeDescription.length > 180 ? universeDescription.slice(0, 177) + '...' : universeDescription;
+    universeDescription.length > 150 ? universeDescription.slice(0, 147) + '...' : universeDescription;
 
   return new ImageResponse(
     (
@@ -89,42 +81,17 @@ export default async function UniverseOGImage({ params }: Props) {
           width: '100%',
           height: '100%',
           display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '60px 68px',
+          padding: '54px 64px',
           backgroundColor: '#090a10',
+          backgroundImage:
+            'radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.2) 0%, transparent 50%), radial-gradient(circle at 15% 85%, rgba(168, 85, 247, 0.18) 0%, transparent 45%)',
           position: 'relative',
           fontFamily: 'system-ui, -apple-system, sans-serif',
           color: '#ffffff',
           overflow: 'hidden',
+          boxSizing: 'border-box',
         }}
       >
-        {/* Background poster/backdrop with gradient dark overlay */}
-        {bgImage && (
-          <img
-            src={bgImage}
-            alt=""
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              opacity: 0.18,
-            }}
-          />
-        )}
-
-        {/* Gradient Overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(135deg, rgba(9, 10, 16, 0.94) 0%, rgba(9, 10, 16, 0.85) 50%, rgba(15, 23, 42, 0.95) 100%)',
-          }}
-        />
-
         {/* Subtle decorative outer line */}
         <div
           style={{
@@ -136,23 +103,24 @@ export default async function UniverseOGImage({ params }: Props) {
           }}
         />
 
-        {/* Top Header */}
+        {/* Left Column: Details */}
         <div
           style={{
             display: 'flex',
-            alignItems: 'center',
+            flexDirection: 'column',
             justifyContent: 'space-between',
-            width: '100%',
-            position: 'relative',
-            zIndex: 1,
+            height: '100%',
+            flex: 1,
+            paddingRight: posterImage ? '40px' : '0px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Top Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div
               style={{
-                width: '46px',
-                height: '46px',
-                borderRadius: '13px',
+                width: '42px',
+                height: '42px',
+                borderRadius: '12px',
                 background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
                 display: 'flex',
                 alignItems: 'center',
@@ -162,15 +130,15 @@ export default async function UniverseOGImage({ params }: Props) {
             >
               <div
                 style={{
-                  width: '22px',
-                  height: '22px',
+                  width: '20px',
+                  height: '20px',
                   borderRadius: '50%',
                   border: '3px solid #ffffff',
                 }}
               />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.02em' }}>Lore</span>
+              <span style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em' }}>Lore</span>
               <span
                 style={{
                   fontSize: '11px',
@@ -185,149 +153,141 @@ export default async function UniverseOGImage({ params }: Props) {
             </div>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '8px 18px',
-              borderRadius: '9999px',
-              backgroundColor: 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              fontSize: '14px',
-              color: 'rgba(255, 255, 255, 0.8)',
-              fontWeight: 500,
-            }}
-          >
-            univrs.vercel.app
-          </div>
-        </div>
-
-        {/* Center: Main Universe Content */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            maxWidth: '1020px',
-            position: 'relative',
-            zIndex: 1,
-            marginTop: '16px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span
-              style={{
-                fontSize: '13px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.12em',
-                color: '#a855f7',
-                backgroundColor: 'rgba(168, 85, 247, 0.15)',
-                padding: '6px 14px',
-                borderRadius: '9999px',
-                border: '1px solid rgba(168, 85, 247, 0.3)',
-              }}
-            >
-              Universe Timeline
-            </span>
-
-            {itemCount > 0 && (
+          {/* Main Universe Info */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '720px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span
                 style={{
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: '#93c5fd',
-                  backgroundColor: 'rgba(59, 130, 246, 0.12)',
-                  padding: '6px 14px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                  color: '#a855f7',
+                  backgroundColor: 'rgba(168, 85, 247, 0.15)',
+                  padding: '5px 12px',
                   borderRadius: '9999px',
-                  border: '1px solid rgba(59, 130, 246, 0.25)',
+                  border: '1px solid rgba(168, 85, 247, 0.3)',
                 }}
               >
-                {itemCount} Tracked Entries
+                Universe Timeline
               </span>
-            )}
-          </div>
 
-          <h1
-            style={{
-              fontSize: universeName.length > 30 ? '54px' : '64px',
-              fontWeight: 900,
-              lineHeight: 1.08,
-              letterSpacing: '-0.03em',
-              margin: 0,
-              background: 'linear-gradient(180deg, #ffffff 30%, rgba(255, 255, 255, 0.75) 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            {universeName}
-          </h1>
-
-          <p
-            style={{
-              fontSize: '20px',
-              lineHeight: 1.45,
-              color: 'rgba(255, 255, 255, 0.72)',
-              margin: 0,
-              maxWidth: '920px',
-            }}
-          >
-            {cleanDescription}
-          </p>
-        </div>
-
-        {/* Bottom Bar: Timeline features and pill indicators */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            position: 'relative',
-            zIndex: 1,
-            paddingTop: '20px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {mediaTypes.length > 0 ? (
-              mediaTypes.map((type) => (
+              {itemCount > 0 && (
                 <span
-                  key={type}
                   style={{
                     fontSize: '12px',
                     fontWeight: 600,
-                    letterSpacing: '0.06em',
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    color: '#93c5fd',
+                    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                    padding: '5px 12px',
+                    borderRadius: '9999px',
+                    border: '1px solid rgba(59, 130, 246, 0.25)',
                   }}
                 >
-                  {type}
+                  {itemCount} Tracked Entries
                 </span>
-              ))
-            ) : (
-              <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)' }}>
-                Release Order • Chronological Order • Spin-offs
-              </span>
-            )}
+              )}
+            </div>
+
+            <h1
+              style={{
+                fontSize: universeName.length > 28 ? '46px' : '56px',
+                fontWeight: 900,
+                lineHeight: 1.1,
+                letterSpacing: '-0.03em',
+                margin: 0,
+                color: '#ffffff',
+              }}
+            >
+              {universeName}
+            </h1>
+
+            <p
+              style={{
+                fontSize: '18px',
+                lineHeight: 1.45,
+                color: 'rgba(255, 255, 255, 0.72)',
+                margin: 0,
+              }}
+            >
+              {cleanDescription}
+            </p>
           </div>
 
+          {/* Bottom Bar */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              fontSize: '14px',
-              color: '#818cf8',
-              fontWeight: 600,
+              justifyContent: 'space-between',
+              paddingTop: '16px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
             }}
           >
-            <span>Complete Order & Progress</span>
-            <span style={{ fontSize: '16px' }}>→</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {mediaTypes.length > 0 ? (
+                mediaTypes.map((type) => (
+                  <span
+                    key={type}
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      letterSpacing: '0.06em',
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      padding: '3px 9px',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                    }}
+                  >
+                    {type}
+                  </span>
+                ))
+              ) : (
+                <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)' }}>
+                  Chronological Order & Progress
+                </span>
+              )}
+            </div>
+
+            <span
+              style={{
+                fontSize: '13px',
+                color: 'rgba(255, 255, 255, 0.65)',
+                fontWeight: 500,
+              }}
+            >
+              univrs.vercel.app
+            </span>
           </div>
         </div>
+
+        {/* Right Column: Framed Poster */}
+        {posterImage && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '280px',
+              height: '100%',
+              flexShrink: 0,
+            }}
+          >
+            <img
+              src={posterImage}
+              alt=""
+              style={{
+                width: '270px',
+                height: '405px',
+                objectFit: 'cover',
+                borderRadius: '16px',
+                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(99, 102, 241, 0.15)',
+                border: '1px solid rgba(255, 255, 255, 0.16)',
+              }}
+            />
+          </div>
+        )}
       </div>
     ),
     {
